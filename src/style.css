@@ -544,3 +544,5 @@ table.sweep{border-collapse:collapse;width:100%;font-size:13px}
 .uhp.low{background:var(--s8)}
 .su.gone .ava,.pc.gone .ava{filter:grayscale(1);opacity:.4}
 .tag.bad{color:var(--s8);border-color:currentColor}.tag.ok{color:var(--s3);border-color:currentColor}
+ul.plain ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+ul.plain ul li::before{width:4px;height:1px;top:.75em}

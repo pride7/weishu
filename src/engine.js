@@ -306,7 +306,7 @@ function worldErode(W,e,q,v,by){
   e.brT=q; e.brF=0; e.brEnd=W.f+Math.round(EL[q].dur*30/(1+spd/100));
   if(q==='w')e.defDn+=120;
   for(const a of W.agents) if(W.inRange(a,e)) a.noteBurst();
-  if(EL[q].dmg) for(const [a,sh] of e.brShare) a.add('extra',EL[q].dmg*sh,e);
+  if(EL[q].dmg) for(const [a,sh] of e.brShare) a.add('extra',EL[q].dmg*sh,e,'e');
   if(q==='n')worldPalsy(W,e,3);
   for(const a of W.agents) a.onBurst(e,q);
 }
@@ -322,7 +322,7 @@ function worldSecond(W){
   const te=W.teamEp; if(te) for(const e of W.enemies) if(!e.dead) for(const q in te) if(te[q]>0&&EL[q]) worldErode(W,e,q,te[q],null);
   for(const e of W.enemies) if(!e.dead&&W.f<e.brEnd){ e.brF++;
     const d=e.brT==='d'?800:e.brT==='a'?Math.min(2110,160+130*e.brF):0;
-    if(d) for(const [a,sh] of e.brShare) a.add('extra',d*sh,e); }
+    if(d) for(const [a,sh] of e.brShare) a.add('extra',d*sh,e,'e'); }
 }
 // 敌人发动一次普通攻击：有麻痹时被打断并消耗一层
 function worldEnemyAttack(W,e){
@@ -419,14 +419,15 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(op.killAp)p+=V(op.killAp.v,k)*Math.min(V(op.killAp.max,k),kills);
     const kb=op.killAtk?V(op.killAtk.v,k)*Math.min(V(op.killAtk.max,k),kills):0;
     if(fxLive)p+=fxD('atk');
-    return (baseAtk+kb+(on?tf.base||0:0))*(1+p/100);};
+    return (baseAtk+kb+(on?tf.base||0:0))*(1+p/100)*(W.atkMul?W.atkMul(A):1);};
   const flagMul=()=>{ if(!E.flag)return 1; const t=W.f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
   x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0)+fxD('aspd');
     if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(W.f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
     if(sgDur){ let n=0; for(const e of S.sg) if(e>W.f) n++; a+=Math.min(300,12*(n+cfg.sargRate*sgDur)); }
-    a=Math.max(10,Math.min(600,a));
+    const em=W.aspdMod?W.aspdMod(A):null; if(em) a+=em.add;
+    a=Math.max(10,Math.min(600,a)); if(em&&em.mul!==1) a=Math.max(10,a*em.mul);   // 敌人的攻速削弱：加减先算，直接乘算的最后算
     return Math.max(0.1,(op.bat+(b.batAdd||0))*(b.batMul||1))/(a/100); };
-  const add=(g,d,e)=>{ if(dead||!e)return; const got=W.deal(A,e,d); parts[g]+=got; dealt+=got; if(e.main)main+=got; if(sec)sec[Math.min(sec.length-1,Math.floor(W.f/30))]+=got; };
+  const add=(g,d,e,t)=>{ if(dead||!e)return; const got=W.deal(A,e,d,t); parts[g]+=got; dealt+=got; if(e.main)main+=got; if(sec)sec[Math.min(sec.length-1,Math.floor(W.f/30))]+=got; };
   A.add=add; A.killed=()=>{kills++;};
   x.defDown=i=>{ const e=R(i); return e?e.defDn:0; };
   x.inBr=(i,q)=>{ const e=R(i); return !!e&&inBurst(W,e,q); };
@@ -453,12 +454,12 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(brDm!==1&&inBurst(W,e))d*=brDm;
     // dmBoss：[倍率, 秒]，领袖在场若干秒后受到本干员的伤害提高（蕾缪安的“通缉”）
     if(op.dmBoss&&e.boss&&W.f>=op.dmBoss[1]*30)d*=V(op.dmBoss[0],k);
-    add(g,d*w,e);
+    add(g,d*w,e,t==='t'||t==='e'?t:o.fixed!=null?'m':t==='p'||t==='m'?t:undefined);
     if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
     if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(e,d*w*V(op.epAll.r,k),op.epAll.t);
-    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fxDm()*fm*w,e); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
-    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*fxDm()*w,e); if(cfg.indirect)proc(e,w,Atk);}
+    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fxDm()*fm*w,e,E.xt&&!E.xm?'t':'m'); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
+    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*fxDm()*w,e,'m'); if(cfg.indirect)proc(e,w,Atk);}
     if(!o.indirect||cfg.indirect)proc(e,w,Atk);
     return d*w; };
   x.poison=(i,dur)=>{ const e=R(i); if(!e)return; const s=my(e); if(s.poiEnd<W.f)s.poiF=0; s.poiEnd=W.f+(dur||93); };
@@ -486,10 +487,11 @@ function makeAgent(op0, elite, cfg, sel, W){
   A.fall=()=>{ S.skillOn=false; S.skillLeft=0; S.units=[]; S.q=[]; S.ticks=[]; S.ammo=0; };
   A.redeploy=()=>{ Object.assign(S,{sp:sp0,skillOn:false,skillLeft:0,atkT:0,lock:0,hold:0,delay:0,skT:0,skAtk:0,units:[],q:[],ticks:[],ammo:0}); };
   A.skillOn=()=>S.skillOn;
+  A.atkNow=()=>atkNow();
   A.buffs=buffs;
   A.dead=dead;
   // 一帧的前半：技能、技力、攻击、模型逐帧逻辑
-  A.stepA=()=>{ const f=W.f; tl=dead?[]:W.targets(A);
+  A.stepA=()=>{ const f=W.f; const cc=W.cc?W.cc(A):null; tl=dead||(cc&&cc.noAtk)?[]:W.targets(A);
     if(onArr&&S.skillOn)onArr[Math.min(onArr.length-1,Math.floor(f/30))]=1;
     if(S.skillOn){ S.skT+=dt; if(S.skillLeft!==Infinity){S.skillLeft-=dt;if(S.skillLeft<=0)endSkill();} }
     const spGain=dt*(1+E.sp+(m.spBonus?m.spBonus(x):0)+(tfOn()?tf.sp||0:0));
@@ -498,7 +500,7 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(op.spT&&sk&&sk.type==='attack'&&!S.skillOn) S.sp+=dt*op.spT;
     if(S.lock>0)S.lock-=dt;
     // 什么时候放技能：单人计算里目标一直在范围内；队伍模拟按游戏的技能操作方案（W.canCast）
-    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0&&(W.canCast?W.canCast(A):tl.length>0))cast();
+    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0&&!(cc&&cc.noCast)&&(W.canCast?W.canCast(A):tl.length>0))cast();
     for(let j=S.q.length-1;j>=0;j--)if(S.q[j].at<=f){const e=S.q.splice(j,1)[0];e.fn();}
     S.atkT-=dt;
     if(S.atkT<=0&&S.lock<=0&&tl.length>0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;

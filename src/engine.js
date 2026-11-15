@@ -146,6 +146,11 @@ function gen(op){
     if(op.brAtk){ for(let i=0;i<x.N;i++) if(x.inBr(i,op.brAtk.t)){ b.atk+=V(op.brAtk.atk,k); break; } }
     if(op.onBr&&S.brBuff>x.f) b.atk+=V(op.onBr.atk,k)||0;
     if(op.brStack&&S.brN){ b.atk+=S.brN*V(op.brStack.atk,k); if(S.brN>=op.brStack.max) b.aspd+=V(op.brStack.aspd,k)||0; }
+    // apAt：[攻击力%, 秒]，开战（在场）若干秒后才生效的天赋
+    if(op.apAt&&x.f>=V(op.apAt[1],k)*30) b.atk+=V(op.apAt[0],k)||0;
+    // apStep / aspdStep：[每层, 每多少秒一层, 最多层数]，随在场时间叠加
+    if(op.apStep) b.atk+=V(op.apStep[0],k)*Math.min(op.apStep[2],Math.floor(x.f/30/op.apStep[1]));
+    if(op.aspdStep) b.aspd+=V(op.aspdStep[0],k)*Math.min(op.aspdStep[2],Math.floor(x.f/30/op.aspdStep[1]));
     if(!isOn(x)) return b;
     const two=S.casts>=2, d=Math.max(1,V(s.d,k));
     let a=(two&&s.atk2)?V(s.atk2,k):(V(s.atk,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
@@ -155,9 +160,12 @@ function gen(op){
     let sp=(V(s.aspd,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.aspdDecay) sp*=Math.max(0,1-S.skT/d);
     if(s.rampAspd) sp+=V(s.rampAspd[0],k)*Math.min(V(s.rampAspd[1],k),S.skAtk);
+    // stepAspd：每用过一次技能，之后开启时攻速再加一层
+    if(s.stepAspd) sp+=V(s.stepAspd[0],k)*Math.min(s.stepAspd[1],Math.max(0,S.casts-1));
     b.aspd+=sp;
     if(s.bm) b.batMul=V(s.bm,k); if(s.ba) b.batAdd=V(s.ba,k);
     if(s.dm) b.dm=V(s.dm,k); if(s.resMul) b.resMul=V(s.resMul,k); if(s.defMul) b.defMul=V(s.defMul,k);
+    if(s.resF) b.resF=V(s.resF,k);   // 技能期间无视固定法抗
     return b; };
   M.can=x=>{ const on=isOn(x);
     if(s&&s.stop&&on) return false;
@@ -181,7 +189,9 @@ function gen(op){
     const xhs=[]; if(op.xh) xhs.push(op.xh); if(u&&u.xh) xhs.push(u.xh);
     const n=Math.min(N,tg);
     if(u&&u.epBoost){ S.epBoost=x.f+Math.round(V(u.epBoost.dur,k)*30); S.epBoostMul=V(u.epBoost.mul,k); }
-    for(let i=0;i<n;i++){ let c=sc;
+    // crowd：[倍率, 人数]，一次打到的敌人不少于这个数时整次攻击的攻击力提高
+    const crowd=op.crowd&&n>=op.crowd[1]?V(op.crowd[0],k):1;
+    for(let i=0;i<n;i++){ let c=sc*crowd;
       if(i===0&&op.sc0) c*=V(op.sc0,k);
       if(i>0&&op.splash) c*=V(op.splash,k);
       if(i>0&&op.chain) c*=Math.pow(V(op.chain,k),i);
@@ -199,11 +209,16 @@ function gen(op){
       if(op.shock){ const ns=V(op.shock[0],k)+((u&&u.shockAdd)||0); for(let j=0;j<ns;j++) x.hit(i,'p',c*op.shock[1],'direct',o); }
       if(op.xf) x.hit(i,'m',0,'extra',{fixed:V(op.xf,k)*hits,indirect:true,noArc:true});
       for(const e of xhs){ if(e.until&&x.f>=e.until*30) continue;
+        // emit：每次攻击按概率对范围内若干个（随机）目标追加伤害，xf 是每份追加附带的固定法伤期望
+        if(e.emit){ const m=Math.min(N,V(e.emit,k)||1); for(let j=0;j<m;j++){ x.hit(j,e.ty||'m',V(e.sc,k),'extra',{indirect:true,noArc:true});
+            if(e.xf) x.hit(j,'m',0,'extra',{fixed:V(e.xf,k),indirect:true,noArc:true}); } continue; }
         if(i>=((u&&u.xhTg)||e.tg||99)) continue;
         const es=V(e.sc,k)*((u&&V(u.xhMul,k))||1); if(es) x.hit(i,e.ty||'m',es,'extra',{w:hx*(e.perHit?hits:1),indirect:true,noArc:true}); }
       if(op.dot) x.poison(i,Math.round(op.dot.dur*30)+3);
     }
     if(next&&s.burst) bursts(x);
+    // spHit：技能外普攻后额外回技力（boss:1 只在主目标是精英/领袖时）；目标被这次攻击击倒时不回
+    if(op.spHit&&!on&&V(op.spHit.v,k)){ const e=x.byUid(x.uid(0)); if(e&&!e.dead&&(!op.spHit.boss||e.boss)) S.sp+=V(op.spHit.v,k); }
     if(on&&s.ammo){ S.ammo--; if(S.ammo<=0) x.endSkill(); }
     if(op.hunter){ if(S.hA==null) S.hA=8; S.hA--; if(S.hA<=0){ S.delay=op.bat; S.hA=1+(k?1:0); } }
   };
@@ -212,7 +227,11 @@ function gen(op){
     else x.hit(i,'m',V(op.dot.sc,x.k)*mul,'extra',{indirect:true,noArc:true}); };
   const pushTick=(x,t,dur,only)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1,ep:t.ep,brX:t.brX,brTy:t.brTy,only});
   const bursts=x=>{ const k=x.k; for(const b of (s.burst||[])){ const n=V(b.n,k)||1;
-      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
+      for(let h=0;h<n;h++){ const fire=()=>{
+          // rot：每一发依次落在不同敌人身上（中心倍率），outer 是同一次轰炸对其余敌人的外圈倍率
+          if(b.rot){ if(!x.N) return; const j=h%x.N; x.hit(j,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0});
+            if(b.outer) for(let i=0;i<x.N;i++) if(i!==j) x.hit(i,b.ty,V(b.outer,k),'direct',{defPct:b.igP||0}); return; }
+          const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
             if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||{}; const u=x.uid(i); x.S.dot[u]=Math.max(x.S.dot[u]||0,V(b.brDot,k)); }
             const d=x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); if(b.ep)x.erode(i,d*V(b.ep.r,k),b.ep.t); } };
         const at=(b.at||0)+(b.gap||0)*h; if(at>0) x.later(at,fire); else fire(); } } };
@@ -391,7 +410,10 @@ function makeAgent(op0, elite, cfg, sel, W){
   const tfOn=()=>!tf.dur||W.f<tf.dur*30;
   const atkNow=()=>{const on=tfOn();let p=sPct+(on?tf.atk||0:0)+(buffs().atk||0);
     if(E.castAtk)p+=Math.min(E.castAtk[1],E.castAtk[0]*S.castN); if(E.skAtk&&S.skillOn)p+=E.skAtk;
-    return (baseAtk+(on?tf.base||0:0))*(1+p/100);};
+    // killAtk / killAp：击倒敌人后叠基础攻击力 / 攻击力%（只有队伍模拟里敌人会倒下）
+    if(op.killAp)p+=V(op.killAp.v,k)*Math.min(V(op.killAp.max,k),kills);
+    const kb=op.killAtk?V(op.killAtk.v,k)*Math.min(V(op.killAtk.max,k),kills):0;
+    return (baseAtk+kb+(on?tf.base||0:0))*(1+p/100);};
   const flagMul=()=>{ if(!E.flag)return 1; const t=W.f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
   x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0);
     if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(W.f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
@@ -411,7 +433,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(sixC('iberia')&&tl.length>=2){ const nx=W.nextOf(A,e); if(nx)add('bond',0.2*3*Atk*rm0(nx)*w,nx); } };
   x.hit=(i,type,scale,g,o={})=>{ const e=R(i); if(!e||e.dead)return 0;
     const b=buffs(), Atk=atkNow(), w=o.w==null?1:o.w, t=type[0];
-    const rm=1-Math.min(100,Math.max(0,resOf(e)*Math.min(b.resMul||1,e.mRes)-(inBurst(W,e,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
+    if(op.flySc&&e.fly) scale*=V(op.flySc,k);   // 攻击空中目标时攻击力提高（只有队伍模拟里有空中敌人）
+    const rm=1-Math.min(100,Math.max(0,resOf(e)*Math.min(b.resMul||1,e.mRes)-(inBurst(W,e,'f')?20:0)-(b.resF||0)))/100;   // 灼燃爆发期间法抗 −20
     const ph=()=>{const df=Math.max(0,defOf(e)*Math.min(b.defMul||1,e.mDef)-e.defDn-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(Atk*scale-df,Atk*scale*0.05);};
     const mg=()=>Math.max(Atk*scale*rm,Atk*scale*0.05);
     let d;
@@ -422,6 +445,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     const fm=flagMul();
     d*=dmMul*(b.dm||1)*fm;
     if(brDm!==1&&inBurst(W,e))d*=brDm;
+    // dmBoss：[倍率, 秒]，领袖在场若干秒后受到本干员的伤害提高（蕾缪安的“通缉”）
+    if(op.dmBoss&&e.boss&&W.f>=op.dmBoss[1]*30)d*=V(op.dmBoss[0],k);
     add(g,d*w,e);
     if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）

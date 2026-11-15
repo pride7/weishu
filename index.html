@@ -883,11 +883,11 @@ const OPS_MORE = [
   extra:'全场有敌人灼燃损伤爆发时，立即对其造成 350%/420% 攻击力元素伤害（精锐：之后 10 秒攻击力 +10%）；精锐模组：对元素爆发期间的敌人伤害 ×110%',
   skill:'众恶的焚场（37/34 技力，18/21 发弹药）：攻击力 +70%/+85%，攻击间隔 −1.3 秒，群体攻击；目标处于灼燃损伤爆发期间时额外造成 60%/70% 攻击力元素伤害，全场每有敌人进入灼燃爆发获得 2 发弹药',
   model:'这个技能自己不造成灼燃损伤，要靠队友（余、塔露拉、【炎】6 人效果等）把敌人打进灼燃爆发：打开 6 人效果，或在参数栏“队友的元素损伤”里填灼燃损伤。她的 1、2 技能自己就能造成灼燃损伤。'},
- {id:'dusk',name:'夕',tier:'Ⅵ',cls:'术师 · 扩散术师',bonds:['炎','奥术'],r:1,atk:[771,948],bat:2.9,aspd:[100,100],ty:'m',tg:9,
+ {id:'dusk',name:'夕',tier:'Ⅵ',cls:'术师 · 扩散术师',bonds:['炎','奥术'],r:1,atk:[771,948],bat:2.9,aspd:[100,100],ty:'m',tg:9,killAp:{v:2,max:[15,21]},
   sk:{t:'time',c:[47,44],i:[15,15],d:[17,18],atk:[29,40],aspd:[29,40],dm:[1.1,1.125]},
   trait:'休整期结束时，本回合每获得一名干员，【炎】【奥术】层数 +2/+4（每回合至多 24/48）',
   skill:'泼墨淋漓（47/44 技力，17/18 秒）：攻击力 +29%/+40%，攻速 +29/+40，对半血以下敌人伤害 ×1.2/×1.25',
-  model:'群体法伤。击杀叠攻击力（每层 2%）和“小自在”未计入；半血加伤按一半时间生效。'},
+  model:'群体法伤。击杀叠攻击力（每层 2%，至多 15/21 层）只在队伍模拟里计入（单人计算的目标不会倒下）；“小自在”未计入；半血加伤按一半时间生效。'},
  {id:'qiubai',name:'仇白',tier:'Ⅳ',cls:'近卫 · 领主',bonds:['炎','灵巧'],atk:[581,707],bat:1.3,aspd:[100,105],blk:2,lord:1,xh:{ty:'m',sc:[0.1,0.2]},
   sk:{t:'time',c:[61,58],i:[34,38],d:30,atk:[30,40],ty:'m',tg:3,noPen:1,rampAspd:[[10,13],[5,6]]},
   trait:'获得时【炎】【灵巧】层数 +6/+12',
@@ -936,11 +936,11 @@ const OPS_MORE = [
   extra:'场上敌人触发麻痹时立即受到 135%/160% 攻击力元素伤害，且有 10%/15% 概率不消耗麻痹层数；精锐模组：对元素爆发期间的敌人伤害 ×110%',
   skill:'无言为真（52/46 技力，40 秒）：攻击力 +170%/+210%，同时攻击 2 个目标；范围内敌人麻痹上限降为 2，范围内干员开技能时（含自己，至多 3 次）敌人获得 2 层麻痹，每超出上限 1 层在目标和另一名敌人间跳跃一次 110%/145% 攻击力元素伤害',
   model:'麻痹在敌人普通攻击时触发（打断这次攻击，消耗一层），触发快慢取决于参数栏的“敌人攻击间隔”。队友开技能的频率用【萨尔贡】参数里的“队友每秒开技能次数”。这个技能自己不造成神经损伤；队友把敌人打进神经爆发会再给 3 层麻痹。'},
- {id:'pepe',name:'佩佩',tier:'Ⅴ',cls:'近卫 · 撼地者',bonds:['萨尔贡','灵巧'],atk:[1083,1307],bat:1.8,aspd:[100,100],blk:2,tg:9,splash:0.5,ap:16,
+ {id:'pepe',name:'佩佩',tier:'Ⅴ',cls:'近卫 · 撼地者',bonds:['萨尔贡','灵巧'],atk:[1083,1307],bat:1.8,aspd:[100,100],blk:2,tg:9,splash:0.5,ap:16,crowd:[[1,1.15],3],
   sk:{t:'time',c:[57,51],i:[30,32],d:40,atk:[150,180],ba:0.2,rampAtk:[[13,16],4]},
   trait:'周围八格每有敌人或干员进入沉睡/眩晕，自身及身后一格干员已激活的盟约层数 +1/+2（每回合至多 9/18）',
   skill:'时光震荡（57/51 技力，40 秒）：攻击力 +150%/+180%，每次攻击再 +13%/+16%（至多 4 层），攻击间隔 +0.2 秒',
-  model:'主目标 100%，周围敌人 50% 溅射；天赋给近卫的攻击力 +16% 已计入自身。'},
+  model:'主目标 100%，周围敌人 50% 溅射；精锐模组在一次打到 ≥3 个敌人时攻击力 ×1.15；天赋给近卫的攻击力 +16% 已计入自身。'},
  {id:'hongxue',name:'鸿雪',tier:'Ⅴ',cls:'狙击 · 重射手',bonds:['萨尔贡','精准'],r:1,atk:[674,888],bat:1.6,aspd:[100,100],
   sk:{t:'time',c:[11,10],i:[3,6],d:0,burst:[{ty:'p',sc:[1.8,2],n:3,tg:9}]},
   trait:'每次开启技能，【萨尔贡】【精准】层数 +4/+8（每回合至多 16/32）',
@@ -1023,16 +1023,16 @@ const OPS_MORE = [
  // ───── 谢拉格 ─────
  {id:'degenbrecher',name:'锏',tier:'Ⅵ',cls:'近卫 · 剑豪',bonds:['卡西米尔','谢拉格','莱塔尼亚'],atk:[495,638],bat:1.3,aspd:[100,100],blk:2,hits:2,sc:[1.06,1.07],igP:0.14,
   tf:(k,ly)=>({sp:Math.floor((ly('卡西米尔')+ly('谢拉格')+ly('莱塔尼亚'))/(k?3:6))*0.01}),
-  sk:{t:'time',c:[35,33],i:[10,15],d:4,stop:1,burst:[{ty:'p',sc:[2.88,3.74],n:10,tg:[5,6],at:0.3,gap:0.3,igP:0.25},{ty:'p',sc:[4.8,5.61],tg:[5,6],at:3.6,igP:0.25}]},
+  sk:{t:'time',c:[35,33],i:[10,15],d:4,stop:1,dm:[1,1.1],burst:[{ty:'p',sc:[2.88,3.74],n:10,tg:[5,6],at:0.3,gap:0.3,igP:0.25},{ty:'p',sc:[4.8,5.61],tg:[5,6],at:3.6,igP:0.25}]},
   trait:'【卡西米尔】【谢拉格】【莱塔尼亚】每叠加 6/3 层，技力回复 +0.01/秒，生命上限 +1%',
   skill:'归于宁静（35/33 技力）：10 次 180%/200% 斩击（至多 5/6 个目标）+ 一次 300%，期间天赋必定触发',
   model:'技能期间每段都吃到天赋的攻击力 ×1.6/×1.7 和无视 25% 防御；精锐模组技能伤害 +10%。'},
  {id:'pramanix2',name:'圣聆初雪',tier:'Ⅴ',cls:'术师 · 阵法术师',bonds:['谢拉格','奥术'],r:1,atk:[718,846],bat:2.0,aspd:[100,100],ty:'m',tg:9,idle:1,
   fx:(k,c)=>({dm:k?1+0.03*Math.min(c.N,5):1}),
-  sk:{t:'time',c:[56,53],i:[30,35],d:35,atk:[35,70],aspd:[30,30],sc:[1.8,2.1]},
+  sk:{t:'time',c:[56,53],i:[30,35],d:35,atk:[35,70],aspd:[30,30],sc:[1.8,2.1],resF:10},
   trait:'范围内每有敌人冻结，自身回复 1/2 点技力，【谢拉格】层数 +1/+2（每回合至多 24/48）',
   skill:'群山俯首（56/53 技力，35 秒）：攻击力 +35%/+70%，攻速 +30，每次攻击 180%/210% 群体法伤',
-  model:'技能外不攻击；积雪的 75% 法伤和冻结回技力未计入。'},
+  model:'技能外不攻击；技能期间无视 10 法抗；积雪的 75% 法伤和冻结回技力未计入。'},
  {id:'silverash2',name:'凛御银灰',tier:'Ⅴ',cls:'先锋 · 策士',bonds:['谢拉格','灵巧','投资人'],atk:[507,621],bat:1.2,aspd:[100,100],blk:2,
   sk:{t:'time',c:[55,55],i:[39,42],d:48,sc:[1.4,1.7],tg:9,dm:[1.2,1.25]},
   trait:'身前一格【谢拉格】【灵巧】干员每场战斗的叠层上限 +75%/+150%',
@@ -1064,11 +1064,11 @@ const OPS_MORE = [
   trait:'对每名敌人首次造成伤害时使其寒冷 2/4 秒',skill:'抗寒体质：只加生存',model:'只有普攻。'},
 
  // ───── 阿戈尔 ─────
- {id:'ulpianus',name:'乌尔比安',tier:'Ⅴ',cls:'近卫 · 重剑手',bonds:['阿戈尔'],atk:[1317,1568],bat:2.5,aspd:[100,100],blk:2,tg:2,
+ {id:'ulpianus',name:'乌尔比安',tier:'Ⅴ',cls:'近卫 · 重剑手',bonds:['阿戈尔'],atk:[1317,1568],bat:2.5,aspd:[100,100],blk:2,tg:2,killAtk:{v:30,max:9},
   tf:(k,ly)=>({atk:Math.floor(ly('阿戈尔')/(k?10:20)),dur:30}),
   sk:{t:'time',c:[29,28],i:[10,15],d:25,atk:[200,230],burst:[{ty:'p',sc:[1.35,1.4],tg:9}]},
   trait:'部署时【阿戈尔】每叠加 20/10 层，自身及周围四格干员攻击力 +1%，持续 30 秒',
-  skill:'必须开辟的通路（29/28 技力，25 秒）：攻击力 +200%/+230%，船锚造成 135%/140% 群体物理伤害',model:'击倒敌人叠攻击力（每次 +30）未计入。'},
+  skill:'必须开辟的通路（29/28 技力，25 秒）：攻击力 +200%/+230%，船锚造成 135%/140% 群体物理伤害',model:'击倒敌人叠攻击力（每次 +30，至多 9 次）只在队伍模拟里计入；给其他深海猎人的一半效果未计入。'},
  {id:'clemensa',name:'克莱门莎',tier:'Ⅵ',cls:'近卫 · 本源近卫',bonds:['阿戈尔'],atk:[763,867],bat:1.2,aspd:[100,100],blk:2,
   tf:(k,ly)=>({epCd:Math.floor(ly('阿戈尔')/(k?10:20))}),
   trait:'战斗开始时【阿戈尔】每叠加 20/10 层，全场敌人侵蚀损伤冷却恢复速度 +1%',
@@ -1313,7 +1313,7 @@ const ALT = {
    model:'神经损伤累计满时敌人受到 6000 点元素伤害并获得 3 层麻痹；之后敌人每次普通攻击被打断并消耗一层，同时触发她的天赋（135%/160% 攻击力元素伤害）。麻痹触发的快慢取决于参数栏的“敌人攻击间隔”。'}]},
  pepe:{def:3,list:[
   {no:1,name:'盖戳！',sk:{t:'next',src:'time',c:[7,6],i:[0,0],sc:[1.9,2.3]},text:'7/6 技力：下次攻击 190%/230% 物理伤害'},
-  {no:2,name:'阻遏混乱锤',sk:{t:'time',c:[34,28],i:[14,16],d:18,atk:[55,70],aspd:[62,85]},text:'34/28 技力，18 秒：攻击力 +55%/+70%，攻速 +50/+70（后续每次再 +25/+30，至多 2 层，取平均）'}]},
+  {no:2,name:'阻遏混乱锤',sk:{t:'time',c:[34,28],i:[14,16],d:18,atk:[55,70],aspd:[50,70],stepAspd:[[25,30],2]},text:'34/28 技力，18 秒：攻击力 +55%/+70%，攻速 +50/+70；之后每次开启再 +25/+30，至多 2 层'}]},
  hongxue:{def:2,list:[
   {no:1,name:'抑扬格',sk:{t:'atk',c:[29,25],i:[0,0],d:1,perm:1,atk:[35,50],dm:[1.135,1.18]},text:'攻击 29/25 次充能，永久：攻击力 +35%/+50%，30% 概率当次攻击力 ×1.45/×1.6'},
   {no:3,name:'锐笔速写',sk:{t:'time',c:[42,39],i:[17,19],d:[26,27],ba:-0.6,sc:[1.85,2.15]},text:'42/39 技力，26/27 秒：攻击间隔 −0.6 秒，对正前方 3 格每次攻击 185%/215%'}]},
@@ -1515,9 +1515,9 @@ const OPS_SUB = [
  {id:'mitm',name:'渡桥',tier:'Ⅱ',cls:'先锋 · 战术家',bonds:['远见'],r:1,atk:[391,492],bat:1.0,aspd:[100,100],sc:[1.5,1.65],
   sk:{t:'time',c:[47,44],i:[15,17],d:15,atk:[45,60]},
   trait:'休整期结束时，自身及身前一格干员已激活的盟约层数 +2/+4',skill:'承压功率（47/44 技力，15 秒）：攻击力 +45%/+60%',model:'按目标被援军阻挡计算（攻击力 ×1.5/×1.65）。'},
- {id:'astesia',name:'星极',tier:'Ⅱ',cls:'近卫 · 术战者',bonds:['奇迹'],atk:[516,645],bat:1.25,aspd:[100,100],blk:1,ty:'m',dm:[1,1.1],
+ {id:'astesia',name:'星极',tier:'Ⅱ',cls:'近卫 · 术战者',bonds:['奇迹'],atk:[516,645],bat:1.25,aspd:[100,100],blk:1,ty:'m',dm:[1,1.1],aspdStep:[[3,5],20,5],
   sk:{t:'time',c:[27,24],i:[3,6],d:[11,12],atk:[45,60],tg:2},
-  trait:'只需两名本干员即可合成精锐',skill:'星辉剑（27/24 技力，11/12 秒）：攻击力 +45%/+60%，同时攻击阻挡的所有敌人',model:'在场时间带来的攻速加成未计入。'},
+  trait:'只需两名本干员即可合成精锐',skill:'星辉剑（27/24 技力，11/12 秒）：攻击力 +45%/+60%，同时攻击阻挡的所有敌人',model:'天赋：在场每 20 秒攻速 +3/+5，至多 5 层。'},
  {id:'sideroca',name:'铸铁',tier:'Ⅱ',cls:'近卫 · 术战者',bonds:['突袭'],atk:[485,608],bat:1.25,aspd:[100,100],blk:1,ty:'m',dm:[1,1.1],
   trait:'休整期结束时【突袭】层数 +3/+6',skill:'生命回复·γ型：只回血',model:'只有普攻。'},
  {id:'astgenne',name:'星源',tier:'Ⅱ',cls:'术师 · 链术师',bonds:['助力'],r:1,atk:[505,641],bat:2.3,aspd:[100,100],ty:'m',tg:[3,4],chain:[0.85,1],
@@ -1549,9 +1549,9 @@ const OPS_SUB = [
   tf:(k,ly)=>({atk:Math.floor(ly('迅捷')/3)*(k?2:1)}),
   sk:{t:'next',src:'time',c:[11,10],i:[0,0],sc:[2.2,2.5]},
   trait:'【迅捷】每叠加 3 层，本干员攻击力 +1%/+2%',skill:'惊吓盒子（11/10 技力）：下次攻击改为埋雷，爆炸造成 220%/250% 群体物理伤害并晕眩',model:'地雷按埋下即被踩中计算；天赋“晕眩敌人受物理伤害 +18%”按一半时间生效。'},
- {id:'hoolheyak',name:'霍尔海雅',tier:'Ⅳ',cls:'术师 · 中坚术师',bonds:['奥术','精准'],r:1,atk:[525,637],bat:1.6,aspd:[100,100],ty:'m',
+ {id:'hoolheyak',name:'霍尔海雅',tier:'Ⅳ',cls:'术师 · 中坚术师',bonds:['奥术','精准'],r:1,atk:[525,637],bat:1.6,aspd:[100,100],ty:'m',resF:[0,10],flySc:1.2,
   sk:{t:'time',c:[36,32],i:[21,22],d:16,hits:9,sc:[0.27,0.35]},
-  trait:'每次开启技能，自身已激活的盟约层数 +4/+8（每场战斗至多 12/24）',skill:'群星逶迤（36/32 技力，16 秒）：攻击变为 27%/35% 攻击力的 9 连发',model:'9 发都按打在范围内的目标上计算；每一发都算一次伤害，能多次触发奥术。'},
+  trait:'每次开启技能，自身已激活的盟约层数 +4/+8（每场战斗至多 12/24）',skill:'群星逶迤（36/32 技力，16 秒）：攻击变为 27%/35% 攻击力的 9 连发',model:'9 发都按打在范围内的目标上计算；每一发都算一次伤害，能多次触发奥术。精锐模组无视 10 法抗；攻击空中目标攻击力 ×1.2（队伍模拟）。'},
  {id:'mountain',name:'山',tier:'Ⅳ',cls:'近卫 · 斗士',bonds:['投资人'],atk:[475,584],bat:0.78,aspd:[100,110],blk:1,weak:1,sc:1.12,
   sk:{t:'time',c:[47,44],i:[25,25],d:[26,27],ba:0.7,atk:[55,70],hits:2,tg:3,sc:[1.29,1.33]},
   trait:'造成的伤害变为弱点伤害',skill:'震地碎岩击（47/44 技力，26/27 秒）：攻击力 +55%/+70%，2 连击，攻击周围 3 个敌人，攻击间隔 +0.7 秒',model:'天赋 20%（技能中 48%/55%）概率攻击力 ×1.6 取期望。'},
@@ -1574,8 +1574,8 @@ const OPS_SUB = [
   tf:(k,ly)=>({atk:Math.floor((ly('灵巧')+ly('不屈'))/3)*(k?2:1)}),
   sk:{t:'time',c:[36,35],i:[20,20],d:20,atk:[80,110],aspd:[100,100],dm:2},
   trait:'【灵巧】【不屈】每叠加 3 层，本干员攻击力 +1%/+2%',skill:'灵与欲的惜别（36/35 技力，20 秒）：攻击力 +80%/+110%，攻速 +100，召唤心烛',model:'心烛受到的伤害会同步扣到原敌人身上，技能期间按伤害翻倍估算；攻击附带 5 秒内每秒 200 点法伤。'},
- {id:'saria',name:'塞雷娅',tier:'Ⅴ',cls:'重装 · 守护者',bonds:['坚守','协防干员'],atk:[388,502],bat:1.2,aspd:[100,100],blk:3,ap:10,
-  trait:'身前一格干员若为“休整期结束时”特质，本干员的特质与其相同',skill:'急救：治疗技能，不加伤害',model:'只有普攻；天赋随在场时间涨的攻击力按 +10% 计算。'},
+ {id:'saria',name:'塞雷娅',tier:'Ⅴ',cls:'重装 · 守护者',bonds:['坚守','协防干员'],atk:[388,502],bat:1.2,aspd:[100,100],blk:3,apStep:[5,20,5],
+  trait:'身前一格干员若为“休整期结束时”特质，本干员的特质与其相同',skill:'急救：治疗技能，不加伤害',model:'只有普攻；天赋：在场每 20 秒攻击力 +5%，至多 5 层。'},
  {id:'astgenne2',name:'溯光星源',tier:'Ⅴ',cls:'辅助 · 凝滞师',bonds:['奥术'],r:1,atk:[442,537],bat:1.9,aspd:[118,118],ty:'m',dm:1.12,
   sk:{t:'time',c:[45,40],i:[18,21],d:25,atk:[35,50],ba:-0.7,tg:2},
   trait:'休整期结束时，本回合每消耗 3 资金【奥术】层数 +2/+4（每回合至多 18/36）',skill:'并流连锁（45/40 技力，25 秒）：攻击力 +35%/+50%，攻击间隔 −0.7 秒，锁定 2 个敌人',model:'天赋攻速按叠满 +18、脆弱按 12% 计算；链接传导未计入。'},
@@ -1592,10 +1592,10 @@ const OPS_SUB = [
   sk:{t:'time',c:[100,100],i:[0,0],d:25,hits:7,sc:[0.39,0.45],after:{lock:10}},
   trait:'身前一格干员提升盟约层数时，每次额外 +1/+2',skill:'精神爆发（100 技力，25 秒）：每次攻击变为 39%/45% 攻击力的 7 连发，结束后晕眩 10 秒',model:'天赋“攻击回 2 点技力”折算成技力回复 +1.25/秒。'},
  // ───── Ⅵ 阶 ─────
- {id:'logos',name:'逻各斯',tier:'Ⅵ',cls:'术师 · 中坚术师',bonds:['奥术','远见'],r:1,atk:[556,692],bat:1.6,aspd:[100,100],ty:'m',xh:{ty:'m',sc:[0.24,0.26]},xf:[150,150],lyNeed:['远见'],
+ {id:'logos',name:'逻各斯',tier:'Ⅵ',cls:'术师 · 中坚术师',bonds:['奥术','远见'],r:1,atk:[556,692],bat:1.6,aspd:[100,100],ty:'m',xh:{ty:'m',sc:[0.24,0.26],emit:[1,2],xf:[60,60]},xf:[150,150],resF:10,spHit:{v:[0,1],boss:1},lyNeed:['远见'],
   tf:(k,ly)=>({aspd:Math.floor((ly('奥术')+ly('远见'))/3)*(k?2:1)}),
   sk:{t:'time',c:[45,45],i:[9,18],d:30,atk:[160,220],tg:3},
-  trait:'【奥术】【远见】每叠加 3 层，本干员攻击速度 +1/+2',skill:'延异视阈（45 技力，30 秒）：攻击力 +160%/+220%，同时攻击 3 个目标',model:'天赋 40% 概率追加 60%/65% 法伤取期望；每次命中附带 150 点法伤；减 10 法抗未计入。'},
+  trait:'【奥术】【远见】每叠加 3 层，本干员攻击速度 +1/+2',skill:'延异视阈（45 技力，30 秒）：攻击力 +160%/+220%，同时攻击 3 个目标',model:'天赋 40% 概率对 1/2 个目标追加 60%/65% 法伤取期望（追加的每一下也吃 +150 法伤）；每次命中附带 150 点法伤、目标法抗 −10（只算自己）；精锐模组普攻命中领袖时 +1 技力。'},
  {id:'nymph',name:'妮芙',tier:'Ⅵ',cls:'术师 · 本源术师',bonds:['迅捷','远见'],r:1,atk:[550,700],bat:1.6,aspd:[100,100],ty:'m',
   elem:1,burstDm:[1,1.1],brDot:{t:'d',sc:[0.4,0.4]},brStack:{t:'d',atk:[2,3],max:10,aspd:[0,12]},
   sk:{t:'time',c:[17,14],i:[3,6],d:0,burst:[{ty:'m',sc:[2.7,3],tg:9,ep:{t:'d',r:[0.18,0.22]},brDot:[0.7,0.85]}]},
@@ -1612,10 +1612,10 @@ const OPS_SUB = [
  {id:'mechanist',name:'机械师',tier:'Ⅵ',cls:'重装 · 哨戒铁卫',bonds:['协防干员','坚守'],atk:[425,583],bat:1.2,aspd:[100,100],blk:3,
   sk:{t:'time',c:[43,41],i:[20,22],d:40,atk:[160,220],ba:2.3,ty:'m',sc:[2.2,2.4],tg:9,burst:[{ty:'p',sc:3,tg:9}]},
   trait:'进入休整期时获得一名当前人数最多盟约的干员（初始需同一行有 3 名干员）',skill:'工程学十字星（43/41 技力，40 秒）：攻击力 +160%/+220%，攻击间隔 +2.3 秒，每次攻击 220%/240% 群体法伤',model:'“结构性原理”冲锋的 300% 物理伤害按每次技能一次计算。'},
- {id:'lemuen',name:'蕾缪安',tier:'Ⅵ',cls:'狙击 · 神射手',bonds:['精准'],r:1,atk:[984,1248],bat:2.7,aspd:[100,100],ap:[8,15],
+ {id:'lemuen',name:'蕾缪安',tier:'Ⅵ',cls:'狙击 · 神射手',bonds:['精准'],r:1,atk:[984,1248],bat:2.7,aspd:[100,100],apAt:[[10,18],[20,15]],spHit:{v:[0,1]},dmBoss:[1.15,8],
   tf:(k,ly)=>({sp:Math.floor(ly('精准')/(k?2:4))*0.01}),
-  sk:{t:'time',c:[45,42],i:[26,29],d:3.5,stop:1,burst:[{ty:'p',sc:[3.6,3.9],n:[6,7],tg:1,at:3.5}]},
-  trait:'【精准】每叠加 4/2 层，本干员技力回复 +0.01/秒',skill:'礼炮·强制追思（45/42 技力，5 发弹药）：依次锁定敌人，结束时每发造成 360%/390% 物理伤害',model:'天赋加弹药上限后按 6/7 发计算，单目标时全部打在同一个敌人身上。'},
+  sk:{t:'time',c:[45,42],i:[26,29],d:3.5,stop:1,burst:[{ty:'p',sc:[3.6,3.9],outer:[2.4,2.7],rot:1,n:[6,7],at:3.5}]},
+  trait:'【精准】每叠加 4/2 层，本干员技力回复 +0.01/秒',skill:'礼炮·强制追思（45/42 技力，5 发弹药）：依次锁定敌人，结束时每发造成 360%/390% 物理伤害',model:'天赋加弹药上限后按 6/7 发计算，单目标时全部打在同一个敌人身上，多个敌人时依次轮流锁定（中心 360%/390%，同一轰炸对其余敌人 240%/270%）；在场 20/15 秒后攻击力 +10%/+18%；领袖在范围内 8 秒后被通缉，受到伤害 ×1.15；精锐模组普攻目标未倒下时 +1 技力。'},
  {id:'muelsyse',name:'缪尔赛思',tier:'Ⅵ',cls:'先锋 · 战术家',bonds:['协防干员'],r:1,atk:[407,492],bat:1.0,aspd:[100,100],sc:1.5,
   sk:{t:'time',c:[42,39],i:[10,15],d:15,atk:[22,35]},
   trait:'获得时获得 1/2 个“变形同构体”',skill:'浅层非熵适应（42/39 技力，15 秒）：自身与流形攻击力 +22%/+35%',model:'只算她自己；“流形”复制体的伤害未计入，这是她的主要输出来源，所以这里明显偏低。'},
@@ -1835,6 +1835,11 @@ function gen(op){
     if(op.brAtk){ for(let i=0;i<x.N;i++) if(x.inBr(i,op.brAtk.t)){ b.atk+=V(op.brAtk.atk,k); break; } }
     if(op.onBr&&S.brBuff>x.f) b.atk+=V(op.onBr.atk,k)||0;
     if(op.brStack&&S.brN){ b.atk+=S.brN*V(op.brStack.atk,k); if(S.brN>=op.brStack.max) b.aspd+=V(op.brStack.aspd,k)||0; }
+    // apAt：[攻击力%, 秒]，开战（在场）若干秒后才生效的天赋
+    if(op.apAt&&x.f>=V(op.apAt[1],k)*30) b.atk+=V(op.apAt[0],k)||0;
+    // apStep / aspdStep：[每层, 每多少秒一层, 最多层数]，随在场时间叠加
+    if(op.apStep) b.atk+=V(op.apStep[0],k)*Math.min(op.apStep[2],Math.floor(x.f/30/op.apStep[1]));
+    if(op.aspdStep) b.aspd+=V(op.aspdStep[0],k)*Math.min(op.aspdStep[2],Math.floor(x.f/30/op.aspdStep[1]));
     if(!isOn(x)) return b;
     const two=S.casts>=2, d=Math.max(1,V(s.d,k));
     let a=(two&&s.atk2)?V(s.atk2,k):(V(s.atk,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
@@ -1844,9 +1849,12 @@ function gen(op){
     let sp=(V(s.aspd,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.aspdDecay) sp*=Math.max(0,1-S.skT/d);
     if(s.rampAspd) sp+=V(s.rampAspd[0],k)*Math.min(V(s.rampAspd[1],k),S.skAtk);
+    // stepAspd：每用过一次技能，之后开启时攻速再加一层
+    if(s.stepAspd) sp+=V(s.stepAspd[0],k)*Math.min(s.stepAspd[1],Math.max(0,S.casts-1));
     b.aspd+=sp;
     if(s.bm) b.batMul=V(s.bm,k); if(s.ba) b.batAdd=V(s.ba,k);
     if(s.dm) b.dm=V(s.dm,k); if(s.resMul) b.resMul=V(s.resMul,k); if(s.defMul) b.defMul=V(s.defMul,k);
+    if(s.resF) b.resF=V(s.resF,k);   // 技能期间无视固定法抗
     return b; };
   M.can=x=>{ const on=isOn(x);
     if(s&&s.stop&&on) return false;
@@ -1870,7 +1878,9 @@ function gen(op){
     const xhs=[]; if(op.xh) xhs.push(op.xh); if(u&&u.xh) xhs.push(u.xh);
     const n=Math.min(N,tg);
     if(u&&u.epBoost){ S.epBoost=x.f+Math.round(V(u.epBoost.dur,k)*30); S.epBoostMul=V(u.epBoost.mul,k); }
-    for(let i=0;i<n;i++){ let c=sc;
+    // crowd：[倍率, 人数]，一次打到的敌人不少于这个数时整次攻击的攻击力提高
+    const crowd=op.crowd&&n>=op.crowd[1]?V(op.crowd[0],k):1;
+    for(let i=0;i<n;i++){ let c=sc*crowd;
       if(i===0&&op.sc0) c*=V(op.sc0,k);
       if(i>0&&op.splash) c*=V(op.splash,k);
       if(i>0&&op.chain) c*=Math.pow(V(op.chain,k),i);
@@ -1888,11 +1898,16 @@ function gen(op){
       if(op.shock){ const ns=V(op.shock[0],k)+((u&&u.shockAdd)||0); for(let j=0;j<ns;j++) x.hit(i,'p',c*op.shock[1],'direct',o); }
       if(op.xf) x.hit(i,'m',0,'extra',{fixed:V(op.xf,k)*hits,indirect:true,noArc:true});
       for(const e of xhs){ if(e.until&&x.f>=e.until*30) continue;
+        // emit：每次攻击按概率对范围内若干个（随机）目标追加伤害，xf 是每份追加附带的固定法伤期望
+        if(e.emit){ const m=Math.min(N,V(e.emit,k)||1); for(let j=0;j<m;j++){ x.hit(j,e.ty||'m',V(e.sc,k),'extra',{indirect:true,noArc:true});
+            if(e.xf) x.hit(j,'m',0,'extra',{fixed:V(e.xf,k),indirect:true,noArc:true}); } continue; }
         if(i>=((u&&u.xhTg)||e.tg||99)) continue;
         const es=V(e.sc,k)*((u&&V(u.xhMul,k))||1); if(es) x.hit(i,e.ty||'m',es,'extra',{w:hx*(e.perHit?hits:1),indirect:true,noArc:true}); }
       if(op.dot) x.poison(i,Math.round(op.dot.dur*30)+3);
     }
     if(next&&s.burst) bursts(x);
+    // spHit：技能外普攻后额外回技力（boss:1 只在主目标是精英/领袖时）；目标被这次攻击击倒时不回
+    if(op.spHit&&!on&&V(op.spHit.v,k)){ const e=x.byUid(x.uid(0)); if(e&&!e.dead&&(!op.spHit.boss||e.boss)) S.sp+=V(op.spHit.v,k); }
     if(on&&s.ammo){ S.ammo--; if(S.ammo<=0) x.endSkill(); }
     if(op.hunter){ if(S.hA==null) S.hA=8; S.hA--; if(S.hA<=0){ S.delay=op.bat; S.hA=1+(k?1:0); } }
   };
@@ -1901,7 +1916,11 @@ function gen(op){
     else x.hit(i,'m',V(op.dot.sc,x.k)*mul,'extra',{indirect:true,noArc:true}); };
   const pushTick=(x,t,dur,only)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1,ep:t.ep,brX:t.brX,brTy:t.brTy,only});
   const bursts=x=>{ const k=x.k; for(const b of (s.burst||[])){ const n=V(b.n,k)||1;
-      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
+      for(let h=0;h<n;h++){ const fire=()=>{
+          // rot：每一发依次落在不同敌人身上（中心倍率），outer 是同一次轰炸对其余敌人的外圈倍率
+          if(b.rot){ if(!x.N) return; const j=h%x.N; x.hit(j,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0});
+            if(b.outer) for(let i=0;i<x.N;i++) if(i!==j) x.hit(i,b.ty,V(b.outer,k),'direct',{defPct:b.igP||0}); return; }
+          const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
             if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||{}; const u=x.uid(i); x.S.dot[u]=Math.max(x.S.dot[u]||0,V(b.brDot,k)); }
             const d=x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); if(b.ep)x.erode(i,d*V(b.ep.r,k),b.ep.t); } };
         const at=(b.at||0)+(b.gap||0)*h; if(at>0) x.later(at,fire); else fire(); } } };
@@ -2080,7 +2099,10 @@ function makeAgent(op0, elite, cfg, sel, W){
   const tfOn=()=>!tf.dur||W.f<tf.dur*30;
   const atkNow=()=>{const on=tfOn();let p=sPct+(on?tf.atk||0:0)+(buffs().atk||0);
     if(E.castAtk)p+=Math.min(E.castAtk[1],E.castAtk[0]*S.castN); if(E.skAtk&&S.skillOn)p+=E.skAtk;
-    return (baseAtk+(on?tf.base||0:0))*(1+p/100);};
+    // killAtk / killAp：击倒敌人后叠基础攻击力 / 攻击力%（只有队伍模拟里敌人会倒下）
+    if(op.killAp)p+=V(op.killAp.v,k)*Math.min(V(op.killAp.max,k),kills);
+    const kb=op.killAtk?V(op.killAtk.v,k)*Math.min(V(op.killAtk.max,k),kills):0;
+    return (baseAtk+kb+(on?tf.base||0:0))*(1+p/100);};
   const flagMul=()=>{ if(!E.flag)return 1; const t=W.f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
   x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0);
     if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(W.f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
@@ -2100,7 +2122,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(sixC('iberia')&&tl.length>=2){ const nx=W.nextOf(A,e); if(nx)add('bond',0.2*3*Atk*rm0(nx)*w,nx); } };
   x.hit=(i,type,scale,g,o={})=>{ const e=R(i); if(!e||e.dead)return 0;
     const b=buffs(), Atk=atkNow(), w=o.w==null?1:o.w, t=type[0];
-    const rm=1-Math.min(100,Math.max(0,resOf(e)*Math.min(b.resMul||1,e.mRes)-(inBurst(W,e,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
+    if(op.flySc&&e.fly) scale*=V(op.flySc,k);   // 攻击空中目标时攻击力提高（只有队伍模拟里有空中敌人）
+    const rm=1-Math.min(100,Math.max(0,resOf(e)*Math.min(b.resMul||1,e.mRes)-(inBurst(W,e,'f')?20:0)-(b.resF||0)))/100;   // 灼燃爆发期间法抗 −20
     const ph=()=>{const df=Math.max(0,defOf(e)*Math.min(b.defMul||1,e.mDef)-e.defDn-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(Atk*scale-df,Atk*scale*0.05);};
     const mg=()=>Math.max(Atk*scale*rm,Atk*scale*0.05);
     let d;
@@ -2111,6 +2134,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     const fm=flagMul();
     d*=dmMul*(b.dm||1)*fm;
     if(brDm!==1&&inBurst(W,e))d*=brDm;
+    // dmBoss：[倍率, 秒]，领袖在场若干秒后受到本干员的伤害提高（蕾缪安的“通缉”）
+    if(op.dmBoss&&e.boss&&W.f>=op.dmBoss[1]*30)d*=V(op.dmBoss[0],k);
     add(g,d*w,e);
     if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）

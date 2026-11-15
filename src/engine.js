@@ -492,7 +492,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(m.nextTime) S.sp=Math.min(V(m.nextTime,k)*3,S.sp+spGain);
     if(op.spT&&sk&&sk.type==='attack'&&!S.skillOn) S.sp+=dt*op.spT;
     if(S.lock>0)S.lock-=dt;
-    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0&&tl.length>0)cast();
+    // 什么时候放技能：单人计算里目标一直在范围内；队伍模拟按游戏的技能操作方案（W.canCast）
+    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0&&(W.canCast?W.canCast(A):tl.length>0))cast();
     for(let j=S.q.length-1;j>=0;j--)if(S.q[j].at<=f){const e=S.q.splice(j,1)[0];e.fn();}
     S.atkT-=dt;
     if(S.atkT<=0&&S.lock<=0&&tl.length>0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;
@@ -501,7 +502,9 @@ function makeAgent(op0, elite, cfg, sel, W){
       // 【炎】6 人：每次攻击对打到的敌人造成 6% 攻击力的随机元素损伤，按五种元素各分到 1/5 的期望值计算；
       // 五种同时累计满时只爆发一种，每次爆发后换下一种，相当于爆发的种类是随机的
       if(sixC('yan')){ const Atk=atkNow(), ks=Object.keys(EL); for(const e of W.enemies){ const s=mine.get(e); if(s&&s.mark===f&&!e.dead) for(let z=0;z<ks.length;z++) worldErode(W,e,ks[(z+(S.bursts||0))%ks.length],Atk*0.012*(m.epMul?m.epMul(x,e):1),A); } }
-      S.atkT+=x.interval()+S.delay; S.delay=0; if(S.atkT<0)S.atkT=x.interval(); }
+      // 攻击间隔按帧对齐：换算成帧数后四舍五入（PRTS 作战机制「帧对齐机制对攻速的影响」）
+      const ivF=Math.max(1,Math.round(x.interval()*30))/30;
+      S.atkT+=ivF+S.delay; S.delay=0; if(S.atkT<0)S.atkT=ivF; }
     if(m.frame)m.frame(x); };
   // 一帧的后半：召唤单元、盟约的周期伤害、中毒与伊比利亚持续法伤
   A.stepB=()=>{ const f=W.f;

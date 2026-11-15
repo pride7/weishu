@@ -10,6 +10,19 @@ const TEAM={
     'H':'高台（仅远程）','i':'活性源石：攻击力 +20%、攻速 +20','m':'泥沼','g':'草丛（隐匿）','u':'优化模块：攻速提升'},
 };
 
+// 卫戍协议里技能由系统自动释放，按 PRTS 卫戍协议/帮助 §技能操作 的方案：
+//   基础/职业方案：攻击范围或技能范围内存在敌人（无视可选性，含隐匿、空中）时，或自身阻挡了敌人时；
+//   执旗手、战术家、吟游者、游击手：始终尝试触发（技力满就放，哪怕没有敌人）；
+//   特殊技能方案：下面按干员名和游戏里的技能序号列出（always 始终尝试触发；field 场上有敌人；其余是特定范围的编号）。
+const TRIG_ALWAYS_BRANCH=['执旗手','战术家','吟游者','游击手'];
+const TRIG_SPECIAL={'塔露拉':{3:'always'},'艾丽妮':{2:'always',3:'always'},'锏':{2:'always',3:'always'},'异客':{3:'always'},
+  '荒芜拉普兰德':{3:'field'},'纯烬艾雅法拉':{3:'field'},
+  '乌尔比安':{3:'6-1'},'维娜·维多利亚':{3:'x-4'},'余':{3:'3-15'},'远牙':{3:'6-1'},'贝洛内':{3:'x-2'},'玛恩纳':{3:'3-18'},
+  '圣聆初雪':{1:'x-2'},'怒潮凛冬':{3:'2-4'},'史尔特尔':{2:'2-2',3:'3-2'},
+  '缪尔赛思':{1:'default',2:'default',3:'default'}};   // 缪尔赛思：PRTS 写“未知”，按基础方案
+function teamTrigger(op,si){ const sp=TRIG_SPECIAL[op.name]; if(sp&&sp[si+1]) return sp[si+1];
+  if(TRIG_ALWAYS_BRANCH.some(b=>op.cls.includes(b))) return 'always'; return 'default'; }
+
 // 某张地图、某个回合的场地。tok：会随机出现的障碍的选择 {"r,c": "crate"|"plat"|""}
 function teamBoard(map, boss, tok){
   const rows=boss?map.bossRows:map.rows, toks=boss?map.bossTokens:map.tokens;
@@ -138,7 +151,7 @@ function teamRun(setup){
       tileAtk:cell.ch==='i'?20:0,tileAspd:cell.ch==='i'?20:0});
     const A=makeAgent(m.op,m.elite,cfg,Object.assign({trace:!!setup.trace},m.sel),W);
     A.idx=agents.length; A.m=m; A.si=teamSkillIndex(m.op,m.sel.skill); A.blk=m.op.healer?0:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0]; A.blocked=[];
-    A.ranged=!!m.op.r;
+    A.ranged=!!m.op.r; A.trig=teamTrigger(m.op,A.si);
     agents.push(A);
   }
   W.agents=agents;
@@ -160,15 +173,26 @@ function teamRun(setup){
       bat:d.bat||2,range:d.range,rt,seg:from?from.seg:0,y:p[0],x:p[1],wait:0,blockedBy:null,atkT:d.bat||2,born:W.f,ab,camo:!!ab.camo,child:!!from});
     enemies.push(e); spawned++; };
   const later=[];   // 延迟生成（死后召唤）
+  // 阻挡：地面敌人与干员中心的距离小于 0.7071 格（格子外接圆）时被阻挡，停在干员身前一格；
+  // 围栏（|）上的干员不阻挡地面敌人；同时碰到几名还有阻挡数的干员时，被最近的那名阻挡（PRTS 游戏数据基础·阻挡半径）
+  const tryBlock=e=>{ if(e.fly||e.ab.unblock||e.blockedBy) return false; let best=null, bd=0.49999037;
+    for(const a of onField){ if(!(a.blk>0)||a.blocked.length>=a.blk||B.cell[a.m.r][a.m.c].ch==='|') continue;
+      const d=(e.y-a.m.r)**2+(e.x-a.m.c)**2; if(d<bd){ bd=d; best=a; } }
+    if(best){ e.blockedBy=best; best.blocked.push(e); return true; } return false; };
   const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
   // 范围缓存：每名干员当前用的范围（技能开启时可能变大）
   const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
   const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p; return ln[i+1].rem+Math.hypot(nx[0]-e.y,nx[1]-e.x); };
   const hidden=e=>{ if(e.blockedBy)return false; if(e.camo)return true; const t=tileOf(e), c=B.cell[t[0]]&&B.cell[t[0]][t[1]]; return !!(c&&c.ch==='g'); };
   const selectable=(a,e)=>!(e.dead||e.gone||e.down>W.f||(e.fly&&!a.ranged)||hidden(e));
-  W.inRange=(a,e)=>{ if(!selectable(a,e))return false; const t=tileOf(e); return rangeSet(a).has(t[0]+','+t[1]); };
+  // 敌人按半径 0.1 的碰撞箱判定是否在范围内：与哪个格子有重叠就算在哪个格子里（PRTS 作战机制“索敌抬手等均使用碰撞箱”）
+  const COL=0.1, colKeys=e=>{ const out=[], rs=new Set([Math.round(e.y-COL),Math.round(e.y+COL)]), cs=new Set([Math.round(e.x-COL),Math.round(e.x+COL)]);
+    for(const r of rs)for(const c of cs){ const dy=Math.max(0,Math.abs(e.y-r)-0.5), dx=Math.max(0,Math.abs(e.x-c)-0.5); if(dy*dy+dx*dx<COL*COL) out.push(r+','+c); }
+    return out; };
+  const inSet=(s,e)=>{ for(const k of colKeys(e)) if(s.has(k)) return true; return false; };
+  W.inRange=(a,e)=>{ if(!selectable(a,e))return false; return e.blockedBy===a||inSet(rangeSet(a),e); };
   W.targets=a=>{ const s=rangeSet(a), out=[];
-    for(const e of enemies){ if(!selectable(a,e))continue; const t=tileOf(e); if(s.has(t[0]+','+t[1])||e.blockedBy===a) out.push(e); }
+    for(const e of enemies){ if(!selectable(a,e))continue; if(e.blockedBy===a||inSet(s,e)) out.push(e); }
     out.sort((p,q)=>((q.blockedBy===a)-(p.blockedBy===a))||(remOf(p)-remOf(q))||(p.uid-q.uid));
     return out; };
   W.deal=(a,e,d)=>{ if(e.dead||e.gone||e.down>W.f||!(d>0))return 0; if(e.ab.hits) d=1; const got=Math.min(d,e.hp); e.hp-=d; e.dmgBy[a.idx]=(e.dmgBy[a.idx]||0)+got;
@@ -177,6 +201,14 @@ function teamRun(setup){
     if(e.hp<=0&&e.ab.split){ const sp=e.ab.split; for(let j=0;j<sp.n;j++) later.push({at:W.f+Math.round(sp.delay*30),key:sp.key,from:{y:e.y,x:e.x,rt:e.rt,seg:e.seg,route:e.route}}); total+=sp.n; }
     if(e.hp<=0){ e.dead=true; e.hp=0; e.deadAt=W.f; e.killer=a.idx; killed++; lastKill=W.f; a.killed(); if(e.blockedBy){ const b=e.blockedBy; b.blocked=b.blocked.filter(z=>z!==e); e.blockedBy=null; } }
     return got; };
+  // 技能触发：按方案检查范围内有没有敌人（无视可选性：隐匿、空中的敌人同样算）
+  const keysOf=(a,offs)=>{ const s=new Set(); for(const [dr,dc] of offs) s.add((a.m.r+dr)+','+(a.m.c+dc)); return s; };
+  W.canCast=a=>{ const t=a.trig; if(t==='always') return true;
+    const live=e=>!(e.dead||e.gone||e.down>W.f);
+    if(t==='field') return enemies.some(live);
+    if(!a._trigSet){ a._trigSet=t==='default'?new Set([...rangeSet(a),...keysOf(a,teamRange(a.m.op,a.m.elite,true,a.si))]):keysOf(a,FIELD.ranges[t]||[[0,0]]); }
+    for(const e of enemies) if(live(e)&&(e.blockedBy===a||inSet(a._trigSet,e))) return true;
+    return false; };
   W.blocking=a=>a.blocked.length>0;
   W.blockedBy=(a,e)=>e.blockedBy===a;
   W.attacksMe=(a,e)=>e.blockedBy===a;
@@ -205,6 +237,7 @@ function teamRun(setup){
     for(const a of agents) a.stepB();
     // 敌人移动
     for(const e of enemies){ if(e.dead||e.gone||e.blockedBy||e.down>W.f)continue;
+      if(tryBlock(e)) continue;
       if(e.wait>0){ e.wait-=1/30; continue; }
       let step=e.spd*R.mul/30; const ln=e.rt.line;
       while(step>0&&e.seg<ln.length-1){ const nx=ln[e.seg+1];
@@ -213,8 +246,7 @@ function teamRun(setup){
         if(d<=step){ e.y=nx.p[0]; e.x=nx.p[1]; e.seg++; step-=d; } else { e.y+=dy/d*step; e.x+=dx/d*step; step=0; } }
       if(e.seg>=ln.length-1&&e.rt.loop!=null){ e.seg=e.rt.loop; }   // 巡逻：回到巡逻圈起点继续
       else if(e.seg>=ln.length-1&&!(e.wait>0)&&!e.boss){ e.gone=true; e.leakAt=W.f; leaked+=e.lp; leakedN++; continue; }
-      // 阻挡：地面敌人走进干员所在的格子，且该干员还有阻挡数
-      if(!e.fly&&!e.ab.unblock){ const t=tileOf(e); for(const a of onField){ if(a.blk>0&&a.m.r===t[0]&&a.m.c===t[1]&&a.blocked.length<a.blk&&Math.abs(e.y-a.m.r)<0.5&&Math.abs(e.x-a.m.c)<0.5){ e.blockedBy=a; a.blocked.push(e); break; } } }
+      tryBlock(e);
     }
     if(frames&&W.f%15===0) frames.push({t,en:enemies.filter(e=>!e.dead&&!e.gone).map(e=>[e.uid,+e.y.toFixed(2),+e.x.toFixed(2),+(e.hp/e.maxHp).toFixed(3),e.blockedBy?1:0,hidden(e)||e.down>W.f?1:0]),
       ag:agents.map(a=>[a.skillOn()?1:0,Math.round(a.result(1).total)])});

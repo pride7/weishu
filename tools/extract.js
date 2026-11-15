@@ -153,6 +153,9 @@ for (const s of Object.values(act.charShopChessDatas)) {
   ops[c.name] = o;
 }
 
+// 技能触发方案里用到的特定范围（PRTS 卫戍协议/帮助 §技能操作 特殊技能方案）
+for (const id of ['6-1', 'x-4', '3-15', 'x-2', '3-18', '2-4', '3-2', '2-2']) useRange(id);
+
 // 盟约激活需要的在场人数
 const bonds = {}; for (const b of Object.values(act.bondInfoDict)) bonds[b.name] = b.activeCount;
 

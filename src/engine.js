@@ -7,7 +7,7 @@ const CORE = {
  iberia:{name:'伊比利亚',six:1,sixLabel:'6 人效果（持续法伤 ×2、弹射）',
   f:'每次造成伤害给目标挂 1 层：每层每秒 (11 + 0.06×层数)% 攻击力的法伤，至多 10 层，持续 10 秒。',
   params:[{id:'indirect',t:'chk',label:'毒伤、附加法伤等间接伤害也触发叠层',def:true},{id:'near',t:'chk',label:'引星棘刺范围内有队友（炼金单元延时）',def:true},{id:'dotOwn',t:'chk',label:'持续法伤算作干员自己造成的伤害（吃伤害倍率和无视法抗）',def:true}]},
- yan:{name:'炎',six:0,f:'【炎】干员攻击力 +(23 + 0.9×层数)%。'},
+ yan:{name:'炎',six:1,sixLabel:'6 人效果（攻击附带随机元素损伤，敌人元素爆发的冷却加快）',f:'【炎】干员攻击力 +(23 + 0.9×层数)%。6 人：每次攻击造成 6% 攻击力的随机元素损伤，全场敌人元素损伤恢复速度 +(40 + 0.3×层数)%。'},
  sargon:{name:'萨尔贡',six:1,sixLabel:'6 人效果（流沙地面伤害）',
   f:'任一【萨尔贡】干员开启技能时，全体【萨尔贡】干员攻速 +12（至多 +300），持续 (5 + 0.22×层数) 秒。',
   params:[{id:'sargRate',label:'队友每秒开技能次数',def:0.3,step:0.1,min:0,max:5}]},
@@ -107,7 +107,7 @@ const clemModel=n=>{ const tal=(x,i)=>1+(x.defDown(i)>0?0.5:0.25)*0.35;
     if(S.vt%30===0)for(let i=0;i<x.N;i++){ if(i===0&&x.cfg.blocking&&x.cfg.bossMass>8)continue;
       x.hit(i,'p',V([2.65,2.85],x.k)*tal(x,i),'direct',{indirect:true}); x.erode(i,200); } },
   // 与海为敌：技能期间每有敌人侵蚀爆发，消耗 1 发弹药轰击 3 次（间隔 1 秒），每次物理 + 元素伤害
-  onBurst(x){const S=x.S,k=x.k; if(n!==3||!S.skillOn||S.ammo<=0)return; S.ammo--;
+  onBurst(x,i,t){const S=x.S,k=x.k; if(n!==3||t!=='w'||!S.skillOn||S.ammo<=0)return; S.ammo--;
     for(let h=1;h<=3;h++)x.later(h,()=>{ for(let i=0;i<x.N;i++){ x.hit(i,'p',V([2.5,2.7],k)*tal(x,i),'direct',{indirect:true}); x.hit(i,'e',V([1.8,2],k),'direct',{indirect:true}); } });
     if(S.ammo<=0)x.endSkill(); }
  };};
@@ -122,10 +122,10 @@ function variant(op, si){
 }
 // 汇总装备加成
 function equipFx(list){
-  const E={atk:0,aspd:0,sp:0,dm:1,rdm:1,init:0,cost:1,skAspd:0,skAtk:0,layers:0,xm:0,xt:0,flag:0,weak:0,castAtk:null,aspdSec:null,aspdAtk:null,n:0,adv:0};
+  const E={atk:0,aspd:0,sp:0,dm:1,rdm:1,init:0,cost:1,skAspd:0,skAtk:0,layers:0,xm:0,xt:0,brDm:0,flag:0,weak:0,castAtk:null,aspdSec:null,aspdAtk:null,n:0,adv:0};
   for(const it of (list||[])){ if(!it||!it.id) continue; const q=EQUIP.find(e=>e.id===it.id); if(!q) continue;
     const adv=!!it.adv&&!q.one, f=q.fx(adv); E.n++; if(adv) E.adv++;
-    for(const key of ['atk','aspd','sp','init','skAspd','skAtk','layers','xm','xt']) E[key]+=f[key]||0;
+    for(const key of ['atk','aspd','sp','init','skAspd','skAtk','layers','xm','xt','brDm']) E[key]+=f[key]||0;
     if(f.dm) E.dm*=f.dm; if(f.rdm) E.rdm*=f.rdm; if(f.cost) E.cost*=f.cost; if(f.flag) E.flag=Math.max(E.flag,f.flag); if(f.weak) E.weak=1;
     for(const key of ['castAtk','aspdSec','aspdAtk']) if(f[key]) E[key]=E[key]?[E[key][0]+f[key][0],E[key][1]+f[key][1]]:f[key].slice();
   }
@@ -136,22 +136,26 @@ function equipFx(list){
 function gen(op){
   if(op._m) return op._m;
   const s=op.sk||null, M={};
-  if(s&&s.t!=='next'&&s.t!=='passive') M.sk={type:s.t==='atk'?'attack':'time',cost:s.c,init:s.i,dur:s.d};
+  if(s&&s.t!=='next'&&s.t!=='passive') M.sk={type:s.t==='atk'?'attack':s.t==='def'?'def':'time',cost:s.c,init:s.i,dur:s.d};
   if(s&&s.t==='next'&&s.src==='time') M.nextTime=s.c;
   M.atkPct=k=>V(op.ap,k)||0;
   M.spBonus=x=>V(op.spr,x.k)||0;
   const isOn=x=>s&&(s.t==='passive'?x.f<V(s.d,x.k)*30:x.S.skillOn);
   M.buffs=x=>{ const k=x.k,S=x.S,b={atk:0,aspd:0,batMul:1,batAdd:0,dm:1,resMul:1,defMul:1};
+    // 元素爆发带来的加成：范围内有敌人处于某种爆发、爆发后的限时加成、按爆发次数叠层
+    if(op.brAtk){ for(let i=0;i<x.N;i++) if(x.inBr(i,op.brAtk.t)){ b.atk+=V(op.brAtk.atk,k); break; } }
+    if(op.onBr&&S.brBuff>x.f) b.atk+=V(op.onBr.atk,k)||0;
+    if(op.brStack&&S.brN){ b.atk+=S.brN*V(op.brStack.atk,k); if(S.brN>=op.brStack.max) b.aspd+=V(op.brStack.aspd,k)||0; }
     if(!isOn(x)) return b;
     const two=S.casts>=2, d=Math.max(1,V(s.d,k));
     let a=(two&&s.atk2)?V(s.atk2,k):(V(s.atk,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.atkRamp) a*=Math.min(1,S.skT/d);
     if(s.rampAtk) a+=V(s.rampAtk[0],k)*Math.min(V(s.rampAtk[1],k),S.skAtk);
-    b.atk=a;
+    b.atk+=a;
     let sp=(V(s.aspd,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.aspdDecay) sp*=Math.max(0,1-S.skT/d);
     if(s.rampAspd) sp+=V(s.rampAspd[0],k)*Math.min(V(s.rampAspd[1],k),S.skAtk);
-    b.aspd=sp;
+    b.aspd+=sp;
     if(s.bm) b.batMul=V(s.bm,k); if(s.ba) b.batAdd=V(s.ba,k);
     if(s.dm) b.dm=V(s.dm,k); if(s.resMul) b.resMul=V(s.resMul,k); if(s.defMul) b.defMul=V(s.defMul,k);
     return b; };
@@ -176,11 +180,22 @@ function gen(op){
     const hx=V(op.hx,k)||1, o={defFlat:(V(op.igF,k)||0)+((u&&u.igAdd)||0),defPct:V(op.igP,k)||0,w:hx};
     const xhs=[]; if(op.xh) xhs.push(op.xh); if(u&&u.xh) xhs.push(u.xh);
     const n=Math.min(N,tg);
+    if(u&&u.epBoost){ S.epBoost=x.f+Math.round(V(u.epBoost.dur,k)*30); S.epBoostMul=V(u.epBoost.mul,k); }
     for(let i=0;i<n;i++){ let c=sc;
       if(i===0&&op.sc0) c*=V(op.sc0,k);
       if(i>0&&op.splash) c*=V(op.splash,k);
       if(i>0&&op.chain) c*=Math.pow(V(op.chain,k),i);
-      for(let h=0;h<hits;h++) x.hit(i,ty,c,'direct',o);
+      // brTy：目标处于该种爆发时，这次攻击改为元素伤害
+      const bt=(u&&u.brTy)||op.brTy, tyI=bt&&x.inBr(i,bt)?'e':ty; let dsum=0;
+      for(let h=0;h<hits;h++) dsum+=x.hit(i,tyI,c,'direct',o);
+      // epA：攻击附带元素损伤（of:'dmg' 按这次伤害的比例，否则按攻击力的比例；sp 是对周围其他敌人的比例）
+      for(const eA of [op.epA,u&&u.epA]) if(eA){ const mul=S.epBoost>x.f?S.epBoostMul:1; S.mk=S.mk||[];
+        x.erode(i,(eA.of==='dmg'?dsum:x.atk())*V(eA.r,k)*mul,eA.t); S.mk[i]=1;
+        if(eA.sp&&i===0) for(let j=1;j<N;j++){ x.erode(j,x.atk()*V(eA.sp,k)*mul,eA.t); S.mk[j]=1; } }
+      // brX：目标处于该种爆发时额外造成元素伤害
+      for(const bx of [op.brX,u&&u.brX]) if(bx&&V(bx.sc,k)&&x.inBr(i,bx.t)) x.hit(i,'e',V(bx.sc,k),'extra',{indirect:true,noArc:true});
+      // brDot：攻击到处于爆发的敌人后，让它每秒受到元素伤害，直到爆发结束
+      if(op.brDot&&x.inBr(i,op.brDot.t)){ S.dot=S.dot||[]; S.dot[i]=Math.max(S.dot[i]||0,V(op.brDot.sc,k)); }
       if(op.shock){ const ns=V(op.shock[0],k)+((u&&u.shockAdd)||0); for(let j=0;j<ns;j++) x.hit(i,'p',c*op.shock[1],'direct',o); }
       if(op.xf) x.hit(i,'m',0,'extra',{fixed:V(op.xf,k)*hits,indirect:true,noArc:true});
       for(const e of xhs){ if(e.until&&x.f>=e.until*30) continue;
@@ -195,9 +210,11 @@ function gen(op){
   if(op.dot) M.poisonTick=(x,i)=>{ const mul=(x.S.skillOn&&s&&s.dotMul)||1;
     if(op.dot.fix) x.hit(i,'m',0,'extra',{fixed:V(op.dot.fix,x.k),indirect:true,noArc:true});
     else x.hit(i,'m',V(op.dot.sc,x.k)*mul,'extra',{indirect:true,noArc:true}); };
-  const pushTick=(x,t,dur)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1});
+  const pushTick=(x,t,dur,only)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1,ep:t.ep,brX:t.brX,brTy:t.brTy,only});
   const bursts=x=>{ const k=x.k; for(const b of (s.burst||[])){ const n=V(b.n,k)||1;
-      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++) x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); };
+      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
+            if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||[]; x.S.dot[i]=Math.max(x.S.dot[i]||0,V(b.brDot,k)); }
+            const d=x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); if(b.ep)x.erode(i,d*V(b.ep.r,k),b.ep.t); } };
         const at=(b.at||0)+(b.gap||0)*h; if(at>0) x.later(at,fire); else fire(); } } };
   M.onCast=x=>{ const k=x.k,S=x.S;
     if(s.ammo){ S.ammo=V(s.ammo,k); S.skillOn=true; S.skillLeft=Infinity; }
@@ -205,16 +222,45 @@ function gen(op){
     if(s.d2&&S.casts>=2) S.skillLeft=s.d2;
     bursts(x);
     if(s.tick) pushTick(x,s.tick,V(s.tick.dur,k)||V(s.d,k));
+    // 开技能给范围内敌人叠麻痹（真言）；之后队友每开一次技能再叠一次
+    if(s.palsy){ S.pTrig=1; S.pNext=x.f+Math.round(30/Math.max(0.01,x.cfg.sargRate||0)); for(let i=0;i<x.N;i++)x.palsyAdd(i,s.palsy.add); }
   };
   M.onEnd=x=>{ const k=x.k,S=x.S;
     if(s.end){ const tg=Math.min(x.N,s.end.tg||1); S.skillOn=true; for(let i=0;i<tg;i++) x.hit(i,s.end.ty,V(s.end.sc,k),'direct'); S.skillOn=false; }
     if(s.after){ if(s.after.lock) S.lock=s.after.lock; if(s.after.hold) S.hold=s.after.lock; if(s.after.tick) pushTick(x,s.after.tick,s.after.tick.dur); } };
   M.frame=x=>{ const k=x.k,S=x.S,a=op.aura;
     if(a&&(!a.block||x.cfg.blocking)&&x.f>0&&x.f%Math.round(a.iv*30)===0){ const tg=Math.min(x.N,a.tg||1);
-      for(let i=0;i<tg;i++){ if(a.fix) x.hit(i,'m',0,'extra',{fixed:V(a.fix,k),indirect:true,noArc:true}); else x.hit(i,a.ty,V(a.sc,k),'direct',{indirect:true,noArc:true}); } }
+      for(let i=0;i<tg;i++){ if(a.fix) x.hit(i,'m',0,'extra',{fixed:V(a.fix,k),indirect:true,noArc:true}); else x.hit(i,a.ty,V(a.sc,k),'direct',{indirect:true,noArc:true});
+        if(a.ep)x.erode(i,x.atk()*V(a.ep.r,k),a.ep.t); } }
     for(let j=S.ticks.length-1;j>=0;j--){ const t=S.ticks[j]; t.f++;
-      if(t.f%t.iv===0){ const tg=Math.min(x.N,t.tg); for(let i=0;i<tg;i++) x.hit(i,t.ty,t.sc,'direct',{indirect:true}); }
-      if(t.f>=t.dur) S.ticks.splice(j,1); } };
+      if(t.f%t.iv===0){ const tg=t.only!=null?1:Math.min(x.N,t.tg);
+        for(let q=0;q<tg;q++){ const i=t.only!=null?t.only:q, ty=t.brTy&&x.inBr(i,t.brTy)?'e':t.ty;
+          const d=x.hit(i,ty,t.sc,'direct',{indirect:true});
+          if(t.ep)x.erode(i,(t.ep.of==='dmg'?d:x.atk())*V(t.ep.r,k),t.ep.t);
+          if(t.brX&&x.inBr(i,t.brX.t))x.hit(i,'e',V(t.brX.sc,k),'extra',{indirect:true,noArc:true}); } }
+      if(t.f>=t.dur) S.ticks.splice(j,1); }
+    if(x.f%30===29){
+      if(S.dot) for(let i=0;i<x.N;i++) if(S.dot[i]){ if(x.inBr(i,op.brDot.t)) x.hit(i,'e',S.dot[i],'extra',{indirect:true,noArc:true}); else S.dot[i]=0; }
+      // 技能期间，被她打过的敌人每秒继续累计元素损伤，直到爆发（酒神）
+      if(s&&s.epTick&&S.mk&&isOn(x)) for(let i=0;i<x.N;i++) if(S.mk[i]&&!x.inBr(i)) x.erode(i,x.atk()*V(s.epTick.r,k),s.epTick.t);
+    }
+    if(s&&s.palsy&&isOn(x)&&S.pTrig<s.palsy.max&&x.cfg.sargRate>0&&x.f>=S.pNext){ S.pTrig++; S.pNext=x.f+Math.round(30/x.cfg.sargRate); for(let i=0;i<x.N;i++)x.palsyAdd(i,s.palsy.add); } };
+  // —— 元素损伤相关的回调 ——
+  M.onBurst=(x,i,t)=>{ const k=x.k,S=x.S;
+    if(op.onBr&&op.onBr.t===t){ x.hit(i,'e',V(op.onBr.sc,k),'extra',{indirect:true,noArc:true}); if(V(op.onBr.atk,k))S.brBuff=x.f+op.onBr.dur*30; }
+    if(op.brStack&&op.brStack.t===t) S.brN=Math.min(op.brStack.max,(S.brN||0)+1);
+    if(op.brTick&&op.brTick.t===t) pushTick(x,op.brTick,op.brTick.dur,i);
+    if(s&&s.ammoBr&&s.ammoBr.t===t&&isOn(x)&&S.ammo>0) S.ammo+=s.ammoBr.n; };
+  M.onPalsy=(x,i,w)=>{ if(op.onPalsy) x.hit(i,'e',V(op.onPalsy.sc,x.k),'extra',{w,indirect:true,noArc:true}); };
+  M.palsyKeep=x=>op.onPalsy?V(op.onPalsy.keep,x.k)||0:0;
+  M.palCap=x=>(s&&s.palsy&&isOn(x))?s.palsy.cap:3;
+  M.onPalsyOver=(x,i,over)=>{ if(!(s&&s.palsy))return; const sc=V(s.palsy.sc,x.k);
+    x.hit(i,'e',sc,'extra',{w:over,indirect:true,noArc:true}); if(x.N>1)x.hit((i+1)%x.N,'e',sc,'extra',{w:over,indirect:true,noArc:true}); };
+  M.onEnemyAtk=(x,i,stopped)=>{ const k=x.k,S=x.S;
+    if(op.eAtkEp) x.erode(i,V(op.eAtkEp.v,k),op.eAtkEp.t);
+    if(s&&s.t==='def'&&!stopped&&i<(op.blk||1)){ if(isOn(x)){ if(s.onAtked)x.erode(i,x.atk()*V(s.onAtked.r,k),s.onAtked.t); } else S.sp++; } };
+  M.epSpd=(x,t)=>(s&&s.epSpd&&isOn(x)&&s.epSpd[t])||0;
+  M.epMul=(x,i)=>(op.epBoss&&x.cfg.boss&&i===0?V(op.epBoss,x.k):1)*(op.epBlk&&x.cfg.blocking?V(op.epBlk,x.k):1);
   return (op._m=M);
 }
 
@@ -252,7 +298,7 @@ function simulate(op0, elite, cfg, sel){
   if(raid&&raid.L>=50) sAspd+=50;
   if(core==='lethania'&&six) sAspd+=20;
   let dmMul=(V(op.dm,k)||1)*(fx.dm||1)*E.dm*(op.r?E.rdm:1);
-  const weak=op.weak||E.weak;
+  const weak=op.weak||E.weak, brDm=(V(op.burstDm,k)||1)*(1+E.brDm);   // brDm：对元素爆发期间的敌人的伤害倍率
   if(core==='victoria'&&E.n>0) dmMul*=1.25+0.008*L;
   if(core==='kjerag') dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*L));
   if(sb('协防干员')) dmMul*=k?1.4:1.2;
@@ -284,19 +330,36 @@ function simulate(op0, elite, cfg, sel){
     a=Math.max(10,Math.min(600,a));
     return Math.max(0.1,(op.bat+(b.batAdd||0))*(b.batMul||1))/(a/100); };
   const add=(g,d,i)=>{if(dead)return;parts[g]+=d;if(i===0)main+=d;if(sec)sec[Math.min(sec.length-1,Math.floor(f/30))]+=d;};
-  // 侵蚀损伤：累计满（领袖 2000，其他敌人 1000）时爆发——永久 −120 防御，受到 5000 点无来源元素伤害，
-  // 之后 8 秒冷却内不再累计。只有主目标可能是领袖。
-  const ep=new Array(N).fill(0), epCd=new Array(N).fill(-1), defDn=new Array(N).fill(0);
-  const epCdF=Math.round(240/(1+(tf.epCd||0)/100)), epCap=i=>(cfg.boss&&i===0)?2000:1000;
+  // 元素损伤。五种：n 神经、w 侵蚀、f 灼燃、d 凋亡、a 狂躁。某一种累计满（领袖 2000，其他敌人 1000；只有主目标可能是领袖）
+  // 时爆发：n 受到 6000 元素伤害并获得 3 层麻痹；w 5000 并永久 −120 防御；f 7000 且爆发期间法抗 −20；
+  // d 每秒 800；a 每秒递增的元素伤害。爆发期间所有元素都不再累计，结束后全部清零。
+  // 爆发的固定伤害是无来源伤害，按本干员在这次累计里的占比计入（其余部分属于队友）。
+  const EL={n:{dur:10,dmg:6000},w:{dur:8,dmg:5000},f:{dur:10,dmg:7000},d:{dur:15},a:{dur:15}};
+  const ep={}, epOwn={}; for(const q in EL){ ep[q]=new Array(N).fill(0); epOwn[q]=new Array(N).fill(0); }
+  const brEnd=new Array(N).fill(-1), brT=new Array(N).fill(''), brShare=new Array(N).fill(0), brF=new Array(N).fill(0);
+  const defDn=new Array(N).fill(0), palsy=new Array(N).fill(0), hitMark=new Array(N).fill(-1);
+  const epCap=i=>(cfg.boss&&i===0)?2000:1000;
+  const epSpd=q=>(q==='w'?tf.epCd||0:0)+(core==='yan'&&six?40+0.3*L:0)+(m.epSpd?m.epSpd(x,q):0);
+  const eIv=cfg.eBat>0?Math.max(1,Math.round(cfg.eBat*30)):0;
   x.defDown=i=>defDn[i];
-  x.erode=(i,v)=>{ if(!(v>0)||f<epCd[i])return; ep[i]+=v; if(ep[i]<epCap(i))return;
-    ep[i]=0; epCd[i]=f+epCdF; defDn[i]+=120; S.bursts=(S.bursts||0)+1; add('extra',5000,i); if(m.onBurst)m.onBurst(x,i); };
+  x.inBr=(i,q)=>f<brEnd[i]&&(!q||brT[i]===q);
+  x.atk=()=>atkNow();
+  // 麻痹：上限 3 层（真言技能期间 2 层），超出上限的层数交给模型处理
+  x.palsyAdd=(i,n)=>{ const cap=m.palCap?m.palCap(x):3, over=Math.max(0,palsy[i]+n-cap); palsy[i]=Math.min(cap,palsy[i]+n); if(over>0&&m.onPalsyOver)m.onPalsyOver(x,i,over); };
+  const erode=(i,q,v,own)=>{ if(!(v>0)||f<brEnd[i])return; ep[q][i]+=v; if(own)epOwn[q][i]+=v; if(ep[q][i]<epCap(i))return;
+    const share=Math.min(1,epOwn[q][i]/ep[q][i]); for(const z in EL){ ep[z][i]=0; epOwn[z][i]=0; }
+    brT[i]=q; brShare[i]=share; brF[i]=0; brEnd[i]=f+Math.round(EL[q].dur*30/(1+epSpd(q)/100)); S.bursts=(S.bursts||0)+1;
+    if(q==='w')defDn[i]+=120;
+    if(EL[q].dmg)add('extra',EL[q].dmg*share,i);
+    if(q==='n')x.palsyAdd(i,3);
+    if(m.onBurst)m.onBurst(x,i,q); };
+  x.erode=(i,v,q)=>erode(i,q||'w',v*(m.epMul?m.epMul(x,i):1),true);
   const proc=(i,w,A)=>{ if(!dotC)return; if(stacks[i]<=0)dotF[i]=0;
     stacks[i]=Math.min(10,stacks[i]+w); stackEnd[i]=f+300;
     if(full===null&&i===0&&stacks[0]>=9.999)full=f*dt;
     if(six&&N>=2)add('bond',0.2*3*A*rm0*w,(i+1)%N); };
   x.hit=(i,type,scale,g,o={})=>{ const b=buffs(), A=atkNow(), w=o.w==null?1:o.w, t=type[0];
-    const rm=1-Math.min(100,res0*(b.resMul||1))/100;
+    const rm=1-Math.min(100,Math.max(0,res0*(b.resMul||1)-(x.inBr(i,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
     const ph=()=>{const df=Math.max(0,def0*(b.defMul||1)-defDn[i]-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(A*scale-df,A*scale*0.05);};
     const mg=()=>Math.max(A*scale*rm,A*scale*0.05);
     let d;
@@ -306,7 +369,11 @@ function simulate(op0, elite, cfg, sel){
     else d=t==='p'?ph():mg();
     const fm=flagMul();
     d*=dmMul*(b.dm||1)*fm;
+    if(brDm!==1&&x.inBr(i))d*=brDm;
     add(g,d*w,i);
+    if(g==='direct'&&!o.indirect)hitMark[i]=f;
+    // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
+    if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(i,d*w*V(op.epAll.r,k),op.epAll.t);
     if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(A*E.xm*rm,A*E.xm*0.05)+A*E.xt)*dmMul*fm*w,i); if(E.xm&&cfg.indirect)proc(i,w,A); }
     if(arcC&&!o.noArc){add('extra',Math.max(A*arcC*rm,A*arcC*0.05)*dmMul*w,i); if(cfg.indirect)proc(i,w,A);}
     if(!o.indirect||cfg.indirect)proc(i,w,A);
@@ -335,8 +402,18 @@ function simulate(op0, elite, cfg, sel){
     if(S.atkT<=0&&S.lock<=0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;
       if(sk&&sk.type==='attack'&&!S.skillOn)S.sp++;
       if(core==='kazimierz'&&six&&(f<900||(S.lastCast!=null&&f-S.lastCast<900)))add('bond',0.65*atkNow(),0);
+      // 【炎】6 人：每次攻击对打到的敌人造成 6% 攻击力的随机元素损伤，按五种元素各分到 1/5 的期望值计算；
+      // 五种同时累计满时只爆发一种，每次爆发后换下一种，相当于爆发的种类是随机的
+      if(core==='yan'&&six){ const A=atkNow(), ks=Object.keys(EL); for(let i=0;i<N;i++) if(hitMark[i]===f) for(let z=0;z<ks.length;z++) erode(i,ks[(z+(S.bursts||0))%ks.length],A*0.012*(m.epMul?m.epMul(x,i):1),true); }
       S.atkT+=x.interval()+S.delay; S.delay=0; if(S.atkT<0)S.atkT=x.interval(); }
     if(m.frame)m.frame(x);
+    // 每秒：队友的元素损伤、爆发期间的持续伤害
+    if(f%30===29){ const te=cfg.teamEp; if(te)for(let i=0;i<N;i++)for(const q in te)if(te[q]>0&&EL[q])erode(i,q,te[q],false);
+      for(let i=0;i<N;i++)if(f<brEnd[i]){ brF[i]++; if(brT[i]==='d')add('extra',800*brShare[i],i); else if(brT[i]==='a')add('extra',Math.min(2110,160+130*brF[i])*brShare[i],i); } }
+    // 敌人的普通攻击：有麻痹时被打断并消耗一层
+    if(eIv&&f>0&&f%eIv===0)for(let i=0;i<N;i++){ let stopped=false;
+      if(palsy[i]>1e-9){ const use=1-(m.palsyKeep?m.palsyKeep(x):0), w=Math.min(1,palsy[i]/use); palsy[i]=Math.max(0,palsy[i]-use); stopped=true; if(m.onPalsy)m.onPalsy(x,i,w); }
+      if(m.onEnemyAtk)m.onEnemyAtk(x,i,stopped); }
     for(let j=S.units.length-1;j>=0;j--){const u=S.units[j];u.f++;
       if(u.f%30===0)for(let i=0;i<N;i++)x.hit(i,'magic',u.scale,'direct');
       if(u.f>=u.dur)S.units.splice(j,1);}
@@ -351,5 +428,5 @@ function simulate(op0, elite, cfg, sel){
     }
   }
   const total=parts.direct+parts.bond+parts.extra;
-  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!m.ep,bursts:S.bursts||0,eaten,dead};
+  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead};
 }

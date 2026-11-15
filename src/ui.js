@@ -80,7 +80,8 @@
   function cfg(){ return Object.assign({core:st.core,L:Math.max(0,num('Ln',0)),bondOn:$('bondOn').checked,six:$('six').checked&&$('bondOn').checked,
     own:num('own',0),xAtk:num('xAtk',0),xAspd:num('xAspd',0),def:Math.max(0,num('def',0)),res:Math.max(0,Math.min(100,num('res',0))),
     T:Math.max(3,Math.min(240,num('T',30))),N:Math.max(1,Math.min(8,num('N',1))),ranged:$('ranged').checked,heavy:$('heavy').checked,
-    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0},st.cp); }
+    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0,eBat:Math.max(0,num('eBat',3)),
+    teamEp:{n:Math.max(0,num('teN',0)),f:Math.max(0,num('teF',0)),d:Math.max(0,num('teD',0)),w:Math.max(0,num('teW',0))}},st.cp); }
   // 领袖
   const curBoss=()=>BOSSES.find(b=>b.id===$('boss').value)||null;
   const bossRaw=()=>{const b=curBoss(); if(!b)return 0; return ($('bossHid').checked&&b.hid&&b.hid[st.bossMode])?b.hid[st.bossMode]:b.hp[st.bossMode];};
@@ -113,7 +114,7 @@
     const hasHid=!!(b.hid&&b.hid[st.bossMode]); $('bossHidWrap').hidden=!hasHid; if(!hasHid)$('bossHid').checked=false;
     const hid=$('bossHid').checked;
     $('def').value=hid&&b.hidDef?b.hidDef:b.def; $('res').value=hid&&b.hidRes?b.hidRes:b.res;
-    $('heavy').checked=b.mass>=3; $('N').value=1; if(num('T',30)<60)$('T').value=90;
+    $('heavy').checked=b.mass>=3; $('N').value=1; $('eBat').value=BOSS_INFO[b.id].bat; if(num('T',30)<60)$('T').value=90;
     document.querySelectorAll('#bossMode button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.m===st.bossMode));
     $('bossPic').innerHTML=BI[b.id]?`<img src="${BI[b.id]}" alt="" width="144" height="144">`:''; $('bossPic').hidden=!BI[b.id];
     const e=bossEhp(); $('bossInfo').textContent='生命 '+fmt(bossRaw())+(Math.abs(e-1)>0.01?'（计入减伤后相当于 '+fmt(bossHp())+'）':'')+' · 重量 '+b.mass+' · '+b.imm;
@@ -193,7 +194,7 @@
         <div class="f" style="margin-top:10px"><label for="xbond">变形同构体：额外获得盟约</label><select id="xbond" data-xbond="1"><option value="">无</option>${XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${xb===b?' selected':''}>${b}</option>`).join('')}</select></div>
         <p class="hint" style="margin-top:6px">${xb?`已视为【${xb}】干员：${SUBS[xb].hint}。层数和“3 人”在参数栏的“附加盟约”里调。`:'游戏里它占一格装备，给哪个盟约由另一件装备决定；这里直接选结果，不占格子。'}</p></div>
       <div class="sec"><h4>输出时间轴 <small>每秒伤害；金色段 = 技能开启中</small></h4><div id="tl"></div></div>
-      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}${r.ep?` <small>侵蚀爆发 ${r.bursts} 次，各 5000 元素伤害（计入“附加”）</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
+      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}${r.ep?` <small>元素爆发 ${r.bursts} 次，爆发伤害计入“附加”</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
         <div class="lg"><div style="--c:var(--seg-direct)"><b>${fmt(r.parts.direct)}</b><span>直接 · ${pc(r.parts.direct)}</span></div><div style="--c:var(--seg-bond)"><b>${fmt(r.parts.bond)}</b><span>盟约 · ${pc(r.parts.bond)}</span></div><div style="--c:var(--seg-extra)"><b>${fmt(r.parts.extra)}</b><span>附加 · ${pc(r.parts.extra)}</span></div></div></div></div>
       <div class="sec"><h4>说明</h4><dl class="kv"><dt>模式特质</dt><dd>${pick(o.trait,k)}</dd>${o.extra?`<dt>天赋 / 模组</dt><dd>${pick(o.extra,k)}</dd>`:''}<dt>建模方式</dt><dd>${si>=0&&A.list[si].model?A.list[si].model:(si>=0?'非默认技能按技能说明里的数值做通用建模；以下是默认技能的说明。':'')+o.model}</dd></dl></div>`;
     timeline(r);

@@ -370,6 +370,18 @@ footer a{color:var(--accent)}
           <label class="sw"><input type="checkbox" id="ranged"><i></i><span>敌人会远程攻击</span></label>
         </div>
         <div class="g">
+          <h3>元素损伤 <span class="en">Element</span></h3>
+          <div class="f"><label for="eBat">敌人攻击间隔（秒）</label><input type="number" id="eBat" value="3" min="0" max="20" step="0.5"></div>
+          <p class="hint">队友每秒打在每个敌人身上的元素损伤（点）：</p>
+          <div class="pair">
+            <div class="f"><label for="teN">神经</label><input type="number" id="teN" value="0" min="0" max="5000" step="20"></div>
+            <div class="f"><label for="teF">灼燃</label><input type="number" id="teF" value="0" min="0" max="5000" step="20"></div>
+            <div class="f"><label for="teD">凋亡</label><input type="number" id="teD" value="0" min="0" max="5000" step="20"></div>
+            <div class="f"><label for="teW">侵蚀</label><input type="number" id="teW" value="0" min="0" max="5000" step="20"></div>
+          </div>
+          <p class="hint">敌人累计满 1000 点（领袖 2000 点）就爆发。有些技能自己不造成元素损伤，要在这里填上队友的才会生效。麻痹在敌人普通攻击时触发，所以攻击间隔会影响真言、Miss.Christine。</p>
+        </div>
+        <div class="g">
           <h3>附加盟约 <span class="en">Sub-alliance</span></h3>
           <div id="subs" class="grp-in"></div>
           <div class="f"><label for="stunt">绝技</label><select id="stunt"><option value="0">未激活</option><option value="2">2 精锐：攻击 +30%</option><option value="5">5 精锐：技力 −30%</option></select></div>
@@ -426,10 +438,13 @@ footer a{color:var(--accent)}
         <li>物理伤害 = 攻击力×倍率 − 防御，法术伤害 = 攻击力×倍率×(1 − 法抗%)，两者保底 5%。攻击力 = 基础 ×(1 + 所有百分比加成之和)。</li>
         <li>干员在模式内的等级和模组固定：Ⅰ 阶精1 Lv55 → 精锐精2 Lv50；Ⅱ 阶精1 Lv60 → 精2 Lv55；Ⅲ 阶及以上精2 Lv1 → 精2 Lv60。初始技能 4 级、无模组，精锐技能 7 级、模组 1 级（Ⅵ 阶 3 级）。</li>
         <li><b>技能：</b>高阶干员可以换技能，低阶“预设干员”技能固定。非默认技能的建模比默认技能更粗，说明写在技能按钮下方。</li>
-        <li><b>装备：</b>收录 28 件直接影响伤害的装备，每人 2 格。条件类效果按常驻或叠满计算，假设写在装备说明里。对异常状态增伤、元素爆发增伤、终极维式重锤没有收录，可以用“其他装备”占位。</li>
-        <li><b>侵蚀损伤（目前只有克莱门莎）：</b>敌人累计满 1000 点（领袖 2000 点）时爆发，受到 5000 点元素伤害并永久 −120 防御，之后 8 秒内不再累计。元素伤害无视防御和法抗。只有选了具体的领袖，主目标才按 2000 点计算。</li>
+        <li><b>装备：</b>收录 29 件直接影响伤害的装备，每人 2 格。条件类效果按常驻或叠满计算，假设写在装备说明里。对异常状态增伤、终极维式重锤没有收录，可以用“其他装备”占位。</li>
+        <li><b>元素损伤：</b>敌人某一种元素损伤累计满 1000 点（领袖 2000 点）时爆发，爆发期间所有元素都不再累计。神经：6000 点元素伤害并获得 3 层麻痹，10 秒；侵蚀：5000 点并永久 −120 防御，8 秒；灼燃：7000 点且期间法抗 −20，10 秒；凋亡：15 秒内每秒 800 点。元素伤害无视防御和法抗。只有选了具体的领袖，主目标才按 2000 点计算。</li>
+        <li><b>爆发伤害的归属：</b>爆发的固定伤害是无来源伤害，不吃任何加成。同一个敌人由干员自己和“队友的元素损伤”一起累计时，按干员自己的累计占比计入他的“附加”伤害。</li>
+        <li><b>麻痹：</b>敌人每次普通攻击消耗一层并被打断，按“敌人攻击间隔”触发；领袖是否会自己流失麻痹层数没有确认，按不流失计算。</li>
+        <li><b>已建模的元素干员：</b>克莱门莎、烛煌、余、酒神、真言、妮芙、塔露拉、折光、Miss.Christine、盟约·辅助干员，以及黑键、薇薇安娜的模组和【炎】6 人效果。只恢复元素损伤的治疗干员不涉及。</li>
         <li><b>阿戈尔的吞噬：</b>选一名被吞噬的干员，吞噬者获得它的基础攻击力，盟约层数加上它的等阶；被吞噬者挨 5000 点物理伤害，按它的生命和防御判断能否存活。连环吞噬没有单独建模。</li>
-        <li><b>没有计入：</b>其他干员的元素损伤与元素伤害、召唤物、给队友的光环和减益、策略、战地广播。靠元素伤害的干员（烛煌、真言、酒神、塔露拉等）实际会更高。</li>
+        <li><b>没有计入：</b>召唤物、给队友的光环和减益、策略、战地广播；元素脆弱、敌人对元素损伤的抵抗也没有计入。</li>
         <li><b>概率与条件效果取期望值；</b>需要“被攻击”才触发的效果一律未计入。</li>
         <li><b>伊比利亚的持续法伤默认算作干员自己造成的伤害：</b>吃伤害倍率（协防、竞技旗、狙击镜、动能单手弩）和攻击方的无视法抗（精准 3 人）。没有实测依据，参数里有开关，关掉就按无来源伤害计算。两种算法下，持续法伤的每一跳都不再触发“每次造成伤害时”的效果。</li>
         <li><b>伊比利亚未确认：</b>持续法伤按“每名干员各自叠 10 层、每次造成伤害刷新 10 秒”计算；如果实际是全队共用 10 层，多人同打一个目标时总伤害会低于各行相加。</li>
@@ -569,10 +584,12 @@ const MODELS = {
 const OPS_MORE = [
  // ───── 炎 ─────
  {id:'zhuhuang',name:'烛煌',tier:'Ⅵ',cls:'术师 · 本源术师',bonds:['炎','维多利亚','迅捷'],r:1,atk:[556,708],bat:1.6,aspd:[100,100],ty:'m',
-  sk:{t:'time',c:[37,34],i:[13,16],d:-1,ammo:[18,21],atk:[70,85],ba:-1.3,tg:9},
+  elem:1,burstDm:[1,1.1],onBr:{t:'f',sc:[3.5,4.2],atk:[0,10],dur:10},
+  sk:{t:'time',c:[37,34],i:[13,16],d:-1,ammo:[18,21],atk:[70,85],ba:-1.3,tg:9,brX:{t:'f',sc:[0.6,0.7]},ammoBr:{t:'f',n:2}},
   trait:'范围内每有敌人触发元素损伤爆发，【炎】【维多利亚】层数 +1/+2（每回合至多 12/24）',
-  skill:'众恶的焚场（37/34 技力，18/21 发弹药）：攻击力 +70%/+85%，攻击间隔 −1.3 秒，群体攻击',
-  model:'灼燃爆发相关的元素伤害（天赋 350%/420%、技能 60%/70%）未计入，实际输出会更高。'},
+  extra:'全场有敌人灼燃损伤爆发时，立即对其造成 350%/420% 攻击力元素伤害（精锐：之后 10 秒攻击力 +10%）；精锐模组：对元素爆发期间的敌人伤害 ×110%',
+  skill:'众恶的焚场（37/34 技力，18/21 发弹药）：攻击力 +70%/+85%，攻击间隔 −1.3 秒，群体攻击；目标处于灼燃损伤爆发期间时额外造成 60%/70% 攻击力元素伤害，全场每有敌人进入灼燃爆发获得 2 发弹药',
+  model:'这个技能自己不造成灼燃损伤，要靠队友（余、塔露拉、【炎】6 人效果等）把敌人打进灼燃爆发：打开 6 人效果，或在参数栏“队友的元素损伤”里填灼燃损伤。她的 1、2 技能自己就能造成灼燃损伤。'},
  {id:'dusk',name:'夕',tier:'Ⅵ',cls:'术师 · 扩散术师',bonds:['炎','奥术'],r:1,atk:[771,948],bat:2.9,aspd:[100,100],ty:'m',tg:9,
   sk:{t:'time',c:[47,44],i:[15,15],d:[17,18],atk:[29,40],aspd:[29,40],dm:[1.1,1.125]},
   trait:'休整期结束时，本回合每获得一名干员，【炎】【奥术】层数 +2/+4（每回合至多 24/48）',
@@ -591,11 +608,12 @@ const OPS_MORE = [
   skill:'驱凶辟邪（11/10 技力）：标记目标，5 秒后爆炸造成 230%/260% 法伤，期间我方每次命中 +10%/+15%（至多 20/25 次）',
   model:'爆炸按队友打满加成层数计算（430%/635%）；阻挡时攻速 +14，周围仅一个敌人时翻倍。'},
  {id:'yu',name:'余',tier:'Ⅳ',cls:'重装 · 本源铁卫',bonds:['炎','坚守'],atk:[548,694],bat:1.6,aspd:[100,100],blk:3,
-  aura:{ty:'m',sc:[0.4,0.4],iv:1,tg:3,block:1},
+  aura:{ty:'m',sc:[0.4,0.4],iv:1,tg:3,block:1,ep:{t:'f',r:0.12}},elem:1,epBlk:[1,1.15],
   sk:{t:'time',c:[55,55],i:[24,33],d:[41,42],atk:[50,80]},
   trait:'周围八格每有敌人触发元素损伤爆发，自身已激活的盟约层数 +1/+2（每回合至多 8/16）',
   skill:'灶里乾坤（55 技力，41/42 秒）：攻击力 +50%/+80%',
-  model:'阻挡时每秒对阻挡目标造成 40% 攻击力法伤；灼燃损伤未计入。'},
+  extra:'阻挡敌人时，使其每秒受到 40% 攻击力法伤和 12% 攻击力的灼燃损伤；精锐模组：阻挡时造成的元素损伤 +15%',
+  model:'阻挡时每秒对阻挡目标造成 40% 攻击力法伤和 12% 攻击力灼燃损伤。灼燃损伤累计满（领袖 2000 点，其他敌人 1000 点）时敌人受到 7000 点元素伤害，10 秒内法抗 −20。火墙给队友附加的灼燃损伤没有计入。'},
  {id:'ju',name:'矩',tier:'Ⅱ',cls:'狙击 · 攻城手',bonds:['炎'],r:1,atk:[783,978],bat:2.4,aspd:[100,100],heavySc:[1,1.15],
   sk:{t:'time',c:[47,44],i:[21,22],d:30,atk:[62,75],tg:2},
   trait:'获得时获得等同于调度中心等级 ×1/×2 的【炎】层数',
@@ -619,10 +637,12 @@ const OPS_MORE = [
  // ───── 萨尔贡 ─────
  {id:'truth',name:'真言',tier:'Ⅵ',cls:'术师 · 本源术师',bonds:['萨尔贡'],r:1,atk:[583,744],bat:1.6,aspd:[100,100],ty:'m',
   tf:(k,ly)=>({atk:Math.floor(ly('萨尔贡')/5)*(k?2:1)}),
-  sk:{t:'time',c:[52,46],i:[24,26],d:40,atk:[170,210],tg:2},
+  elem:1,burstDm:[1,1.1],onPalsy:{sc:[1.35,1.6],keep:[0.1,0.15]},
+  sk:{t:'time',c:[52,46],i:[24,26],d:40,atk:[170,210],tg:2,palsy:{cap:2,add:2,max:3,sc:[1.1,1.45]}},
   trait:'【萨尔贡】每叠加 5 层，本干员攻击力 +1%/+2%',
-  skill:'无言为真（52/46 技力，40 秒）：攻击力 +170%/+210%，同时攻击 2 个目标',
-  model:'麻痹触发的元素伤害（天赋 135%/160%、技能跳跃 110%/145%）未计入。'},
+  extra:'场上敌人触发麻痹时立即受到 135%/160% 攻击力元素伤害，且有 10%/15% 概率不消耗麻痹层数；精锐模组：对元素爆发期间的敌人伤害 ×110%',
+  skill:'无言为真（52/46 技力，40 秒）：攻击力 +170%/+210%，同时攻击 2 个目标；范围内敌人麻痹上限降为 2，范围内干员开技能时（含自己，至多 3 次）敌人获得 2 层麻痹，每超出上限 1 层在目标和另一名敌人间跳跃一次 110%/145% 攻击力元素伤害',
+  model:'麻痹在敌人普通攻击时触发（打断这次攻击，消耗一层），触发快慢取决于参数栏的“敌人攻击间隔”。队友开技能的频率用【萨尔贡】参数里的“队友每秒开技能次数”。这个技能自己不造成神经损伤；队友把敌人打进神经爆发会再给 3 层麻痹。'},
  {id:'pepe',name:'佩佩',tier:'Ⅴ',cls:'近卫 · 撼地者',bonds:['萨尔贡','灵巧'],atk:[1083,1307],bat:1.8,aspd:[100,100],blk:2,tg:9,splash:0.5,ap:16,
   sk:{t:'time',c:[57,51],i:[30,32],d:40,atk:[150,180],ba:0.2,rampAtk:[[13,16],4]},
   trait:'周围八格每有敌人或干员进入沉睡/眩晕，自身及身后一格干员已激活的盟约层数 +1/+2（每回合至多 9/18）',
@@ -671,9 +691,12 @@ const OPS_MORE = [
   skill:'俱以我之名（65/60 技力，25 秒）：攻击力 +145%/+160%，攻击间隔 −0.25 秒，同时攻击 2/3 个目标，真实伤害',
   model:'天赋“周围每名友方 +5% 攻击力”按 3 名计算；“黄金盟誓”召唤物未计入。'},
  {id:'phantom2',name:'酒神',tier:'Ⅵ',cls:'辅助 · 巫役',bonds:['维多利亚'],r:1,atk:[411,505],bat:1.6,aspd:[100,100],ty:'m',
-  sk:{t:'time',c:[40,40],i:[9,18],d:30,atk:[75,95]},
+  elem:1,epA:{t:'n',r:0.3,sp:0.2},eAtkEp:{t:'n',v:[70,90]},epBoss:[1,1.18],
+  sk:{t:'time',c:[40,40],i:[9,18],d:30,atk:[75,95],epTick:{t:'n',r:0.1},epSpd:{n:50}},
   trait:'进入休整期时获得 1/2 件随机装备',
-  skill:'空剧场（40 技力，30 秒）：攻击力 +75%/+95%',model:'神经损伤及其爆发未计入。主要价值是给装备。'},
+  extra:'攻击附带 30% 攻击力的神经损伤，周围其他敌人 20%；范围内敌人普通攻击时受到 70/90 点神经损伤；精锐模组：对领袖造成的元素损伤 +18%',
+  skill:'空剧场（40 技力，30 秒）：攻击力 +75%/+95%，被她造成过神经损伤的敌人每秒再受到 10% 攻击力神经损伤直到爆发；范围内敌人神经损伤冷却恢复速度 +50%',
+  model:'神经损伤累计满（领袖 2000 点，其他敌人 1000 点）时敌人受到 6000 点元素伤害并获得 3 层麻痹，10 秒内不再累计（技能期间约 6.7 秒）。迷狂牢笼没有计入。她还会在休整期给装备。'},
  {id:'jessica2',name:'涤火杰西卡',tier:'Ⅳ',cls:'重装 · 哨戒铁卫',bonds:['维多利亚','坚守'],atk:[433,542],bat:1.2,aspd:[100,100],blk:3,
   sk:{t:'time',c:[50,45],i:[20,25],d:-1,ammo:20,atk:[240,270],ba:0.6,burst:[{ty:'p',sc:2.5,tg:9}]},
   trait:'休整期结束时，场上每有一名携带装备的干员，【维多利亚】【坚守】层数 +2/+4',
@@ -688,9 +711,12 @@ const OPS_MORE = [
   skill:'可驯服的（31/28 技力，25 秒）：攻击力 +20%/+35%，投射物附着目标并额外斩击 4 次',
   model:'投射物回收时间未计入（实际攻击间隔更长）；技能期间按每次攻击 5 段、间隔 +1 秒估算。'},
  {id:'christine',name:'Miss.Christine',tier:'Ⅱ',cls:'术师 · 本源术师',bonds:['维多利亚','奥术'],r:1,atk:[469,581],bat:1.6,aspd:[100,100],ty:'m',
-  sk:{t:'time',c:[42,39],i:[5,10],d:20,stop:1,tick:{ty:'m',sc:[0.75,0.85],iv:1,tg:9}},
+  elem:1,burstDm:[1,1.1],onPalsy:{sc:[0.8,1.2]},
+  sk:{t:'time',c:[42,39],i:[5,10],d:20,stop:1,tick:{ty:'m',sc:[0.75,0.85],iv:1,tg:9,brX:{t:'n',sc:[0.6,0.75]}}},
   trait:'休整期结束时，【维多利亚】【奥术】层数 +3/+6',
-  skill:'狂饮之宴（42/39 技力，20 秒）：停止攻击，灵体每秒对周围所有敌人造成 75%/85% 法伤',model:'神经损伤相关的元素伤害未计入。'},
+  extra:'范围内的敌人触发麻痹时立即受到 80%/120% 攻击力元素伤害；精锐模组：对元素爆发期间的敌人伤害 ×110%',
+  skill:'狂饮之宴（42/39 技力，20 秒）：停止攻击，灵体每秒对周围所有敌人造成 75%/85% 法伤，对神经损伤爆发期间的目标额外造成 60%/75% 攻击力元素伤害',
+  model:'这个技能自己不造成神经损伤，要靠队友（酒神、真言、辅助干员等）把敌人打进神经爆发：在参数栏“队友的元素损伤”里填神经损伤才会生效。麻痹在敌人普通攻击时触发。'},
  {id:'mousse',name:'慕斯',tier:'Ⅰ',cls:'近卫 · 术战者',bonds:['维多利亚'],atk:[505,627],bat:1.25,aspd:[100,100],blk:1,ty:'m',hx:[1.1,1.2],
   sk:{t:'next',c:[5,5],i:[0,0],sc:[1.45,1.6]},
   trait:'休整期结束时，【维多利亚】层数 +1/+2',
@@ -842,10 +868,10 @@ const OPS_MORE = [
   sk:{t:'time',c:[55,50],i:[15,20],d:25,atk:[70,100],ty:'t',burst:[{ty:'t',sc:[0.9,1]}]},
   trait:'被击倒时召唤整备区最右侧的【卡西米尔】【突袭】干员上场，双方已激活的盟约层数 +6/+12',
   skill:'耀阳颔首（55/50 技力，25 秒）：攻击力 +70%/+100%，攻击变为真实伤害，召唤“耀阳”造成 90%/100% 真实伤害',model:'普攻无视 20%/28% 防御；精锐模组对被阻挡的敌人攻击力 ×1.15。部署时的落地伤害未计入。'},
- {id:'viviana',name:'薇薇安娜',tier:'Ⅴ',cls:'近卫 · 术战者',bonds:['莱塔尼亚','卡西米尔','奥术'],atk:[523,635],bat:1.25,aspd:[100,100],blk:1,ty:'m',dm:1.08,
+ {id:'viviana',name:'薇薇安娜',tier:'Ⅴ',cls:'近卫 · 术战者',bonds:['莱塔尼亚','卡西米尔','奥术'],atk:[523,635],bat:1.25,aspd:[100,100],blk:1,ty:'m',dm:1.08,brX:{t:'f',sc:[0,0.15]},
   sk:{t:'time',c:[32,30],i:[9,12],d:15,d2:25,atk:[55,75],ba:0.5,hits:2,hits2:3},
   trait:'场上其他与自身拥有相同盟约的干员本回合叠层上限 +7/+14',
-  skill:'“明灭”（32/30 技力，15 秒）：攻击力 +55%/+75%，二连击；第二次起三连击、持续 25 秒',model:'天赋法伤 +8%（范围内有精英/领袖时翻倍，未计入翻倍）。'},
+  skill:'“明灭”（32/30 技力，15 秒）：攻击力 +55%/+75%，二连击；第二次起三连击、持续 25 秒',model:'天赋法伤 +8%（范围内有精英/领袖时翻倍，未计入翻倍）。精锐模组：攻击灼燃损伤爆发期间的目标时额外造成 15% 攻击力元素伤害，要靠队友造成灼燃爆发。'},
  {id:'mlynar',name:'玛恩纳',tier:'Ⅳ',cls:'近卫 · 解放者',bonds:['卡西米尔'],atk:[301,355],bat:1.2,aspd:[100,105],blk:3,m:'mlynar',
   tf:(k,ly)=>({base:Math.floor(ly('卡西米尔')/5)*(k?20:10),dur:100}),
   trait:'【卡西米尔】每叠加 5 层，部署后 100 秒内基础攻击力 +10/+20',
@@ -875,10 +901,12 @@ const OPS_MORE = [
 
  // ───── 乌萨斯 ─────
  {id:'talulah',name:'塔露拉',tier:'Ⅵ',cls:'近卫 · 本源近卫',bonds:['乌萨斯','奥术','协防干员'],atk:[743,831],bat:1.2,aspd:[100,100],blk:2,ty:'m',
-  sk:{t:'time',c:[45,45],i:[38,38],d:36,atk:[108,120],stop:1,tick:{ty:'m',sc:[1.69,2.28],iv:2.67,tg:9}},
+  elem:1,epAll:{t:'f',r:[0.11,0.11]},brTick:{t:'f',ty:'m',sc:[0.12,0.12],iv:0.3,dur:5,tg:1},
+  sk:{t:'time',c:[45,45],i:[38,38],d:36,atk:[108,120],stop:1,tick:{ty:'m',sc:[1.69,2.28],iv:2.67,tg:9,brTy:'f'}},
   trait:'【乌萨斯】盟约强化：击倒单位时叠加的临时层数提升至 4/6 层（6 人时 6/8 层）',
-  skill:'日冕重烈（45 技力，36 秒）：攻击力 +108%/+120%，停止攻击，每 2.67 秒召唤“簇火”造成 130%/175% 范围法伤',
-  model:'同一波多个“簇火”按主伤害 ×1.3 折算；灼燃损伤和“足迹”未计入。'},
+  extra:'造成法术伤害时附带相当于伤害 11% 的灼燃损伤；敌人灼燃爆发后 5 秒内留下“足迹”，每 0.3 秒造成 12% 攻击力法伤',
+  skill:'日冕重烈（45 技力，36 秒）：攻击力 +108%/+120%，停止攻击，每 2.67 秒召唤“簇火”造成 130%/175% 范围法伤；目标处于灼燃损伤爆发期间时改为元素伤害',
+  model:'同一波多个“簇火”按主伤害 ×1.3 折算。灼燃损伤累计满（领袖 2000 点，其他敌人 1000 点）时敌人受到 7000 点元素伤害，10 秒内法抗 −20。“足迹”按爆发的敌人在上面站满 5 秒计算；天赋里“停止攻击 3 秒后伤害逐渐提升”没有计入。'},
  {id:'zima2',name:'怒潮凛冬',tier:'Ⅴ',cls:'近卫 · 撼地者',bonds:['乌萨斯','奇迹'],atk:[1060,1257],bat:1.8,aspd:[100,100],blk:2,tg:9,splash:0.62,lyNeed:['奇迹'],
   tf:(k,ly)=>{const n=Math.floor((ly('乌萨斯')+ly('奇迹'))/10);return{atk:n*(k?2:1),sp:n*(k?0.2:0.1)};},
   sk:{t:'time',c:[57,53],i:[20,24],d:16,atk:[88,103],atk2:[148,178],perm2:1},
@@ -924,14 +952,17 @@ const OPS_MORE = [
   trait:'【莱塔尼亚】【奥术】每叠加 2/1 层，技力回复 +0.02/秒，攻击力 +1%',
   skill:'火山（80 技力，15 秒）：攻击力 +70%/+85%，攻击间隔 −1.1 秒，同时攻击至多 4/5 个敌人',model:'天赋的部署回技力按平均 +11 计算；层数越高火山开得越勤。'},
  {id:'ebenholz',name:'黑键',tier:'Ⅳ',cls:'术师 · 秘术师',bonds:['莱塔尼亚','精准'],r:1,atk:[1134,1386],bat:3.0,aspd:[100,100],ty:'m',
-  fx:(k,c)=>({sc:c.N===1?1.15:1}),
+  fx:(k,c)=>({sc:c.N===1?1.15:1}),elem:1,epAll:{t:'d',r:[0,0.08]},
   sk:{t:'time',c:[15,14],i:[0,0],d:0,burst:[{ty:'m',sc:[1.7,2],tg:9}]},
   trait:'范围内每有敌人被击倒，【莱塔尼亚】【精准】层数 +1/+2（每回合至多 8/16）',
-  skill:'荒芜回响（15/14 技力）：召唤旧日残影，对周围敌人造成 170%/200% 攻击力法伤',model:'按持续有目标、每次技能 1 个残影计算；目标落单时普攻附带 15% 攻击力法伤。'},
+  skill:'荒芜回响（15/14 技力）：召唤旧日残影，对周围敌人造成 170%/200% 攻击力法伤',model:'按持续有目标、每次技能 1 个残影计算；目标落单时普攻附带 15% 攻击力法伤。精锐模组：造成法术伤害时附带相当于伤害 8% 的凋亡损伤，累计满时敌人 15 秒内每秒受到 800 点元素伤害。'},
  {id:'diamante',name:'折光',tier:'Ⅱ',cls:'术师 · 本源术师',bonds:['莱塔尼亚'],r:1,atk:[471,584],bat:1.6,aspd:[100,100],ty:'m',
-  sk:{t:'time',c:[40,37],i:[10,15],d:[30,35],aspd:[55,75],tg:2},
+  elem:1,burstDm:[1,1.1],brAtk:{t:'d',atk:[10,18]},
+  sk:{t:'time',c:[40,37],i:[10,15],d:[30,35],aspd:[55,75],tg:2,brX:{t:'d',sc:[0.5,0.6]}},
   trait:'休整期结束时，【莱塔尼亚】层数 +4/+8',
-  skill:'热处理变色（40/37 技力，30/35 秒）：攻速 +55/+75，额外攻击 1 个目标',model:'凋亡损伤相关的元素伤害未计入。'},
+  extra:'范围内有敌人处于凋亡损伤爆发期间时攻击力 +10%/+18%；精锐模组：对元素爆发期间的敌人伤害 ×110%',
+  skill:'热处理变色（40/37 技力，30/35 秒）：攻速 +55/+75，额外攻击 1 个目标；对凋亡损伤爆发期间的目标额外造成 50%/60% 攻击力元素伤害',
+  model:'这个技能自己不造成凋亡损伤，要靠队友（妮芙、黑键等）把敌人打进凋亡爆发：在参数栏“队友的元素损伤”里填凋亡损伤才会生效。'},
  {id:'czerny',name:'车尔尼',tier:'Ⅲ',cls:'重装 · 驭法铁卫',bonds:['莱塔尼亚','坚守'],atk:[500,593],bat:1.6,aspd:[100,100],blk:3,xh:{ty:'m',sc:[0,0.1]},
   sk:{t:'time',c:[37,34],i:[3,6],d:20,ty:'m',atk:[100,120],end:{ty:'m',sc:[1.7,1.9],tg:9}},
   trait:'获得时获得 1/2 件“莱塔尼亚小鼓”',
@@ -961,8 +992,10 @@ const ALT = {
   {no:3,name:'“我的海疆”',sk:{t:'time',c:[67,64],i:[36,40],d:0,tick:{ty:'m',sc:[2.39,2.74],iv:1,tg:9,dur:[22,24]}},text:'67/64 技力：炼金单元 19/20 秒，每秒法伤从 120%/150% 逐渐升到 300%/330%（按平均值计算，减抗未计入）'}]},
  // 炎
  zhuhuang:{def:3,list:[
-  {no:1,name:'炙手之援',sk:{t:'time',c:[22,19],i:[2,6],d:0,tick:{ty:'m',sc:[0.46,0.55],iv:1,tg:9,dur:20}},text:'22/19 技力：20 秒内每秒对一名干员周围的敌人造成 46%/55% 法伤'},
-  {no:2,name:'沸血燎原',sk:{t:'time',c:[42,39],i:[15,20],d:35,atk:[90,120],ba:0.9,tg:3,tick:{ty:'m',sc:0.35,iv:1,tg:3}},text:'42/39 技力，35 秒：攻击力 +90%/+120%，攻击间隔 +0.9 秒，同时攻击 3 名敌人，灼烧地段每秒 35% 法伤'}]},
+  {no:1,name:'炙手之援',sk:{t:'time',c:[22,19],i:[2,6],d:0,tick:{ty:'m',sc:[0.46,0.55],iv:1,tg:9,dur:20,ep:{t:'f',of:'dmg',r:0.3}}},text:'22/19 技力：20 秒内每秒对一名干员周围的敌人造成 46%/55% 法伤，并造成相当于伤害 30% 的灼燃损伤',
+   model:'这个技能自己就能把敌人打进灼燃爆发。爆发时敌人受到 7000 点元素伤害、法抗 −20，并触发她的天赋（350%/420% 攻击力元素伤害）。假设敌人一直在那名干员周围。'},
+  {no:2,name:'沸血燎原',sk:{t:'time',c:[42,39],i:[15,20],d:35,atk:[90,120],ba:0.9,tg:3,tick:{ty:'m',sc:0.35,iv:1,tg:3,ep:{t:'f',of:'dmg',r:0.3}}},text:'42/39 技力，35 秒：攻击力 +90%/+120%，攻击间隔 +0.9 秒，同时攻击 3 名敌人；灼烧地段每秒 35% 法伤，并造成相当于伤害 30% 的灼燃损伤',
+   model:'灼烧地段按敌人一直站在上面计算。灼燃爆发时敌人受到 7000 点元素伤害、法抗 −20，并触发她的天赋（350%/420% 攻击力元素伤害）。'}]},
  dusk:{def:2,list:[
   {no:1,name:'工笔入化',sk:{t:'next',src:'time',c:[7,6],i:[0,0],sc:[1.8,2.1],tg:9},text:'7/6 技力：下次攻击造成 180%/210% 群体法伤'},
   {no:3,name:'写意胜形',sk:{t:'time',c:[107,104],i:[50,55],d:60,atk:[70,100],ba:0.4},text:'107/104 技力，60 秒：攻击力 +70%/+100%，攻击间隔 +0.4 秒（“小自在”未计入）'}]},
@@ -973,15 +1006,18 @@ const ALT = {
   {no:1,name:'小惩大诫',sk:{t:'time',c:[11,10],i:[0,0],d:1,perm:1,atk:[25,40]},text:'11/10 技力，永久：攻击力 +25%/+40%'},
   {no:3,name:'贵客盈门',sk:{t:'time',c:[11,10],i:[0,0],d:1,perm:1,atk:[31,37]},text:'11/10 技力，永久：攻击力 +31%/+37%'}]},
  yu:{def:3,list:[
-  {no:1,name:'今日做东',sk:null,text:'受击充能，只造成灼燃损伤，未计入'},
+  {no:1,name:'今日做东',sk:{t:'def',c:[22,19],i:[0,0],d:30,onAtked:{t:'f',r:[0.3,0.4]}},text:'受击 22/19 次充能，30 秒：每次受到攻击对攻击者造成 30%/40% 攻击力的灼燃损伤',
+   model:'技力和灼燃损伤都靠挨打：按被她阻挡的敌人每个攻击间隔打她一次计算（参数栏“敌人攻击间隔”）。阻挡时天赋每秒造成 40% 攻击力法伤和 12% 攻击力灼燃损伤。'},
   {no:2,name:'厚礼上宾',sk:{t:'time',c:[32,29],i:[12,14],d:20,atk:[170,200],ty:'m',burst:[{ty:'m',sc:1,tg:9}]},text:'32/29 技力，20 秒：攻击力 +170%/+200%，普攻变法伤，开启时造成 100% 群体法伤'}]},
  shu:{def:3,list:[
   {no:1,name:'化被草木',sk:null,text:'治疗技能，不加伤害'},
   {no:2,name:'嘉禾盈仓',sk:{t:'time',c:[35,30],i:[15,20],d:25,stop:1},text:'35/30 技力，25 秒：停止攻击专注治疗'}]},
  // 萨尔贡
  truth:{def:3,list:[
-  {no:1,name:'共鸣溃缩',sk:{t:'next',c:[3,3],i:[0,0],sc:[2.3,2.75]},text:'攻击 3 次充能：下次攻击 230%/275% 法伤（神经损伤相关未计入）'},
-  {no:2,name:'意识联协',over:{splash:[0.59,0.52]},sk:{t:'time',c:[33,30],i:[16,17],d:25,ba:[-0.6,-0.7],sc:[1.7,2.1],tg:4},text:'33/30 技力，25 秒：攻击间隔 −0.6/−0.7 秒，170%/210% 法伤并跳跃至 3 名敌人各 100%/110%'}]},
+  {no:1,name:'共鸣溃缩',sk:{t:'next',c:[3,3],i:[0,0],sc:[2.3,2.75],epA:{t:'n',of:'dmg',r:[0.15,0.2]},brX:{t:'n',sc:[1.5,1.6]}},text:'攻击 3 次充能：下次攻击 230%/275% 法伤，附带相当于伤害 15%/20% 的神经损伤；目标处于神经损伤爆发期间时额外造成 150%/160% 攻击力元素伤害',
+   model:'神经损伤累计满时敌人受到 6000 点元素伤害并获得 3 层麻痹；之后敌人每次普通攻击被打断并消耗一层，同时触发她的天赋（135%/160% 攻击力元素伤害）。麻痹触发的快慢取决于参数栏的“敌人攻击间隔”。'},
+  {no:2,name:'意识联协',over:{splash:[0.59,0.52]},sk:{t:'time',c:[33,30],i:[16,17],d:25,ba:[-0.6,-0.7],sc:[1.7,2.1],tg:4,epA:{t:'n',of:'dmg',r:[0.13,0.15]},brX:{t:'n',sc:[0.18,0.2]}},text:'33/30 技力，25 秒：攻击间隔 −0.6/−0.7 秒，170%/210% 法伤并跳跃至 3 名敌人各 100%/110%，都附带相当于伤害 13%/15% 的神经损伤；目标处于神经损伤爆发期间时附带 18%/20% 攻击力元素伤害',
+   model:'神经损伤累计满时敌人受到 6000 点元素伤害并获得 3 层麻痹；之后敌人每次普通攻击被打断并消耗一层，同时触发她的天赋（135%/160% 攻击力元素伤害）。麻痹触发的快慢取决于参数栏的“敌人攻击间隔”。'}]},
  pepe:{def:3,list:[
   {no:1,name:'盖戳！',sk:{t:'next',src:'time',c:[7,6],i:[0,0],sc:[1.9,2.3]},text:'7/6 技力：下次攻击 190%/230% 物理伤害'},
   {no:2,name:'阻遏混乱锤',sk:{t:'time',c:[34,28],i:[14,16],d:18,atk:[55,70],aspd:[62,85]},text:'34/28 技力，18 秒：攻击力 +55%/+70%，攻速 +50/+70（后续每次再 +25/+30，至多 2 层，取平均）'}]},
@@ -1002,7 +1038,8 @@ const ALT = {
   {no:1,name:'重铸晖光',sk:{t:'next',src:'time',c:[7,5],i:[0,0],burst:[{ty:'t',sc:[0.9,1.2],tg:9}]},text:'7/5 技力：下次攻击对四周所有地面敌人追加 90%/120% 真实伤害'},
   {no:2,name:'进赴故土',over:{spr:[0.3,0.5]},sk:{t:'time',c:[80,70],i:[0,0],d:1,perm:1,atk:[135,150],tg:2},text:'80/70 技力，永久：攻击力 +135%/+150%，攻击目标 +1；周围有 2 名友方时技力回复 +0.3/+0.5 每秒'}]},
  phantom2:{def:3,list:[
-  {no:1,name:'暗夜回声',sk:{t:'next',c:[3,3],i:[0,0],sc:[1.05,1.2],hits:2},text:'攻击 3 次充能：下次攻击造成两次 105%/120% 法伤'},
+  {no:1,name:'暗夜回声',sk:{t:'next',c:[3,3],i:[0,0],sc:[1.05,1.2],hits:2,epBoost:{mul:[1.3,1.5],dur:[2,3]}},text:'攻击 3 次充能：下次攻击造成两次 105%/120% 法伤并束缚 2/3 秒，束缚期间目标受到的神经损伤提升至 1.3/1.5 倍',
+   model:'每次攻击附带 30% 攻击力的神经损伤（周围其他敌人 20%）；束缚的 2/3 秒内她造成的神经损伤按 1.3/1.5 倍计算。神经损伤累计满时敌人受到 6000 点元素伤害并获得 3 层麻痹。'},
   {no:2,name:'群体性谵妄',sk:{t:'time',c:[33,30],i:[0,0],d:1,perm:1,aspd:[20,25]},text:'33/30 技力，永久：攻速 +20/+25（“本能”召唤物的爆发未计入）'}]},
  jessica2:{def:3,list:[
   {no:1,name:'坚守阵线',sk:{t:'time',c:[100,90],i:[0,0],d:1,perm:1,atk:[40,55]},text:'100/90 技力，永久：攻击力 +40%/+55%'},
@@ -1128,6 +1165,7 @@ const EQUIP = [
  {id:'arm',n:'双模机械臂',t:5,d:['攻击力 +30%，伤害变为弱点伤害','攻击力 +50%，伤害变为弱点伤害'],fx:a=>({atk:a?50:30,weak:1})},
  {id:'hammer6',n:'电流维式重锤',t:5,d:['攻击力 +30%（麻痹效果未计入）','攻击力 +50%（麻痹效果未计入）'],fx:a=>({atk:a?50:30})},
  {id:'tag',n:'佣兵名牌',t:5,d:['每种已激活盟约攻击力 +6%（按 4 种计）','每种已激活盟约攻击力 +12%（按 4 种计）'],fx:a=>({atk:a?48:24})},
+ {id:'bottle',n:'瓶装烈性反应',t:5,d:['对处于元素爆发状态的敌人造成的伤害 +30%','对处于元素爆发状态的敌人造成的伤害 +50%'],fx:a=>({brDm:a?0.5:0.3})},
  {id:'lance',n:'天马之枪',t:6,one:1,d:['攻击力 +50%'],fx:()=>({atk:50})},
  {id:'accel',n:'动能加速器',t:6,one:1,d:['每次攻击攻速 +2（至多 60 层）'],fx:()=>({aspdAtk:[2,120]})},
  {id:'heart',n:'汲取者之心',t:6,one:1,d:['攻击力 +30%，攻速 +30'],fx:()=>({atk:30,aspd:30})},
@@ -1205,9 +1243,9 @@ const OPS_SUB = [
  {id:'roberta',name:'罗比菈塔',tier:'Ⅲ',cls:'辅助 · 工匠',bonds:['坚守','助力'],atk:[444,522],bat:1.5,aspd:[100,100],blk:2,
   sk:{t:'time',c:[40,35],i:[5,10],d:25,stop:1},
   trait:'休整期结束时，同一行每有 1 名干员【坚守】【助力】层数 +2/+4',skill:'全自动造型仪（40/35 技力，25 秒）：停止攻击',model:'技能期间不输出。'},
- {id:'acsupo',name:'盟约·辅助干员',tier:'Ⅲ',cls:'辅助 · 巫役',bonds:['调和'],r:1,atk:[354,439],bat:1.6,aspd:[100,100],ty:'m',ap:[20,40],
+ {id:'acsupo',name:'盟约·辅助干员',tier:'Ⅲ',cls:'辅助 · 巫役',bonds:['调和'],r:1,atk:[354,439],bat:1.6,aspd:[100,100],ty:'m',ap:[20,40],elem:1,epA:{t:'n',r:0.18},epBoss:[1,1.18],
   sk:{t:'atk',c:[20,17],i:[9,10],d:30,aspd:[70,80],tg:2},
-  trait:'攻击力和生命上限 +20%/+40%',skill:'战术咏唱·双型（攻击 20/17 次充能，30 秒）：攻速 +70/+80，同时攻击 2 个目标',model:'元素损伤未计入。【调和】让核心盟约激活人数 +1。'},
+  trait:'攻击力和生命上限 +20%/+40%',skill:'战术咏唱·双型（攻击 20/17 次充能，30 秒）：攻速 +70/+80，同时攻击 2 个目标',extra:'攻击附带 18% 攻击力的神经损伤；精锐模组：对领袖造成的元素损伤 +18%',model:'每次攻击附带 18% 攻击力的神经损伤（天赋里的灼燃、凋亡没有单独计算）。累计满时敌人受到 6000 点元素伤害并获得 3 层麻痹。【调和】让核心盟约激活人数 +1。'},
  {id:'kazemaru',name:'风丸',tier:'Ⅲ',cls:'特种 · 傀儡师',bonds:['不屈'],atk:[567,705],bat:1.2,aspd:[100,100],blk:2,
   sk:{t:'time',c:[25,20],i:[5,10],d:20,atk:[70,90],burst:[{ty:'m',sc:2.7,tg:9}]},
   trait:'被击倒或与傀儡替换时【不屈】层数 +2/+4（每回合至多 10/20）',skill:'纸艺·双影（25/20 技力，20 秒）：攻击力 +70%/+90%，召唤替身时造成 270% 群体法伤',model:'替身自身的普攻未计入。'},
@@ -1266,8 +1304,11 @@ const OPS_SUB = [
   sk:{t:'time',c:[45,45],i:[9,18],d:30,atk:[160,220],tg:3},
   trait:'【奥术】【远见】每叠加 3 层，本干员攻击速度 +1/+2',skill:'延异视阈（45 技力，30 秒）：攻击力 +160%/+220%，同时攻击 3 个目标',model:'天赋 40% 概率追加 60%/65% 法伤取期望；每次命中附带 150 点法伤；减 10 法抗未计入。'},
  {id:'nymph',name:'妮芙',tier:'Ⅵ',cls:'术师 · 本源术师',bonds:['迅捷','远见'],r:1,atk:[550,700],bat:1.6,aspd:[100,100],ty:'m',
-  sk:{t:'time',c:[17,14],i:[3,6],d:0,burst:[{ty:'m',sc:[2.7,3],tg:9}]},
-  trait:'范围内每有敌人陷入恐惧【迅捷】层数 +4/+8（每回合至多 20/40）',skill:'怵然震爆（17/14 技力）：270%/300% 群体法伤并恐惧',model:'凋亡损伤和相关元素伤害未计入，实际更高。'},
+  elem:1,burstDm:[1,1.1],brDot:{t:'d',sc:[0.4,0.4]},brStack:{t:'d',atk:[2,3],max:10,aspd:[0,12]},
+  sk:{t:'time',c:[17,14],i:[3,6],d:0,burst:[{ty:'m',sc:[2.7,3],tg:9,ep:{t:'d',r:[0.18,0.22]},brDot:[0.7,0.85]}]},
+  trait:'范围内每有敌人陷入恐惧【迅捷】层数 +4/+8（每回合至多 20/40）',extra:'攻击到凋亡损伤爆发期间的敌人，使其每秒受到 40% 攻击力元素伤害直到爆发结束；范围内每有敌人凋亡爆发攻击力 +2%/+3%（至多 10 层，精锐叠满后攻速 +12）；精锐模组：对元素爆发期间的敌人伤害 ×110%',
+  skill:'怵然震爆（17/14 技力）：270%/300% 群体法伤并恐惧，附带相当于伤害 18%/22% 的凋亡损伤；打到凋亡爆发中的敌人时，天赋的每秒伤害提高到 70%/85% 攻击力',
+  model:'凋亡损伤累计满（领袖 2000 点，其他敌人 1000 点）时敌人进入 15 秒的爆发，每秒受到 800 点元素伤害，期间不再累计。可充能次数没有单独计算，技力满就放。'},
  {id:'haruka',name:'遥',tier:'Ⅵ',cls:'辅助 · 护佑者',bonds:['聚合','奇迹'],r:1,atk:[398,504],bat:1.6,aspd:[100,100],ty:'m',tg:[1,2],
   sk:{t:'time',c:[21,20],i:[0,0],d:[22,23],perm2:1,atk:[0,0],atk2:[20,25],sc:[1.05,1.5],tg:3,hits:[2,3]},
   trait:'范围内每有敌人被击倒【聚合】【奇迹】层数 +1/+2（每回合至多 12/24）',skill:'幽隙栖萤（21/20 技力，22/23 秒）：改为治疗，每次治疗对周围 3 名敌人造成治疗量 140%/200% 的法伤；第二次起永久',model:'技能期间按每个攻击间隔治疗 2/3 人、每次治疗量为 75% 攻击力计算。'},
@@ -1326,8 +1367,10 @@ Object.assign(ALT, {
   {no:1,name:'殁亡',sk:{t:'time',c:[74,68],i:[0,0],d:1,perm:1,atk:[40,70]},text:'74/68 技力，永久：攻击力 +40%/+70%（斩杀效果未计入）'},
   {no:2,name:'提喻',sk:{t:'time',c:[39,36],i:[20,20],d:20,stop:1,tick:{ty:'m',sc:[0.96,1.375],iv:0.5,tg:1}},text:'39/36 技力，20 秒：锁定一个目标，每 0.5 秒 35%/50% 法伤，5 秒内逐渐提高到 3 倍（按平均值计算）'}]},
  nymph:{def:2,list:[
-  {no:1,name:'笞心击',sk:{t:'time',c:[36,33],i:[5,15],d:20,atk:[60,80]},text:'36/33 技力，20 秒：攻击力 +60%/+80%'},
-  {no:3,name:'心防溃决',sk:{t:'time',c:[55,55],i:[19,27],d:[27,29],atk:[140,170],aspd:[30,45],tg:2},text:'55 技力，27/29 秒：攻击力 +140%/+170%，攻速 +30/+45，同时攻击 2 个目标'}]},
+  {no:1,name:'笞心击',sk:{t:'time',c:[36,33],i:[5,15],d:20,atk:[60,80],epA:{t:'d',of:'dmg',r:0.1},brX:{t:'d',sc:[0.3,0.4]}},text:'36/33 技力，20 秒：攻击力 +60%/+80%，攻击附带相当于伤害 10% 的凋亡损伤；目标处于凋亡损伤爆发期间时额外造成 30%/40% 攻击力元素伤害',
+   model:'凋亡损伤累计满时敌人进入 15 秒的爆发，每秒受到 800 点元素伤害。她打到爆发中的敌人后，天赋让它每秒再受到 40% 攻击力元素伤害，直到爆发结束；每次爆发攻击力 +2%/+3%（至多 10 层）。'},
+  {no:3,name:'心防溃决',sk:{t:'time',c:[55,55],i:[19,27],d:[27,29],atk:[140,170],aspd:[30,45],tg:2,brTy:'d'},text:'55 技力，27/29 秒：攻击力 +140%/+170%，攻速 +30/+45，同时攻击 2 个目标；目标处于凋亡损伤爆发期间时，攻击改为元素伤害（无视法抗）',
+   model:'这个技能自己不造成凋亡损伤，要靠队友把敌人打进凋亡爆发：在参数栏“队友的元素损伤”里填凋亡损伤。打到爆发中的敌人后，天赋让它每秒再受到 40% 攻击力元素伤害，直到爆发结束。'}]},
  haruka:{def:2,list:[
   {no:1,name:'夜啼彩羽',sk:{t:'time',c:[25,25],i:[7,10],d:[19,20],stop:1},text:'25 技力，19/20 秒：改为治疗，不造成伤害'},
   {no:3,name:'夏末游鳞',sk:{t:'time',c:[60,60],i:[43,46],d:40,stop:1},text:'60 技力，40 秒：改为治疗；攻击浮泡的敌人每秒受 60%/70% 法伤（取决于敌人行为，未计入）'}]},
@@ -1360,7 +1403,7 @@ const CORE = {
  iberia:{name:'伊比利亚',six:1,sixLabel:'6 人效果（持续法伤 ×2、弹射）',
   f:'每次造成伤害给目标挂 1 层：每层每秒 (11 + 0.06×层数)% 攻击力的法伤，至多 10 层，持续 10 秒。',
   params:[{id:'indirect',t:'chk',label:'毒伤、附加法伤等间接伤害也触发叠层',def:true},{id:'near',t:'chk',label:'引星棘刺范围内有队友（炼金单元延时）',def:true},{id:'dotOwn',t:'chk',label:'持续法伤算作干员自己造成的伤害（吃伤害倍率和无视法抗）',def:true}]},
- yan:{name:'炎',six:0,f:'【炎】干员攻击力 +(23 + 0.9×层数)%。'},
+ yan:{name:'炎',six:1,sixLabel:'6 人效果（攻击附带随机元素损伤，敌人元素爆发的冷却加快）',f:'【炎】干员攻击力 +(23 + 0.9×层数)%。6 人：每次攻击造成 6% 攻击力的随机元素损伤，全场敌人元素损伤恢复速度 +(40 + 0.3×层数)%。'},
  sargon:{name:'萨尔贡',six:1,sixLabel:'6 人效果（流沙地面伤害）',
   f:'任一【萨尔贡】干员开启技能时，全体【萨尔贡】干员攻速 +12（至多 +300），持续 (5 + 0.22×层数) 秒。',
   params:[{id:'sargRate',label:'队友每秒开技能次数',def:0.3,step:0.1,min:0,max:5}]},
@@ -1460,7 +1503,7 @@ const clemModel=n=>{ const tal=(x,i)=>1+(x.defDown(i)>0?0.5:0.25)*0.35;
     if(S.vt%30===0)for(let i=0;i<x.N;i++){ if(i===0&&x.cfg.blocking&&x.cfg.bossMass>8)continue;
       x.hit(i,'p',V([2.65,2.85],x.k)*tal(x,i),'direct',{indirect:true}); x.erode(i,200); } },
   // 与海为敌：技能期间每有敌人侵蚀爆发，消耗 1 发弹药轰击 3 次（间隔 1 秒），每次物理 + 元素伤害
-  onBurst(x){const S=x.S,k=x.k; if(n!==3||!S.skillOn||S.ammo<=0)return; S.ammo--;
+  onBurst(x,i,t){const S=x.S,k=x.k; if(n!==3||t!=='w'||!S.skillOn||S.ammo<=0)return; S.ammo--;
     for(let h=1;h<=3;h++)x.later(h,()=>{ for(let i=0;i<x.N;i++){ x.hit(i,'p',V([2.5,2.7],k)*tal(x,i),'direct',{indirect:true}); x.hit(i,'e',V([1.8,2],k),'direct',{indirect:true}); } });
     if(S.ammo<=0)x.endSkill(); }
  };};
@@ -1475,10 +1518,10 @@ function variant(op, si){
 }
 // 汇总装备加成
 function equipFx(list){
-  const E={atk:0,aspd:0,sp:0,dm:1,rdm:1,init:0,cost:1,skAspd:0,skAtk:0,layers:0,xm:0,xt:0,flag:0,weak:0,castAtk:null,aspdSec:null,aspdAtk:null,n:0,adv:0};
+  const E={atk:0,aspd:0,sp:0,dm:1,rdm:1,init:0,cost:1,skAspd:0,skAtk:0,layers:0,xm:0,xt:0,brDm:0,flag:0,weak:0,castAtk:null,aspdSec:null,aspdAtk:null,n:0,adv:0};
   for(const it of (list||[])){ if(!it||!it.id) continue; const q=EQUIP.find(e=>e.id===it.id); if(!q) continue;
     const adv=!!it.adv&&!q.one, f=q.fx(adv); E.n++; if(adv) E.adv++;
-    for(const key of ['atk','aspd','sp','init','skAspd','skAtk','layers','xm','xt']) E[key]+=f[key]||0;
+    for(const key of ['atk','aspd','sp','init','skAspd','skAtk','layers','xm','xt','brDm']) E[key]+=f[key]||0;
     if(f.dm) E.dm*=f.dm; if(f.rdm) E.rdm*=f.rdm; if(f.cost) E.cost*=f.cost; if(f.flag) E.flag=Math.max(E.flag,f.flag); if(f.weak) E.weak=1;
     for(const key of ['castAtk','aspdSec','aspdAtk']) if(f[key]) E[key]=E[key]?[E[key][0]+f[key][0],E[key][1]+f[key][1]]:f[key].slice();
   }
@@ -1489,22 +1532,26 @@ function equipFx(list){
 function gen(op){
   if(op._m) return op._m;
   const s=op.sk||null, M={};
-  if(s&&s.t!=='next'&&s.t!=='passive') M.sk={type:s.t==='atk'?'attack':'time',cost:s.c,init:s.i,dur:s.d};
+  if(s&&s.t!=='next'&&s.t!=='passive') M.sk={type:s.t==='atk'?'attack':s.t==='def'?'def':'time',cost:s.c,init:s.i,dur:s.d};
   if(s&&s.t==='next'&&s.src==='time') M.nextTime=s.c;
   M.atkPct=k=>V(op.ap,k)||0;
   M.spBonus=x=>V(op.spr,x.k)||0;
   const isOn=x=>s&&(s.t==='passive'?x.f<V(s.d,x.k)*30:x.S.skillOn);
   M.buffs=x=>{ const k=x.k,S=x.S,b={atk:0,aspd:0,batMul:1,batAdd:0,dm:1,resMul:1,defMul:1};
+    // 元素爆发带来的加成：范围内有敌人处于某种爆发、爆发后的限时加成、按爆发次数叠层
+    if(op.brAtk){ for(let i=0;i<x.N;i++) if(x.inBr(i,op.brAtk.t)){ b.atk+=V(op.brAtk.atk,k); break; } }
+    if(op.onBr&&S.brBuff>x.f) b.atk+=V(op.onBr.atk,k)||0;
+    if(op.brStack&&S.brN){ b.atk+=S.brN*V(op.brStack.atk,k); if(S.brN>=op.brStack.max) b.aspd+=V(op.brStack.aspd,k)||0; }
     if(!isOn(x)) return b;
     const two=S.casts>=2, d=Math.max(1,V(s.d,k));
     let a=(two&&s.atk2)?V(s.atk2,k):(V(s.atk,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.atkRamp) a*=Math.min(1,S.skT/d);
     if(s.rampAtk) a+=V(s.rampAtk[0],k)*Math.min(V(s.rampAtk[1],k),S.skAtk);
-    b.atk=a;
+    b.atk+=a;
     let sp=(V(s.aspd,k)||0)*(two&&s.perm2&&!s.atk2?2:1);
     if(s.aspdDecay) sp*=Math.max(0,1-S.skT/d);
     if(s.rampAspd) sp+=V(s.rampAspd[0],k)*Math.min(V(s.rampAspd[1],k),S.skAtk);
-    b.aspd=sp;
+    b.aspd+=sp;
     if(s.bm) b.batMul=V(s.bm,k); if(s.ba) b.batAdd=V(s.ba,k);
     if(s.dm) b.dm=V(s.dm,k); if(s.resMul) b.resMul=V(s.resMul,k); if(s.defMul) b.defMul=V(s.defMul,k);
     return b; };
@@ -1529,11 +1576,22 @@ function gen(op){
     const hx=V(op.hx,k)||1, o={defFlat:(V(op.igF,k)||0)+((u&&u.igAdd)||0),defPct:V(op.igP,k)||0,w:hx};
     const xhs=[]; if(op.xh) xhs.push(op.xh); if(u&&u.xh) xhs.push(u.xh);
     const n=Math.min(N,tg);
+    if(u&&u.epBoost){ S.epBoost=x.f+Math.round(V(u.epBoost.dur,k)*30); S.epBoostMul=V(u.epBoost.mul,k); }
     for(let i=0;i<n;i++){ let c=sc;
       if(i===0&&op.sc0) c*=V(op.sc0,k);
       if(i>0&&op.splash) c*=V(op.splash,k);
       if(i>0&&op.chain) c*=Math.pow(V(op.chain,k),i);
-      for(let h=0;h<hits;h++) x.hit(i,ty,c,'direct',o);
+      // brTy：目标处于该种爆发时，这次攻击改为元素伤害
+      const bt=(u&&u.brTy)||op.brTy, tyI=bt&&x.inBr(i,bt)?'e':ty; let dsum=0;
+      for(let h=0;h<hits;h++) dsum+=x.hit(i,tyI,c,'direct',o);
+      // epA：攻击附带元素损伤（of:'dmg' 按这次伤害的比例，否则按攻击力的比例；sp 是对周围其他敌人的比例）
+      for(const eA of [op.epA,u&&u.epA]) if(eA){ const mul=S.epBoost>x.f?S.epBoostMul:1; S.mk=S.mk||[];
+        x.erode(i,(eA.of==='dmg'?dsum:x.atk())*V(eA.r,k)*mul,eA.t); S.mk[i]=1;
+        if(eA.sp&&i===0) for(let j=1;j<N;j++){ x.erode(j,x.atk()*V(eA.sp,k)*mul,eA.t); S.mk[j]=1; } }
+      // brX：目标处于该种爆发时额外造成元素伤害
+      for(const bx of [op.brX,u&&u.brX]) if(bx&&V(bx.sc,k)&&x.inBr(i,bx.t)) x.hit(i,'e',V(bx.sc,k),'extra',{indirect:true,noArc:true});
+      // brDot：攻击到处于爆发的敌人后，让它每秒受到元素伤害，直到爆发结束
+      if(op.brDot&&x.inBr(i,op.brDot.t)){ S.dot=S.dot||[]; S.dot[i]=Math.max(S.dot[i]||0,V(op.brDot.sc,k)); }
       if(op.shock){ const ns=V(op.shock[0],k)+((u&&u.shockAdd)||0); for(let j=0;j<ns;j++) x.hit(i,'p',c*op.shock[1],'direct',o); }
       if(op.xf) x.hit(i,'m',0,'extra',{fixed:V(op.xf,k)*hits,indirect:true,noArc:true});
       for(const e of xhs){ if(e.until&&x.f>=e.until*30) continue;
@@ -1548,9 +1606,11 @@ function gen(op){
   if(op.dot) M.poisonTick=(x,i)=>{ const mul=(x.S.skillOn&&s&&s.dotMul)||1;
     if(op.dot.fix) x.hit(i,'m',0,'extra',{fixed:V(op.dot.fix,x.k),indirect:true,noArc:true});
     else x.hit(i,'m',V(op.dot.sc,x.k)*mul,'extra',{indirect:true,noArc:true}); };
-  const pushTick=(x,t,dur)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1});
+  const pushTick=(x,t,dur,only)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1,ep:t.ep,brX:t.brX,brTy:t.brTy,only});
   const bursts=x=>{ const k=x.k; for(const b of (s.burst||[])){ const n=V(b.n,k)||1;
-      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++) x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); };
+      for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
+            if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||[]; x.S.dot[i]=Math.max(x.S.dot[i]||0,V(b.brDot,k)); }
+            const d=x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); if(b.ep)x.erode(i,d*V(b.ep.r,k),b.ep.t); } };
         const at=(b.at||0)+(b.gap||0)*h; if(at>0) x.later(at,fire); else fire(); } } };
   M.onCast=x=>{ const k=x.k,S=x.S;
     if(s.ammo){ S.ammo=V(s.ammo,k); S.skillOn=true; S.skillLeft=Infinity; }
@@ -1558,16 +1618,45 @@ function gen(op){
     if(s.d2&&S.casts>=2) S.skillLeft=s.d2;
     bursts(x);
     if(s.tick) pushTick(x,s.tick,V(s.tick.dur,k)||V(s.d,k));
+    // 开技能给范围内敌人叠麻痹（真言）；之后队友每开一次技能再叠一次
+    if(s.palsy){ S.pTrig=1; S.pNext=x.f+Math.round(30/Math.max(0.01,x.cfg.sargRate||0)); for(let i=0;i<x.N;i++)x.palsyAdd(i,s.palsy.add); }
   };
   M.onEnd=x=>{ const k=x.k,S=x.S;
     if(s.end){ const tg=Math.min(x.N,s.end.tg||1); S.skillOn=true; for(let i=0;i<tg;i++) x.hit(i,s.end.ty,V(s.end.sc,k),'direct'); S.skillOn=false; }
     if(s.after){ if(s.after.lock) S.lock=s.after.lock; if(s.after.hold) S.hold=s.after.lock; if(s.after.tick) pushTick(x,s.after.tick,s.after.tick.dur); } };
   M.frame=x=>{ const k=x.k,S=x.S,a=op.aura;
     if(a&&(!a.block||x.cfg.blocking)&&x.f>0&&x.f%Math.round(a.iv*30)===0){ const tg=Math.min(x.N,a.tg||1);
-      for(let i=0;i<tg;i++){ if(a.fix) x.hit(i,'m',0,'extra',{fixed:V(a.fix,k),indirect:true,noArc:true}); else x.hit(i,a.ty,V(a.sc,k),'direct',{indirect:true,noArc:true}); } }
+      for(let i=0;i<tg;i++){ if(a.fix) x.hit(i,'m',0,'extra',{fixed:V(a.fix,k),indirect:true,noArc:true}); else x.hit(i,a.ty,V(a.sc,k),'direct',{indirect:true,noArc:true});
+        if(a.ep)x.erode(i,x.atk()*V(a.ep.r,k),a.ep.t); } }
     for(let j=S.ticks.length-1;j>=0;j--){ const t=S.ticks[j]; t.f++;
-      if(t.f%t.iv===0){ const tg=Math.min(x.N,t.tg); for(let i=0;i<tg;i++) x.hit(i,t.ty,t.sc,'direct',{indirect:true}); }
-      if(t.f>=t.dur) S.ticks.splice(j,1); } };
+      if(t.f%t.iv===0){ const tg=t.only!=null?1:Math.min(x.N,t.tg);
+        for(let q=0;q<tg;q++){ const i=t.only!=null?t.only:q, ty=t.brTy&&x.inBr(i,t.brTy)?'e':t.ty;
+          const d=x.hit(i,ty,t.sc,'direct',{indirect:true});
+          if(t.ep)x.erode(i,(t.ep.of==='dmg'?d:x.atk())*V(t.ep.r,k),t.ep.t);
+          if(t.brX&&x.inBr(i,t.brX.t))x.hit(i,'e',V(t.brX.sc,k),'extra',{indirect:true,noArc:true}); } }
+      if(t.f>=t.dur) S.ticks.splice(j,1); }
+    if(x.f%30===29){
+      if(S.dot) for(let i=0;i<x.N;i++) if(S.dot[i]){ if(x.inBr(i,op.brDot.t)) x.hit(i,'e',S.dot[i],'extra',{indirect:true,noArc:true}); else S.dot[i]=0; }
+      // 技能期间，被她打过的敌人每秒继续累计元素损伤，直到爆发（酒神）
+      if(s&&s.epTick&&S.mk&&isOn(x)) for(let i=0;i<x.N;i++) if(S.mk[i]&&!x.inBr(i)) x.erode(i,x.atk()*V(s.epTick.r,k),s.epTick.t);
+    }
+    if(s&&s.palsy&&isOn(x)&&S.pTrig<s.palsy.max&&x.cfg.sargRate>0&&x.f>=S.pNext){ S.pTrig++; S.pNext=x.f+Math.round(30/x.cfg.sargRate); for(let i=0;i<x.N;i++)x.palsyAdd(i,s.palsy.add); } };
+  // —— 元素损伤相关的回调 ——
+  M.onBurst=(x,i,t)=>{ const k=x.k,S=x.S;
+    if(op.onBr&&op.onBr.t===t){ x.hit(i,'e',V(op.onBr.sc,k),'extra',{indirect:true,noArc:true}); if(V(op.onBr.atk,k))S.brBuff=x.f+op.onBr.dur*30; }
+    if(op.brStack&&op.brStack.t===t) S.brN=Math.min(op.brStack.max,(S.brN||0)+1);
+    if(op.brTick&&op.brTick.t===t) pushTick(x,op.brTick,op.brTick.dur,i);
+    if(s&&s.ammoBr&&s.ammoBr.t===t&&isOn(x)&&S.ammo>0) S.ammo+=s.ammoBr.n; };
+  M.onPalsy=(x,i,w)=>{ if(op.onPalsy) x.hit(i,'e',V(op.onPalsy.sc,x.k),'extra',{w,indirect:true,noArc:true}); };
+  M.palsyKeep=x=>op.onPalsy?V(op.onPalsy.keep,x.k)||0:0;
+  M.palCap=x=>(s&&s.palsy&&isOn(x))?s.palsy.cap:3;
+  M.onPalsyOver=(x,i,over)=>{ if(!(s&&s.palsy))return; const sc=V(s.palsy.sc,x.k);
+    x.hit(i,'e',sc,'extra',{w:over,indirect:true,noArc:true}); if(x.N>1)x.hit((i+1)%x.N,'e',sc,'extra',{w:over,indirect:true,noArc:true}); };
+  M.onEnemyAtk=(x,i,stopped)=>{ const k=x.k,S=x.S;
+    if(op.eAtkEp) x.erode(i,V(op.eAtkEp.v,k),op.eAtkEp.t);
+    if(s&&s.t==='def'&&!stopped&&i<(op.blk||1)){ if(isOn(x)){ if(s.onAtked)x.erode(i,x.atk()*V(s.onAtked.r,k),s.onAtked.t); } else S.sp++; } };
+  M.epSpd=(x,t)=>(s&&s.epSpd&&isOn(x)&&s.epSpd[t])||0;
+  M.epMul=(x,i)=>(op.epBoss&&x.cfg.boss&&i===0?V(op.epBoss,x.k):1)*(op.epBlk&&x.cfg.blocking?V(op.epBlk,x.k):1);
   return (op._m=M);
 }
 
@@ -1605,7 +1694,7 @@ function simulate(op0, elite, cfg, sel){
   if(raid&&raid.L>=50) sAspd+=50;
   if(core==='lethania'&&six) sAspd+=20;
   let dmMul=(V(op.dm,k)||1)*(fx.dm||1)*E.dm*(op.r?E.rdm:1);
-  const weak=op.weak||E.weak;
+  const weak=op.weak||E.weak, brDm=(V(op.burstDm,k)||1)*(1+E.brDm);   // brDm：对元素爆发期间的敌人的伤害倍率
   if(core==='victoria'&&E.n>0) dmMul*=1.25+0.008*L;
   if(core==='kjerag') dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*L));
   if(sb('协防干员')) dmMul*=k?1.4:1.2;
@@ -1637,19 +1726,36 @@ function simulate(op0, elite, cfg, sel){
     a=Math.max(10,Math.min(600,a));
     return Math.max(0.1,(op.bat+(b.batAdd||0))*(b.batMul||1))/(a/100); };
   const add=(g,d,i)=>{if(dead)return;parts[g]+=d;if(i===0)main+=d;if(sec)sec[Math.min(sec.length-1,Math.floor(f/30))]+=d;};
-  // 侵蚀损伤：累计满（领袖 2000，其他敌人 1000）时爆发——永久 −120 防御，受到 5000 点无来源元素伤害，
-  // 之后 8 秒冷却内不再累计。只有主目标可能是领袖。
-  const ep=new Array(N).fill(0), epCd=new Array(N).fill(-1), defDn=new Array(N).fill(0);
-  const epCdF=Math.round(240/(1+(tf.epCd||0)/100)), epCap=i=>(cfg.boss&&i===0)?2000:1000;
+  // 元素损伤。五种：n 神经、w 侵蚀、f 灼燃、d 凋亡、a 狂躁。某一种累计满（领袖 2000，其他敌人 1000；只有主目标可能是领袖）
+  // 时爆发：n 受到 6000 元素伤害并获得 3 层麻痹；w 5000 并永久 −120 防御；f 7000 且爆发期间法抗 −20；
+  // d 每秒 800；a 每秒递增的元素伤害。爆发期间所有元素都不再累计，结束后全部清零。
+  // 爆发的固定伤害是无来源伤害，按本干员在这次累计里的占比计入（其余部分属于队友）。
+  const EL={n:{dur:10,dmg:6000},w:{dur:8,dmg:5000},f:{dur:10,dmg:7000},d:{dur:15},a:{dur:15}};
+  const ep={}, epOwn={}; for(const q in EL){ ep[q]=new Array(N).fill(0); epOwn[q]=new Array(N).fill(0); }
+  const brEnd=new Array(N).fill(-1), brT=new Array(N).fill(''), brShare=new Array(N).fill(0), brF=new Array(N).fill(0);
+  const defDn=new Array(N).fill(0), palsy=new Array(N).fill(0), hitMark=new Array(N).fill(-1);
+  const epCap=i=>(cfg.boss&&i===0)?2000:1000;
+  const epSpd=q=>(q==='w'?tf.epCd||0:0)+(core==='yan'&&six?40+0.3*L:0)+(m.epSpd?m.epSpd(x,q):0);
+  const eIv=cfg.eBat>0?Math.max(1,Math.round(cfg.eBat*30)):0;
   x.defDown=i=>defDn[i];
-  x.erode=(i,v)=>{ if(!(v>0)||f<epCd[i])return; ep[i]+=v; if(ep[i]<epCap(i))return;
-    ep[i]=0; epCd[i]=f+epCdF; defDn[i]+=120; S.bursts=(S.bursts||0)+1; add('extra',5000,i); if(m.onBurst)m.onBurst(x,i); };
+  x.inBr=(i,q)=>f<brEnd[i]&&(!q||brT[i]===q);
+  x.atk=()=>atkNow();
+  // 麻痹：上限 3 层（真言技能期间 2 层），超出上限的层数交给模型处理
+  x.palsyAdd=(i,n)=>{ const cap=m.palCap?m.palCap(x):3, over=Math.max(0,palsy[i]+n-cap); palsy[i]=Math.min(cap,palsy[i]+n); if(over>0&&m.onPalsyOver)m.onPalsyOver(x,i,over); };
+  const erode=(i,q,v,own)=>{ if(!(v>0)||f<brEnd[i])return; ep[q][i]+=v; if(own)epOwn[q][i]+=v; if(ep[q][i]<epCap(i))return;
+    const share=Math.min(1,epOwn[q][i]/ep[q][i]); for(const z in EL){ ep[z][i]=0; epOwn[z][i]=0; }
+    brT[i]=q; brShare[i]=share; brF[i]=0; brEnd[i]=f+Math.round(EL[q].dur*30/(1+epSpd(q)/100)); S.bursts=(S.bursts||0)+1;
+    if(q==='w')defDn[i]+=120;
+    if(EL[q].dmg)add('extra',EL[q].dmg*share,i);
+    if(q==='n')x.palsyAdd(i,3);
+    if(m.onBurst)m.onBurst(x,i,q); };
+  x.erode=(i,v,q)=>erode(i,q||'w',v*(m.epMul?m.epMul(x,i):1),true);
   const proc=(i,w,A)=>{ if(!dotC)return; if(stacks[i]<=0)dotF[i]=0;
     stacks[i]=Math.min(10,stacks[i]+w); stackEnd[i]=f+300;
     if(full===null&&i===0&&stacks[0]>=9.999)full=f*dt;
     if(six&&N>=2)add('bond',0.2*3*A*rm0*w,(i+1)%N); };
   x.hit=(i,type,scale,g,o={})=>{ const b=buffs(), A=atkNow(), w=o.w==null?1:o.w, t=type[0];
-    const rm=1-Math.min(100,res0*(b.resMul||1))/100;
+    const rm=1-Math.min(100,Math.max(0,res0*(b.resMul||1)-(x.inBr(i,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
     const ph=()=>{const df=Math.max(0,def0*(b.defMul||1)-defDn[i]-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(A*scale-df,A*scale*0.05);};
     const mg=()=>Math.max(A*scale*rm,A*scale*0.05);
     let d;
@@ -1659,7 +1765,11 @@ function simulate(op0, elite, cfg, sel){
     else d=t==='p'?ph():mg();
     const fm=flagMul();
     d*=dmMul*(b.dm||1)*fm;
+    if(brDm!==1&&x.inBr(i))d*=brDm;
     add(g,d*w,i);
+    if(g==='direct'&&!o.indirect)hitMark[i]=f;
+    // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
+    if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(i,d*w*V(op.epAll.r,k),op.epAll.t);
     if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(A*E.xm*rm,A*E.xm*0.05)+A*E.xt)*dmMul*fm*w,i); if(E.xm&&cfg.indirect)proc(i,w,A); }
     if(arcC&&!o.noArc){add('extra',Math.max(A*arcC*rm,A*arcC*0.05)*dmMul*w,i); if(cfg.indirect)proc(i,w,A);}
     if(!o.indirect||cfg.indirect)proc(i,w,A);
@@ -1688,8 +1798,18 @@ function simulate(op0, elite, cfg, sel){
     if(S.atkT<=0&&S.lock<=0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;
       if(sk&&sk.type==='attack'&&!S.skillOn)S.sp++;
       if(core==='kazimierz'&&six&&(f<900||(S.lastCast!=null&&f-S.lastCast<900)))add('bond',0.65*atkNow(),0);
+      // 【炎】6 人：每次攻击对打到的敌人造成 6% 攻击力的随机元素损伤，按五种元素各分到 1/5 的期望值计算；
+      // 五种同时累计满时只爆发一种，每次爆发后换下一种，相当于爆发的种类是随机的
+      if(core==='yan'&&six){ const A=atkNow(), ks=Object.keys(EL); for(let i=0;i<N;i++) if(hitMark[i]===f) for(let z=0;z<ks.length;z++) erode(i,ks[(z+(S.bursts||0))%ks.length],A*0.012*(m.epMul?m.epMul(x,i):1),true); }
       S.atkT+=x.interval()+S.delay; S.delay=0; if(S.atkT<0)S.atkT=x.interval(); }
     if(m.frame)m.frame(x);
+    // 每秒：队友的元素损伤、爆发期间的持续伤害
+    if(f%30===29){ const te=cfg.teamEp; if(te)for(let i=0;i<N;i++)for(const q in te)if(te[q]>0&&EL[q])erode(i,q,te[q],false);
+      for(let i=0;i<N;i++)if(f<brEnd[i]){ brF[i]++; if(brT[i]==='d')add('extra',800*brShare[i],i); else if(brT[i]==='a')add('extra',Math.min(2110,160+130*brF[i])*brShare[i],i); } }
+    // 敌人的普通攻击：有麻痹时被打断并消耗一层
+    if(eIv&&f>0&&f%eIv===0)for(let i=0;i<N;i++){ let stopped=false;
+      if(palsy[i]>1e-9){ const use=1-(m.palsyKeep?m.palsyKeep(x):0), w=Math.min(1,palsy[i]/use); palsy[i]=Math.max(0,palsy[i]-use); stopped=true; if(m.onPalsy)m.onPalsy(x,i,w); }
+      if(m.onEnemyAtk)m.onEnemyAtk(x,i,stopped); }
     for(let j=S.units.length-1;j>=0;j--){const u=S.units[j];u.f++;
       if(u.f%30===0)for(let i=0;i<N;i++)x.hit(i,'magic',u.scale,'direct');
       if(u.f>=u.dur)S.units.splice(j,1);}
@@ -1704,7 +1824,7 @@ function simulate(op0, elite, cfg, sel){
     }
   }
   const total=parts.direct+parts.bond+parts.extra;
-  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!m.ep,bursts:S.bursts||0,eaten,dead};
+  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead};
 }
 
 // 领袖资料：攻击方式、能力说明（按游戏内图鉴整理，数值取自敌人数据）、隐秘核心的变化，以及对击杀时间的影响。
@@ -1817,9 +1937,11 @@ const NOTES = {
   '<b>纯攻击力盟约。</b>加成对所有【炎】干员一样，排名主要看干员自己。',
   '<b>老鲤吃两份层数。</b>他的特质是【炎】【投资人】每 3 层攻击力 +1%/+2%，和盟约的攻击力加成叠在一起；150 层时每秒约 4,500，是第二名的两倍多。他的技能爆炸按“队友打满加成层数”计算，单挂时会低一些。',
   '<b>夕、烛煌看目标数。</b>两人都是群体伤害，把“范围内敌人数”调到 3 以上再比。',
-  '<b>被低估的部分。</b>6 人效果（攻击附带元素损伤）和烛煌、余的灼燃爆发伤害没有计入，这个阵营的真实上限比表里高。'],
+  '<b>烛煌要有人帮她点火。</b>她的天赋（灼燃爆发时 350%/420% 攻击力元素伤害）和 3 技能都靠敌人进入灼燃爆发触发，但 3 技能自己不造成灼燃损伤。余阻挡时每秒造成 12% 攻击力的灼燃损伤；打开 6 人效果，或在“队友的元素损伤”里填上灼燃损伤，烛煌的输出才会上来。她的 1、2 技能自己能点火。',
+  '<b>6 人效果。</b>每次攻击附带 6% 攻击力的随机元素损伤（按五种元素各分到 1/5 计算），敌人元素爆发的冷却加快 (40 + 0.3×层数)%。单个干员累计很慢，要全队一起打才明显，所以表里的提升偏小。'],
  sargon:[
   '<b>攻速来自全队开技能的频率。</b>每次开技能叠一层 +12 攻速。参数栏里的“队友每秒开技能次数”决定常驻层数；鸿雪、至简、异客的技能几秒一次，是主要的叠层来源。',
+  '<b>真言的元素伤害靠麻痹。</b>3 技能开启时给敌人叠 2 层麻痹，队友每开一次技能再叠（至多 3 次），溢出的层数变成 110%/145% 攻击力的元素伤害；敌人每次普通攻击消耗一层麻痹，并触发天赋的 135%/160% 元素伤害。“敌人攻击间隔”越短，触发越快。',
   '<b>佩佩和真言是输出位。</b>佩佩面板高、技能期间攻击力最高 +244%；真言的特质让攻击力随层数涨（每 5 层 +1%/+2%），层数越高越接近佩佩。',
   '<b>6 人效果是固定数值。</b>流沙每 5 秒造成 (5000 + 25×层数) 点法伤，和干员攻击力无关，对低输出干员的提升比例最大。这里按每名干员各有一片流沙计算，如果实际不叠加，各行的盟约部分只应算一次。',
   '卡涅利安要先攒 27 秒技力才开始攻击，短战斗里几乎没有输出。'],
@@ -1827,7 +1949,7 @@ const NOTES = {
   '<b>没装备就没有加成。</b>只有携带装备的干员吃到伤害倍率，150 层时是 ×245%。点开干员给他装上任意一件装备才会生效；想整体比较，用参数栏里的“统一装备”。',
   '<b>水灯心排第一有水分。</b>她的特质把伤害变成弱点伤害（自动打敌人较低的那项抗性），技能期间每次攻击 5 段。但回环投射物的回收时间没有计入，实际会比表里低。',
   '<b>6 人效果很大。</b>每件装备攻击力 +40%，进阶装备 +80%，和伤害倍率相乘。',
-  '烛煌、酒神、Miss.Christine 的元素伤害没有计入。'],
+  '<b>酒神负责把敌人打进神经爆发。</b>爆发时敌人受到 6000 点元素伤害并获得 3 层麻痹。Miss.Christine 自己不造成神经损伤、烛煌的 3 技能自己不造成灼燃损伤，要在“队友的元素损伤”里填上对应的数值才有元素伤害。'],
  kjerag:[
   '<b>寒冷覆盖率决定一切。</b>150 层时，对寒冷/冻结目标的倍率是 125% × 285%，对普通目标只有 125%。参数栏里的“时间占比”就是这个开关；灵知、角峰、极光、雪猎都能上寒冷。',
   '<b>锏是单体主 C，圣聆初雪是群体主 C。</b>圣聆初雪技能外不攻击，短战斗要看技能是否转得过来。',
@@ -1949,7 +2071,8 @@ const NOTES = {
   function cfg(){ return Object.assign({core:st.core,L:Math.max(0,num('Ln',0)),bondOn:$('bondOn').checked,six:$('six').checked&&$('bondOn').checked,
     own:num('own',0),xAtk:num('xAtk',0),xAspd:num('xAspd',0),def:Math.max(0,num('def',0)),res:Math.max(0,Math.min(100,num('res',0))),
     T:Math.max(3,Math.min(240,num('T',30))),N:Math.max(1,Math.min(8,num('N',1))),ranged:$('ranged').checked,heavy:$('heavy').checked,
-    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0},st.cp); }
+    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0,eBat:Math.max(0,num('eBat',3)),
+    teamEp:{n:Math.max(0,num('teN',0)),f:Math.max(0,num('teF',0)),d:Math.max(0,num('teD',0)),w:Math.max(0,num('teW',0))}},st.cp); }
   // 领袖
   const curBoss=()=>BOSSES.find(b=>b.id===$('boss').value)||null;
   const bossRaw=()=>{const b=curBoss(); if(!b)return 0; return ($('bossHid').checked&&b.hid&&b.hid[st.bossMode])?b.hid[st.bossMode]:b.hp[st.bossMode];};
@@ -1982,7 +2105,7 @@ const NOTES = {
     const hasHid=!!(b.hid&&b.hid[st.bossMode]); $('bossHidWrap').hidden=!hasHid; if(!hasHid)$('bossHid').checked=false;
     const hid=$('bossHid').checked;
     $('def').value=hid&&b.hidDef?b.hidDef:b.def; $('res').value=hid&&b.hidRes?b.hidRes:b.res;
-    $('heavy').checked=b.mass>=3; $('N').value=1; if(num('T',30)<60)$('T').value=90;
+    $('heavy').checked=b.mass>=3; $('N').value=1; $('eBat').value=BOSS_INFO[b.id].bat; if(num('T',30)<60)$('T').value=90;
     document.querySelectorAll('#bossMode button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.m===st.bossMode));
     $('bossPic').innerHTML=BI[b.id]?`<img src="${BI[b.id]}" alt="" width="144" height="144">`:''; $('bossPic').hidden=!BI[b.id];
     const e=bossEhp(); $('bossInfo').textContent='生命 '+fmt(bossRaw())+(Math.abs(e-1)>0.01?'（计入减伤后相当于 '+fmt(bossHp())+'）':'')+' · 重量 '+b.mass+' · '+b.imm;
@@ -2062,7 +2185,7 @@ const NOTES = {
         <div class="f" style="margin-top:10px"><label for="xbond">变形同构体：额外获得盟约</label><select id="xbond" data-xbond="1"><option value="">无</option>${XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${xb===b?' selected':''}>${b}</option>`).join('')}</select></div>
         <p class="hint" style="margin-top:6px">${xb?`已视为【${xb}】干员：${SUBS[xb].hint}。层数和“3 人”在参数栏的“附加盟约”里调。`:'游戏里它占一格装备，给哪个盟约由另一件装备决定；这里直接选结果，不占格子。'}</p></div>
       <div class="sec"><h4>输出时间轴 <small>每秒伤害；金色段 = 技能开启中</small></h4><div id="tl"></div></div>
-      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}${r.ep?` <small>侵蚀爆发 ${r.bursts} 次，各 5000 元素伤害（计入“附加”）</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
+      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}${r.ep?` <small>元素爆发 ${r.bursts} 次，爆发伤害计入“附加”</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
         <div class="lg"><div style="--c:var(--seg-direct)"><b>${fmt(r.parts.direct)}</b><span>直接 · ${pc(r.parts.direct)}</span></div><div style="--c:var(--seg-bond)"><b>${fmt(r.parts.bond)}</b><span>盟约 · ${pc(r.parts.bond)}</span></div><div style="--c:var(--seg-extra)"><b>${fmt(r.parts.extra)}</b><span>附加 · ${pc(r.parts.extra)}</span></div></div></div></div>
       <div class="sec"><h4>说明</h4><dl class="kv"><dt>模式特质</dt><dd>${pick(o.trait,k)}</dd>${o.extra?`<dt>天赋 / 模组</dt><dd>${pick(o.extra,k)}</dd>`:''}<dt>建模方式</dt><dd>${si>=0&&A.list[si].model?A.list[si].model:(si>=0?'非默认技能按技能说明里的数值做通用建模；以下是默认技能的说明。':'')+o.model}</dd></dl></div>`;
     timeline(r);

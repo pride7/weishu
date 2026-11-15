@@ -14,6 +14,7 @@ const hb = (J('enemy_handbook_table.json').enemyData) || {};
 const SCALE = JSON.parse(fs.readFileSync(path.join(__dirname, 'enemy-scale.json'), 'utf8'));
 const ct = J('character_table.json'), pt = J('char_patch_table.json').patchChars || {};
 const sk = J('skill_table.json'), rg = J('range_table.json');
+const be = J('battle_equip_table.json');
 const edb = J('enemy_database.json').enemies;
 const CH = id => ct[id] || pt[id];
 const LV = name => J(path.join('lv', name + '.json'));
@@ -60,6 +61,9 @@ function enemy(key) {
   // 替换数量公式要用的“属性强度”和“战斗效能系数”（官方 randomEnemyAttributeDict）
   o.P = (g('atk') || 0) * 5 + (g('maxHp') || 0) + (g('def') || 0) * 3 + (g('magicResistance') || 0) * 3;
   const ra = acd.randomEnemyAttributeDict[key]; o.bef = ra ? ra.enemyBattleEffectivenessFactor : 1;
+  // 伤害类型（图鉴）：p 物理、m 法术、n 不造成伤害；物理和法术都有时按物理
+  const dt = (hb[key] && hb[key].damageType) || ['PHYSIC'];
+  o.dt = dt.includes('PHYSIC') ? 'p' : dt.includes('MAGIC') ? 'm' : 'n';
   // 图鉴里的能力说明
   const h = hb[key]; if (h && h.abilityList && h.abilityList.length) o.abt = h.abilityList.map(a => String(a.text || '').replace(/<[^>]+>/g, '')).filter(Boolean);
   // 能建模的能力
@@ -141,10 +145,17 @@ const ranges = {};
 const useRange = id => { if (!id || ranges[id]) return; const R = rg[id]; if (!R) return; ranges[id] = R.grids.map(g => [g.row, g.col]); };
 for (const s of Object.values(act.charShopChessDatas)) {
   const c = CH(s.charId); if (!c) continue;
-  const o = { cid: s.charId, rng: [], blk: [], sk: [] };
+  const o = { cid: s.charId, rng: [], blk: [], sk: [], hp: [], df: [], res: [], rsp: [], bat: [] };
   [s.chessId, s.goldenChessId].forEach((id, k) => {
     const q = act.charChessDataDict[id].status, pi = +String(q.evolvePhase).slice(-1), ph = c.phases[pi];
     o.rng[k] = ph.rangeId; useRange(ph.rangeId);
+    // 生命、防御、法抗、再部署时间、攻击间隔：按模式内的等级在两个关键帧之间插值，再加上模组属性（干员受击与治疗用）
+    { const K = ph.attributesKeyFrames, lo = K[0], hi = K[K.length - 1], t = hi.level > lo.level ? (q.charLevel - lo.level) / (hi.level - lo.level) : 0;
+      const at = x => lo.data[x] + (hi.data[x] - lo.data[x]) * Math.max(0, Math.min(1, t));
+      const add = { max_hp: 0, def: 0, magic_resistance: 0 };
+      if (s.defaultUniEquipId && q.equipLevel > 0 && be[s.defaultUniEquipId]) for (const b of be[s.defaultUniEquipId].phases[q.equipLevel - 1].attributeBlackboard) if (b.key in add) add[b.key] += b.value;
+      o.hp[k] = Math.round(at('maxHp') + add.max_hp); o.df[k] = Math.round(at('def') + add.def); o.res[k] = +(at('magicResistance') + add.magic_resistance).toFixed(1);
+      o.rsp[k] = lo.data.respawnTime; o.bat[k] = lo.data.baseAttackTime; }
     const a = ph.attributesKeyFrames[0].data, b = ph.attributesKeyFrames[1].data; o.blk[k] = a.blockCnt === b.blockCnt ? a.blockCnt : (q.charLevel >= ph.attributesKeyFrames[1].level ? b.blockCnt : a.blockCnt);
     c.skills.forEach((x, i) => { const S = sk[x.skillId]; if (!S) return; const L = S.levels[Math.min(S.levels.length - 1, q.skillLevel - 1)];
       (o.sk[i] = o.sk[i] || [null, null])[k] = L.rangeId || null; useRange(L.rangeId); });

@@ -5,10 +5,10 @@
   const $=id=>document.getElementById(id);
   const byId=id=>OPS.find(o=>o.id===id);
   const STORE='weishu.team.v1';
-  const TS={map:0,round:'r5',mode:'mode_multi_abyss',spTypes:[],spPick:{},tok:{},members:[],L:{},subL:{},cold:50,xAtk:0,xAspd:0,stunt:0,pick:null,sel:null,fi:0,filter:'',q:'',routes:true,real:true};
+  const TS={map:0,round:'r5',mode:'mode_multi_abyss',spTypes:[],spPick:{},tok:{},members:[],L:{},subL:{},cold:50,xAtk:0,xAspd:0,xHp:0,hurt:true,stunt:0,pick:null,sel:null,fi:0,filter:'',q:'',routes:true,real:true};
   // 第一次打开时放一套示例阵容（战场 #01、第 5 回合），之后记住自己的摆放
   let saved=null; try{ saved=JSON.parse(localStorage.getItem(STORE)||'null'); }catch(e){}
-  if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']){ if(k in saved) TS[k]=saved[k]; }
+  if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','xHp','hurt','stunt','routes','real','spTypes','spPick']){ if(k in saved) TS[k]=saved[k]; }
   else TS.members=[{id:'indigo',r:3,c:4},{id:'bluep',r:2,c:6},{id:'thorn2',r:1,c:6},{id:'thorns',r:0,c:1},{id:'irene',r:3,c:2}];
   TS.members=(TS.members||[]).filter(m=>byId(m.id));
   // 阵容快照：位置之外还带上每名干员的精锐、技能、装备、变形同构体（这些设置和单人排行共用）
@@ -17,7 +17,7 @@
   const applyOps=list=>{ for(const m of list){ if(!byId(m.id))continue; if(m.e!=null)st.elite[m.id]=!!m.e; if(m.s!=null)st.skill[m.id]=m.s; if(Array.isArray(m.q)&&m.q.length)st.eq[m.id]=JSON.parse(JSON.stringify(m.q)); if(m.b!=null)st.bond[m.id]=m.b; } };
   const applySnap=sn=>{ const ms=(sn.members||[]).filter(m=>byId(m.id)); applyOps(ms); TS.members=ms.map(m=>({id:m.id,r:m.r,c:m.c})); TS.L=Object.assign({},sn.L||{}); TS.subL=Object.assign({},sn.subL||{}); TS.sel=null; TS.pick=null; };
   if(saved&&saved.members) applyOps(saved.members);
-  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; o.members=snap().members; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
+  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','L','subL','cold','xAtk','xAspd','xHp','hurt','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; o.members=snap().members; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
   const MAXN=8;
   const curMap=()=>FIELD.maps[TS.map]||FIELD.maps[0];
   const bossOf=rk=>rk.startsWith('b:')?FIELD.bosses.find(b=>b.id===rk.slice(2)):null;
@@ -62,7 +62,7 @@
     const boss=bossOf(rk), B=teamBoard(curMap(),!!boss,TS.tok);
     const ok=(op,r,c)=>{ const d=B.deploy(r,c); return d===1||(d===2&&isRanged(op)); };
     const members=sn.members.filter(m=>byId(m.id)&&ok(byId(m.id),m.r,m.c)).map(m=>({op:byId(m.id),elite:!!m.e,sel:{skill:m.s==null?-1:m.s,eq:m.q||blankEq(),bond:m.b||null},r:m.r,c:m.c}));
-    const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
+    const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,xHp:+TS.xHp||0,hurt:TS.hurt!==false,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
     const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=(sn.L||{})[c]??150;
     const subL={}; for(const s in SUBS) subL[s]=(sn.subL||{})[s]??50;
     return {map:curMap(),round:boss?null:roundOf(rk),boss,mode:curMode(),sp:spOf(rk),tok:TS.tok,members,L,subL,base,trace,skipped:sn.members.length-members.length};
@@ -104,9 +104,11 @@
     const agIdx=new Map(); if(res) res.res.forEach((x,i)=>{ if(!x.healer) agIdx.set(x.m.r+','+x.m.c,i); });
     const SG=TS.real?stageOf():null;
     const HC=heatCells();
+    const hpAt=new Map(); if(fr&&fr.u) for(const [r,c,hp,dn] of fr.u) hpAt.set(r+','+c,{hp,dn});
     const unit=(m,r,c)=>{ const op=byId(m.id), ai=agIdx.get(r+','+c), on=fr&&ai!=null&&fr.ag[ai]&&fr.ag[ai][0];
-      const eat=res&&res.res.find(x=>x.m.r===r&&x.m.c===c&&x.eaten&&x.eaten.dead);
-      return {op,cls:'pc'+(on?' on':'')+(eat?' gone':'')+(sel&&sel.r===r&&sel.c===c?' sel':'')+(canPlace(op,r,c)?'':' bad')}; };
+      const eat=res&&res.res.find(x=>x.m.r===r&&x.m.c===c&&x.eaten&&x.eaten.dead), hp=res&&res.hurtOn&&TS.fi>0?hpAt.get(r+','+c):null;
+      return {op,hp,cls:'pc'+(on?' on':'')+(eat||(hp&&hp.dn)?' gone':'')+(sel&&sel.r===r&&sel.c===c?' sel':'')+(canPlace(op,r,c)?'':' bad')}; };
+    const hpBar=u=>u.hp&&!u.hp.dn?`<i class="uhp${u.hp.hp<0.35?' low':''}" style="width:${(u.hp.hp*100).toFixed(0)}%"></i>`:'';
     let h='';
     for(let r=TEAM.H-1;r>=0;r--) for(let c=0;c<TEAM.W;c++){
       const cell=B.cell[r][c], m=memberAt(r,c), dep=B.deploy(r,c);
@@ -119,7 +121,7 @@
       if(hv){ cls.push('hm'); if(HC.best===r+','+c) cls.push('hbest'); hstyle=` style="--hm:${(0.12+0.6*hv.n).toFixed(2)}"`; }
       let inner='';
       if(!SG){
-        if(m){ const u=unit(m,r,c); inner=`<span class="${u.cls}">${ava(u.op)}</span>`; }
+        if(m){ const u=unit(m,r,c); inner=`<span class="${u.cls}">${ava(u.op)}${hpBar(u)}</span>`; }
         else if(cell.obs==='crate') inner='<span class="ob" title="阻隔工事：敌人绕行，不能部署">▦</span>';
         else if(cell.obs==='plat') inner='<span class="ob" title="射击台：敌人不能通行，只能部署远程干员">▲</span>';
         else if(cell.ch==='S'||cell.ch==='T') inner='<span class="mk">入</span>';
@@ -146,7 +148,7 @@
       routes.forEach((rt,j)=>{ const off=TS.ef?(j-(routes.length-1)/2)*3:0, c=rcol(rt);
         ov+=`<polyline points="${rt.pts.map(p=>SG.at(p[1],p[0]).map(v=>(v+off).toFixed(1)).join(',')).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''} marker-end="url(#arw)"/>`; });
       ov+='</svg>';
-      const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}</span>`}); }
+      const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}${hpBar(u)}</span>`}); }
       if(fr) for(const [uid,y,x,hp,bl,hd] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
         const dim=TS.ef&&e.key!==TS.ef;
         units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${hd?' hid':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
@@ -211,10 +213,10 @@
     } else {
       const left=res.alive+(res.total-res.spawned);
       k+=`<div class="kpi"><b>${res.leakedN?'漏 '+res.leakedN:left?'未清完':'清场'}</b><small>${[left?'时间到还剩 '+left+' 个':'',res.lifeLoss?'扣 '+res.lifeLoss+' 目标生命（每回合至多 10）':'没有敌人漏过去'].filter(Boolean).join('，')}</small></div>`;
-      k+=`<div class="kpi"><b>${res.cleared?fmtT(res.dur):fmtT(res.dur)}</b><small>${res.cleared?'清场用时':'战斗时长'}（限时 ${res.T} 秒）</small></div>`;
+      k+=`<div class="kpi"><b>${res.cleared?fmtT(res.dur):fmtT(res.dur)}</b><small>${res.cleared&&!res.leakedN?'清场用时':res.cleared?'战斗结束用时':'战斗时长'}（限时 ${res.T} 秒）</small></div>`;
     }
     const tot=res.res.reduce((a,x)=>a+x.total,0);
-    k+=`<div class="kpi"><b>${res.killed}<small class="muted"> / ${res.total}</small></b><small>击倒敌人</small></div>`;
+    k+=`<div class="kpi"><b>${res.killed}<small class="muted"> / ${res.total}</small></b><small>击倒敌人${res.hurtOn?' · 干员倒下 '+res.falls+' 次':''}</small></div>`;
     k+=`<div class="kpi"><b>${fmt(tot/Math.max(1,res.dur))}</b><small>全队每秒伤害</small></div>`;
     $('tKpis').innerHTML=k;
     const rows=res.res.slice().sort((a,b)=>b.total-a.total), max=Math.max(1,...rows.map(x=>x.total));
@@ -223,6 +225,7 @@
       if(x.dv) tags.push(`<span class="tag eq">吞噬身前干员 · 基础攻击 +${x.dv.atk}</span>`);
       if(x.eaten) tags.push(`<span class="tag eq">被吞噬 · ${x.eaten.dead?'阵亡':x.eaten.alive?'存活':'复活'}</span>`);
       const sk=U.skillLabel(o,st.elite[o.id]?1:0); if(sk&&!x.healer) tags.push(`<span class="tag">${sk}</span>`);
+      if(res.hurtOn&&x.hurt){ const H=x.hurt; if(H.falls) tags.push(`<span class="tag bad">倒下 ${H.falls} 次</span>`); if(H.taken) tags.push(`<span class="tag">受到 ${fmt(H.taken)}</span>`); if(H.healOut) tags.push(`<span class="tag ok">治疗 ${fmt(H.healOut)}</span>`); }
       return `<div class="rc${x.healer?' heal':''}${TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c?'':''}" role="button" tabindex="0" data-cell="${x.m.r},${x.m.c}" aria-pressed="${!!(TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c)}">
         <span class="rk">${x.healer?'–':String(i+1).padStart(2,'0')}</span>${ava(o)}
         <div class="who"><div class="nm"><b>${o.name}</b><span>第 ${TEAM.H-x.m.r} 行第 ${x.m.c+1} 列${x.kills?' · 击倒 '+x.kills:''}</span></div><div class="tags">${tags.join('')}</div></div>
@@ -254,7 +257,7 @@
   // 本回合的敌人种类（按出场先后），以及模拟结果里每种敌人的情况
   function enemyKinds(){ const boss=curBoss(), M=curMode(), sc=teamScale(M,roundNo()), out=[], idx={};
     const add=(key,t,route,child)=>{ if(!(key in idx)){ const d=FIELD.enemies[key]; idx[key]=out.length;
-        out.push({key,d,n:0,first:t,routes:new Set(),child,hp:d.type==='BOSS'&&boss?(boss.blood[M.id]||d.hp):d.hp*sc[1],spd:d.spd*(d.type==='BOSS'?1:sc[2])}); }
+        out.push({key,d,n:0,first:t,routes:new Set(),child,hp:d.type==='BOSS'&&boss?(boss.blood[M.id]||d.hp):d.hp*sc[1],atk:(d.atk||0)*(d.type==='BOSS'?1:sc[0]),spd:d.spd*(d.type==='BOSS'?1:sc[2])}); }
       const o=out[idx[key]]; o.n++; if(route!=null)o.routes.add(route); };
     for(const s of curQueue()) add(s.key,s.t,s.route,false);
     if(res) for(const e of res.enemies) if(e.child&&!(e.key in idx)) add(e.key,e.born,null,true), out[idx[e.key]].n=res.enemies.filter(z=>z.key===e.key).length;
@@ -296,7 +299,7 @@
       return `<button type="button" class="ek" data-ek="${k.key}" aria-pressed="${TS.ef===k.key}" style="--ec:${EC[i%EC.length]}">
         <span class="ef">${foeFace(k.key,d.name)}</span>
         <span class="ei"><b>${d.name} <small>×${k.n}</small></b><span>${tags.join(' · ')} · ${k.first.toFixed(0)} 秒起${k.routes.size?' · '+ent(k)+'路入口':''}</span>
-          <span class="num">生命 ${fmt(k.hp)} · 防 ${fmt(d.def)} · 抗 ${Math.min(100,d.res+((d.ab&&d.ab.refract)||0))} · ${(k.spd*R.mul).toFixed(2)} 格/秒</span>
+          <span class="num">生命 ${fmt(k.hp)} · 攻 ${d.dt==='n'||!d.atk?'—':fmt(k.atk)+(d.dt==='m'?' 法术':' 物理')} · 防 ${fmt(d.def)} · 抗 ${Math.min(100,d.res+((d.ab&&d.ab.refract)||0))} · ${(k.spd*R.mul).toFixed(2)} 格/秒${d.range>0?' · 射程 '+d.range:''}</span>
           ${d.abt?`<span class="abt">${d.abt.join('；')}${mod.length?` <em>已计入：${mod.join('、')}</em>`:' <em class="no">能力未计入</em>'}</span>`:''}</span>
         <span class="eo">${out}${life!=null?`<small>平均 ${life.toFixed(1)} 秒倒下</small>`:''}${top&&names[top[0]]?`<small>主要由 ${names[top[0]]} 击杀</small>`:''}</span></button>`; }).join('');
   }
@@ -314,9 +317,10 @@
       if(b.dead) return {cls:b.t<=R.T?'ok':'mid',lab:(b.t<=R.T?'':'超时 ')+b.t.toFixed(0)+' 秒',score:1000-b.t};
       const p=b.left/b.hp; return {cls:'bad',lab:'剩 '+Math.round(p*100)+'%',score:-100*p}; }
     const left=R.alive+(R.total-R.spawned);
-    if(R.leakedN) return {cls:'bad',lab:'漏 '+R.leakedN,sub:'扣 '+R.lifeLoss+' 生命',score:-1000*R.leakedN-left};
-    if(left) return {cls:'mid',lab:'剩 '+left,sub:'时间到 · 扣 '+R.lifeLoss+' 生命',score:-left};
-    return {cls:'ok',lab:R.dur.toFixed(0)+' 秒',score:1000-R.dur}; }
+    const fl=R.hurtOn&&R.falls?' · 倒下 '+R.falls:'';
+    if(R.leakedN) return {cls:'bad',lab:'漏 '+R.leakedN,sub:'扣 '+R.lifeLoss+' 生命'+fl,score:-1000*R.leakedN-left-R.falls*0.5};
+    if(left) return {cls:'mid',lab:'剩 '+left,sub:'时间到 · 扣 '+R.lifeLoss+' 生命'+fl,score:-left-R.falls*0.5};
+    return {cls:'ok',lab:R.dur.toFixed(0)+' 秒',sub:fl?fl.slice(3):'',score:1000-R.dur-R.falls*5}; }
   const runOne=(sn,rk)=>{ const S=setupFor(sn,rk,false); const R=S.members.length?teamRun(S):null; if(R){ R.isBoss=!!S.boss; R.skipped=S.skipped; } return R; };
   // 方案：保存的阵容（位置 + 干员设置 + 层数）
   const SLOTS='weishu.team.slots';
@@ -335,7 +339,7 @@
   // 摆位试算：把选中的干员挪到每个能放的空格子，各跑一局
   let heat=null;   // {key,id,vals:{'r,c':{out,dmg}},done,n}
   const heatKey=id=>{ const sn=snap(); sn.members=sn.members.map(m=>m.id===id?Object.assign({},m,{r:-1,c:-1}):m);
-    return JSON.stringify([TS.map,TS.round,TS.mode,curSp(),TS.tok,TS.xAtk,TS.xAspd,TS.cold,TS.stunt,sn]); };
+    return JSON.stringify([TS.map,TS.round,TS.mode,curSp(),TS.tok,TS.xAtk,TS.xAspd,TS.xHp,TS.hurt,TS.cold,TS.stunt,sn]); };
   const heatOn=()=>heat&&TS.members.some(m=>m.id===heat.id)&&heat.key===heatKey(heat.id)?heat:null;
   function heatRun(){ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const op=byId(m.id);
     const tiles=[]; for(let r=0;r<TEAM.H;r++)for(let c=0;c<TEAM.W;c++){ const o=memberAt(r,c); if(canPlace(op,r,c)&&(!o||o===m)) tiles.push([r,c]); }
@@ -360,16 +364,16 @@
   const b64e=o=>{ const b=new TextEncoder().encode(JSON.stringify(o)); let bin=''; b.forEach(x=>bin+=String.fromCharCode(x)); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); };
   const b64d=str=>{ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4)str+='='; const bin=atob(str); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); };
   function shareCode(){ const sn=snap();
-    return b64e({v:1,map:curMap().id,round:TS.round,mode:TS.mode,sp:TS.spTypes,pk:TS.spPick,tok:TS.tok,x:[+TS.xAtk||0,+TS.xAspd||0,+TS.cold||0,+TS.stunt||0],L:sn.L,S:sn.subL,
+    return b64e({v:1,map:curMap().id,round:TS.round,mode:TS.mode,sp:TS.spTypes,pk:TS.spPick,tok:TS.tok,x:[+TS.xAtk||0,+TS.xAspd||0,+TS.cold||0,+TS.stunt||0,+TS.xHp||0,TS.hurt===false?0:1],L:sn.L,S:sn.subL,
       m:sn.members.map(m=>[m.id,m.r,m.c,m.e?1:0,m.s,m.q.map(q=>[q.id,q.adv?1:0]),m.b])}); }
   function importCode(code){ const o=b64d(code); if(!o||o.v!==1) throw new Error('版本不对');
     const mi=FIELD.maps.findIndex(x=>x.id===o.map); if(mi>=0) TS.map=mi;
     if(o.round&&(bossOf(o.round)||/^r\d+$/.test(o.round))) TS.round=o.round;
     if(FIELD.modes.some(x=>x.id===o.mode)) TS.mode=o.mode;
     TS.spTypes=o.sp||[]; TS.spPick=o.pk||{}; TS.tok=o.tok||{};
-    [TS.xAtk,TS.xAspd,TS.cold,TS.stunt]=o.x||[0,0,50,0];
+    const xx=o.x||[]; [TS.xAtk,TS.xAspd,TS.cold,TS.stunt,TS.xHp]=[xx[0]||0,xx[1]||0,xx[2]??50,xx[3]||0,xx[4]||0]; TS.hurt=xx[5]!==0; $('tHurt').checked=TS.hurt;
     applySnap({members:(o.m||[]).map(a=>({id:a[0],r:a[1],c:a[2],e:!!a[3],s:a[4],q:(a[5]||[]).map(q=>({id:q[0],adv:!!q[1]})),b:a[6]||''})),L:o.L,subL:o.S});
-    for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).value=TS[id];
+    for(const id of ['cold','xAtk','xAspd','xHp','stunt']) $('t-'+id).value=TS[id];
     U.update(); }
   const shareLink=()=>location.href.split('#')[0]+'#team='+shareCode();
   function renderLab(){
@@ -420,7 +424,8 @@
   $('tSpEntry').addEventListener('change',e=>{ spSet({entry:e.target.value,n:null,e:null}); renderSpecial(); });
   $('tSpAtt').addEventListener('change',e=>{ const s=e.target.closest('[data-spa]'); if(!s)return; spSet({[s.dataset.spa]:s.value}); renderSpecial(); });
   $('tBonds').addEventListener('input',e=>{ const t=e.target; const v=Math.max(0,parseFloat(t.value)||0); if(t.dataset.tl)TS.L[t.dataset.tl]=v; if(t.dataset.ts)TS.subL[t.dataset.ts]=v; clearTimeout(timer); timer=setTimeout(()=>{ res=teamRun(setup(true)); TS.fi=0; renderBoard(); renderResults(); save(); },150); });
-  for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).addEventListener('input',e=>{ TS[id]=parseFloat(e.target.value)||0; run(); });
+  for(const id of ['cold','xAtk','xAspd','xHp','stunt']) $('t-'+id).addEventListener('input',e=>{ TS[id]=parseFloat(e.target.value)||0; run(); });
+  $('tHurt').addEventListener('input',e=>{ TS.hurt=e.target.checked; run(); });
   $('tRoutes').addEventListener('input',e=>{ TS.routes=e.target.checked; renderBoard(); save(); });
   $('tViewMode').addEventListener('click',e=>{ const b=e.target.closest('[data-real]'); if(!b)return; TS.real=b.dataset.real==='1'; renderBoard(); save(); });
   if(window.ResizeObserver) new ResizeObserver(()=>fitStage()).observe($('tBoard')); else window.addEventListener('resize',fitStage);
@@ -462,8 +467,8 @@
     for(const k in views) views[k].hidden=k!==v; document.querySelectorAll('#views button').forEach(x=>x.setAttribute('aria-pressed',x===b));
     try{ localStorage.setItem('weishu.view',v); }catch(err){}
     if(v==='team'){ run(); } else { stop(); U.update(); } });
-  for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).value=TS[id];
-  $('tRoutes').checked=!!TS.routes;
+  for(const id of ['cold','xAtk','xAspd','xHp','stunt']) $('t-'+id).value=TS[id];
+  $('tRoutes').checked=!!TS.routes; $('tHurt').checked=TS.hurt!==false;
   let v0='solo'; try{ v0=localStorage.getItem('weishu.view')||'solo'; }catch(e){}
   // 打开带 #team= 的分享链接时导入，然后去掉地址里的这段，之后的修改照常保存
   const hm=location.hash.match(/team=([\w-]+)/);

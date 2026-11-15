@@ -331,6 +331,7 @@ function worldEnemyAttack(W,e){
     const use=1-keep, w=Math.min(1,e.palsy/use); e.palsy=Math.max(0,e.palsy-use); stopped=true;
     for(const a of W.agents) a.onPalsy(e,w); }
   for(const a of W.agents) a.onEnemyAtk(e,stopped);
+  return stopped;
 }
 
 // ── 干员个体 ──────────────────────────────────────────
@@ -395,6 +396,7 @@ function makeAgent(op0, elite, cfg, sel, W){
   const rmD=e=>cfg.dotOwn?rm0(e):1-Math.min(100,Math.max(0,e.res-arcRes))/100;
   const sk=m.sk, costMul=E.cost*(cfg.stunt>=5&&k?0.7:1), cost=sk?Math.max(1,V(sk.cost,k)*costMul):0;
   const S={sp:(sk||m.nextTime?V((sk||op.sk).init||op.sk.i,k)||0:0)+(sb('独行')?15:0)+E.init,skillOn:false,skillLeft:0,casts:0,nAtk:0,atkT:0,lock:0,hold:0,delay:0,skT:0,skAtk:0,units:[],q:[],ticks:[],sg:[],sand:null,lastCast:null,castN:0};
+  const sp0=S.sp;
   const sec=sel.trace?new Array(Math.ceil(T)).fill(0):null, onArr=sel.trace?new Array(Math.ceil(T)).fill(0):null;
   const mine=new Map();   // 每个敌人身上属于本干员的状态：伊比利亚叠层、中毒、本帧是否打到
   const my=e=>{ let s=mine.get(e); if(!s){ s={st:0,end:-1,dotF:0,poiEnd:-1,poiF:0,mark:-1}; mine.set(e,s); } return s; };
@@ -480,6 +482,9 @@ function makeAgent(op0, elite, cfg, sel, W){
   A.onPalsy=(e,w)=>{ if(m.onPalsy)m.onPalsy(x,e,w); };
   A.onEnemyAtk=(e,stopped)=>{ if(m.onEnemyAtk)m.onEnemyAtk(x,e,stopped,W.attacksMe(A,e)); };
   x.nextOf=e=>W.nextOf(A,e);
+  // 队伍模拟：倒下时技能中断；再部署时技力回到初始值、状态清空（技能开启次数保留）
+  A.fall=()=>{ S.skillOn=false; S.skillLeft=0; S.units=[]; S.q=[]; S.ticks=[]; S.ammo=0; };
+  A.redeploy=()=>{ Object.assign(S,{sp:sp0,skillOn:false,skillLeft:0,atkT:0,lock:0,hold:0,delay:0,skT:0,skAtk:0,units:[],q:[],ticks:[],ammo:0}); };
   A.skillOn=()=>S.skillOn;
   A.buffs=buffs;
   A.dead=dead;

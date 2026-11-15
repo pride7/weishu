@@ -15,8 +15,13 @@ const CORE = {
   f:'携带装备的【维多利亚】干员伤害提升至 (125 + 0.8×层数)%。要给干员装上装备才生效。'},
  kjerag:{name:'谢拉格',six:0,f:'【谢拉格】干员伤害提升至 125%，对寒冷和冻结敌人再提升至 (135 + 层数)%。',
   params:[{id:'cold',label:'敌人处于寒冷/冻结的时间占比 %',def:50,min:0,max:100,step:10}]},
- egir:{name:'阿戈尔',six:0,f:'【阿戈尔】干员生命值 +(35 + 层数)%；开战时吞噬身前一格干员，获得其基础攻击力和阻挡数。',
-  params:[{id:'devour',label:'吞噬获得的基础攻击力',def:0,min:0,max:3000,step:50}]},
+ egir:{name:'阿戈尔',six:1,sixLabel:'6 人效果（前 3 名被击倒的【阿戈尔】干员立刻复活）',
+  f:'【阿戈尔】干员生命值 +(35 + 层数)%。开战时依次吞噬身前一格的干员：对它造成 5000 点物理伤害，获得它的基础攻击力和阻挡数，盟约层数加上它的等阶。',
+  params:[{id:'devourOp',t:'op',label:'被吞噬的干员',def:''},{id:'devourElite',t:'chk',label:'被吞噬的干员是精锐',def:true},{id:'devour',label:'另外追加的基础攻击力',def:0,min:0,max:5000,step:50}],
+  info:c=>{ if(!c.bondOn) return ''; const d=devourInfo(c);
+    if(!d) return '还没选被吞噬的干员：【阿戈尔】干员只按自身攻击力计算。';
+    return d.o.name+'（'+d.o.tier+' 阶，'+(d.k?'精锐':'初始')+'）：吞噬者基础攻击力 +'+d.atk+'，盟约层数 +'+d.tier+'。它受到 '+d.dmg+' 点伤害（防御 '+d.def+'），生命 '+d.hp+(d.own?'（含盟约加成）':'')+'，'
+      +(d.alive?'能活下来继续作战。':d.revive?'会被击倒，6 人效果让它立刻复活。':'会直接阵亡，这一格本场不再输出。')+'其他加生命的效果没有计入。'; }},
  siracusa:{name:'叙拉古',six:0,f:'【叙拉古】干员部署后攻速 +(25 + 0.8×层数)，持续 (32 + 0.4×层数) 秒。'},
  kazimierz:{name:'卡西米尔',six:1,sixLabel:'6 人效果（开技能/部署后 30 秒内攻击附带 65% 真伤）',
   f:'每次有干员部署，【卡西米尔】干员攻击力 +20%，至多 +(50 + 层数)%，持续到战斗结束。',
@@ -41,6 +46,18 @@ const SUBS = {
 };
 
 const V=(a,k)=>Array.isArray(a)?a[k]:a;
+const TIERV={'Ⅰ':1,'Ⅱ':2,'Ⅲ':3,'Ⅳ':4,'Ⅴ':5,'Ⅵ':6};
+
+// 【阿戈尔】吞噬：被吞噬者受到 5000 点物理伤害；吞噬者获得它的基础攻击力，盟约层数加上它的等阶。
+// 返回被吞噬者的情况；没选或盟约未激活时返回 null。
+function devourInfo(cfg){
+  if(cfg.core!=='egir'||!cfg.bondOn||!cfg.devourOp) return null;
+  const o=OPS.find(x=>x.id===cfg.devourOp); if(!o) return null;
+  const k=cfg.devourElite?1:0, s=STATS[o.name]||[0,0,0,0,0,0], tier=TIERV[o.tier]||1, own=o.bonds.includes('阿戈尔');
+  const hp=Math.round(s[k*3]*(own?1+(35+cfg.L)/100:1)), def=s[k*3+1], dmg=Math.max(5000-def,250);
+  const alive=hp>dmg;
+  return {o,k,atk:o.atk[k],tier,own,hp,def,dmg,alive,revive:!alive&&own&&!!cfg.six};
+}
 
 // 领袖。hp 依次为 标准 / 险境 / 绝境 / 终极模拟；hid 为“隐秘核心”强化版的生命（标准模拟没有）。
 // 防御、法抗取自敌人基础数据；模式内是否另有加成未确认。lev=1 表示可以被浮空。
@@ -67,6 +84,34 @@ const mlynarModel=v=>({
 MODELS.mlynar=mlynarModel({c:[50,45],i:[15,20],d:26,sc:[1.25,1.5],tg:5,hits:1,mul:2});
 MODELS.mlynar1=mlynarModel({c:[35,30],i:[15,15],d:[25,30],sc:[1.45,1.7],tg:1,hits:1,mul:1});
 MODELS.mlynar2=mlynarModel({c:[35,30],i:[10,10],d:20,sc:[1.3,1.6],tg:1,hits:2,mul:1,ba:0.3});
+
+// 克莱门莎。攻击和技能会给敌人累计侵蚀损伤，累计满时“侵蚀爆发”（见 simulate 里的 x.erode）。
+// 天赋：造成物理伤害时 25% 概率攻击力提升至 135%，目标防御低于初始值（已经爆发过）时概率 50%，按期望值计算。
+// n 是技能编号：1 冲蚀，2 风暴潮，3 与海为敌。
+const clemModel=n=>{ const tal=(x,i)=>1+(x.defDown(i)>0?0.5:0.25)*0.35;
+ return {
+  ep:1,
+  sk:n===1?null:{type:'time',cost:n===2?[22,20]:[58,45],init:n===2?[9,12]:[27,28],dur:n===2?16:0},
+  buffs(x){return n===2&&x.S.skillOn?{aspd:100}:{};},
+  // 风暴潮：放逐舱飞行约 1.5 秒，期间不能攻击；之后留下漩涡。与海为敌：10 发弹药，打完才结束。
+  onCast(x){const S=x.S; if(n===2){S.lock=1.5;S.vt=0;} else {S.skillOn=true;S.skillLeft=Infinity;S.ammo=10;}},
+  attack(x){const k=x.k,S=x.S,N=x.N;
+    if(n===1){ let nx=false; if(S.sp>=3*x.costMul){nx=true;S.sp-=3*x.costMul;x.castEvent();} else S.sp++;
+      const d=x.hit(0,'p',(nx?V([2.05,2.25],k):1)*tal(x,0),'direct'); if(nx)x.erode(0,d*V([0.25,0.3],k)); return; }
+    if(!S.skillOn){ x.hit(0,'p',tal(x,0),'direct'); return; }
+    if(n===2){ for(let i=0;i<Math.min(N,5);i++)x.hit(i,'p',V([2.2,2.3],k)*tal(x,i),'direct'); return; }
+    for(let i=0;i<Math.min(N,3);i++){ const d=x.hit(i,'p',V([1.8,2],k)*tal(x,i),'direct'); x.erode(i,d*0.2); } },
+  // 漩涡：每秒 200 点侵蚀损伤 + 物理伤害，按持续到技能结束计算。
+  // 漩涡落在前方约 3 格。放逐舱只带得走总重量不超过 8 的敌人，所以被她挡在身前的重型领袖不在漩涡里。
+  frame(x){const S=x.S; if(n!==2||!S.skillOn||S.skT<1.5)return; S.vt++;
+    if(S.vt%30===0)for(let i=0;i<x.N;i++){ if(i===0&&x.cfg.blocking&&x.cfg.bossMass>8)continue;
+      x.hit(i,'p',V([2.65,2.85],x.k)*tal(x,i),'direct',{indirect:true}); x.erode(i,200); } },
+  // 与海为敌：技能期间每有敌人侵蚀爆发，消耗 1 发弹药轰击 3 次（间隔 1 秒），每次物理 + 元素伤害
+  onBurst(x){const S=x.S,k=x.k; if(n!==3||!S.skillOn||S.ammo<=0)return; S.ammo--;
+    for(let h=1;h<=3;h++)x.later(h,()=>{ for(let i=0;i<x.N;i++){ x.hit(i,'p',V([2.5,2.7],k)*tal(x,i),'direct',{indirect:true}); x.hit(i,'e',V([1.8,2],k),'direct',{indirect:true}); } });
+    if(S.ammo<=0)x.endSkill(); }
+ };};
+MODELS.clemensa=clemModel(2); MODELS.clemensa1=clemModel(1); MODELS.clemensa3=clemModel(3);
 
 // 换技能后的干员变体（缓存）
 function variant(op, si){
@@ -180,7 +225,10 @@ function simulate(op0, elite, cfg, sel){
   const m=(op.m!=='gen'&&MODELS[op.m||op.id])||gen(op);
   const N=Math.max(1,Math.min(8,cfg.N|0)), T=Math.max(1,cfg.T), F=Math.round(T*30), dt=1/30;
   const C=CORE[cfg.core], has=b=>op.bonds.includes(b)||sel.bond===b;   // sel.bond：变形同构体给的额外盟约
-  const core=cfg.bondOn&&has(C.name)?cfg.core:null, L=core?cfg.L+E.layers:0, six=core&&C.six&&cfg.six;
+  const dv=devourInfo(cfg);
+  const core=cfg.bondOn&&has(C.name)?cfg.core:null, L=core?cfg.L+E.layers+(core==='egir'&&dv?dv.tier:0):0, six=core&&C.six&&cfg.six;
+  // 自己就是被吞噬的那一个：不获得攻击力；活不下来（也没有复活）就整场没有输出
+  const eaten=!!(core==='egir'&&dv&&dv.o.id===op0.id), dead=eaten&&!dv.alive&&!dv.revive;
   const subOf=b=>cfg.sub[b]&&cfg.sub[b].on?cfg.sub[b]:null;
   const ly=b=>b===C.name?L:(subOf(b)?subOf(b).L||0:0);
   const sb=b=>has(b)?subOf(b):null;
@@ -208,7 +256,7 @@ function simulate(op0, elite, cfg, sel){
   if(core==='victoria'&&E.n>0) dmMul*=1.25+0.008*L;
   if(core==='kjerag') dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*L));
   if(sb('协防干员')) dmMul*=k?1.4:1.2;
-  const baseAtk=op.atk[k]+(core==='egir'?cfg.devour:0);
+  const baseAtk=op.atk[k]+(core==='egir'?(cfg.devour||0)+(dv&&!eaten?dv.atk:0):0);
   const sirF=core==='siracusa'?(32+0.4*L)*30:0, sirAspd=25+0.8*L;
   const sgDur=core==='sargon'?5+0.22*L:0;
   const def0=cfg.def*(preOn&&pre.three?0.7:1)*(V(op.defMul,k)||1);
@@ -235,18 +283,25 @@ function simulate(op0, elite, cfg, sel){
     if(sgDur){ let n=0; for(const e of S.sg) if(e>f) n++; a+=Math.min(300,12*(n+cfg.sargRate*sgDur)); }
     a=Math.max(10,Math.min(600,a));
     return Math.max(0.1,(op.bat+(b.batAdd||0))*(b.batMul||1))/(a/100); };
-  const add=(g,d,i)=>{parts[g]+=d;if(i===0)main+=d;if(sec)sec[Math.min(sec.length-1,Math.floor(f/30))]+=d;};
+  const add=(g,d,i)=>{if(dead)return;parts[g]+=d;if(i===0)main+=d;if(sec)sec[Math.min(sec.length-1,Math.floor(f/30))]+=d;};
+  // 侵蚀损伤：累计满（领袖 2000，其他敌人 1000）时爆发——永久 −120 防御，受到 5000 点无来源元素伤害，
+  // 之后 8 秒冷却内不再累计。只有主目标可能是领袖。
+  const ep=new Array(N).fill(0), epCd=new Array(N).fill(-1), defDn=new Array(N).fill(0);
+  const epCdF=Math.round(240/(1+(tf.epCd||0)/100)), epCap=i=>(cfg.boss&&i===0)?2000:1000;
+  x.defDown=i=>defDn[i];
+  x.erode=(i,v)=>{ if(!(v>0)||f<epCd[i])return; ep[i]+=v; if(ep[i]<epCap(i))return;
+    ep[i]=0; epCd[i]=f+epCdF; defDn[i]+=120; S.bursts=(S.bursts||0)+1; add('extra',5000,i); if(m.onBurst)m.onBurst(x,i); };
   const proc=(i,w,A)=>{ if(!dotC)return; if(stacks[i]<=0)dotF[i]=0;
     stacks[i]=Math.min(10,stacks[i]+w); stackEnd[i]=f+300;
     if(full===null&&i===0&&stacks[0]>=9.999)full=f*dt;
     if(six&&N>=2)add('bond',0.2*3*A*rm0*w,(i+1)%N); };
   x.hit=(i,type,scale,g,o={})=>{ const b=buffs(), A=atkNow(), w=o.w==null?1:o.w, t=type[0];
     const rm=1-Math.min(100,res0*(b.resMul||1))/100;
-    const ph=()=>{const df=Math.max(0,def0*(b.defMul||1)-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(A*scale-df,A*scale*0.05);};
+    const ph=()=>{const df=Math.max(0,def0*(b.defMul||1)-defDn[i]-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(A*scale-df,A*scale*0.05);};
     const mg=()=>Math.max(A*scale*rm,A*scale*0.05);
     let d;
     if(o.fixed!=null) d=o.fixed*rm;
-    else if(t==='t') d=A*scale;
+    else if(t==='t'||t==='e') d=A*scale;   // 真实伤害、元素伤害：无视防御和法抗
     else if(weak) d=Math.max(ph(),mg());
     else d=t==='p'?ph():mg();
     const fm=flagMul();
@@ -254,7 +309,8 @@ function simulate(op0, elite, cfg, sel){
     add(g,d*w,i);
     if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(A*E.xm*rm,A*E.xm*0.05)+A*E.xt)*dmMul*fm*w,i); if(E.xm&&cfg.indirect)proc(i,w,A); }
     if(arcC&&!o.noArc){add('extra',Math.max(A*arcC*rm,A*arcC*0.05)*dmMul*w,i); if(cfg.indirect)proc(i,w,A);}
-    if(!o.indirect||cfg.indirect)proc(i,w,A); };
+    if(!o.indirect||cfg.indirect)proc(i,w,A);
+    return d*w; };
   x.poison=(i,dur)=>{ if(poiEnd[i]<f)poiF[i]=0; poiEnd[i]=f+(dur||93); };
   x.later=(sec,fn)=>S.q.push({at:f+Math.round(sec*30),fn});
   const noteCast=()=>{ S.lastCast=f; S.castN++; if(sgDur){ S.sg.push(f+sgDur*30); if(S.sg.length>60)S.sg=S.sg.filter(e=>e>f); if(S.sand==null)S.sand=f; } };
@@ -295,5 +351,5 @@ function simulate(op0, elite, cfg, sel){
     }
   }
   const total=parts.direct+parts.bond+parts.extra;
-  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN};
+  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!m.ep,bursts:S.bursts||0,eaten,dead};
 }

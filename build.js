@@ -1,7 +1,7 @@
 // 把 src/ 下的各部分拼成单文件页面：node build.js
 const fs = require('fs'), path = require('path');
 const r = f => fs.readFileSync(path.join(__dirname, 'src', f), 'utf8');
-const engine = [r('iberia.js'), r('ops.js'), r('skills.js'), r('ops2.js'), r('engine.js'), r('bosses.js'), r('notes.js')].join('\n');
+const engine = [r('iberia.js'), r('ops.js'), r('skills.js'), r('ops2.js'), r('stats.js'), r('engine.js'), r('bosses.js'), r('notes.js')].join('\n');
 // 头像（来自 PRTS 的游戏素材，压成 112px WebP 后内嵌）
 const avDir = path.join(__dirname, 'src', 'avatars');
 const avatars = {};

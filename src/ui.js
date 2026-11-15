@@ -44,10 +44,19 @@
     $('sixWrap').hidden=!C.six; $('sixLabel').textContent=C.sixLabel||'';
     $('coreParams').innerHTML=(C.params||[]).map(p=>p.t==='chk'
       ?sw(`id="cp-${p.id}" data-cp="${p.id}"`,p.label,st.cp[p.id])
-      :`<div class="f"><label for="cp-${p.id}">${p.label}</label><input type="number" id="cp-${p.id}" data-cp="${p.id}" value="${st.cp[p.id]}" min="${p.min??0}" max="${p.max??999}" step="${p.step??1}"></div>`).join('');
+      :p.t==='op'?`<div class="fcol"><label for="cp-${p.id}">${p.label}</label><select id="cp-${p.id}" data-cp="${p.id}">${foodOptions()}</select></div>`
+      :`<div class="f"><label for="cp-${p.id}">${p.label}</label><input type="number" id="cp-${p.id}" data-cp="${p.id}" value="${st.cp[p.id]}" min="${p.min??0}" max="${p.max??999}" step="${p.step??1}"></div>`).join('')
+      +(C.info?'<p class="hint" id="coreInfo"></p>':'');
     renderSubs();
     $('notes').innerHTML='<li><b>盟约效果。</b>'+C.f+'</li>'+(NOTES[c]||[]).map(t=>'<li>'+t+'</li>').join('');
     update();
+  }
+  // 【阿戈尔】“被吞噬的干员”下拉：本阵营干员在前，其余按等阶分组，组内按基础攻击力从高到低
+  function foodOptions(){
+    const k=st.cp.devourElite?1:0, cur=st.cp.devourOp, own=o=>o.bonds.includes('阿戈尔'), by=(a,b)=>b.atk[k]-a.atk[k];
+    const grp=(label,l)=>l.length?`<optgroup label="${label}">${l.map(o=>`<option value="${o.id}"${o.id===cur?' selected':''}>${o.name} · ${o.tier} 阶 · 攻击 ${o.atk[k]}</option>`).join('')}</optgroup>`:'';
+    return '<option value="">无（不吞噬）</option>'+grp('【阿戈尔】干员',OPS.filter(own).sort(by))
+      +[6,5,4,3,2,1].map(t=>grp(ROMAN[t]+' 阶',OPS.filter(o=>TIERN[o.tier]===t&&!own(o)).sort(by))).join('');
   }
   // 当前视图的干员名单与配色。无核心盟约视图里干员太多，只给当前输出最高的 8 名配色。
   function buildRoster(){
@@ -71,7 +80,7 @@
   function cfg(){ return Object.assign({core:st.core,L:Math.max(0,num('Ln',0)),bondOn:$('bondOn').checked,six:$('six').checked&&$('bondOn').checked,
     own:num('own',0),xAtk:num('xAtk',0),xAspd:num('xAspd',0),def:Math.max(0,num('def',0)),res:Math.max(0,Math.min(100,num('res',0))),
     T:Math.max(3,Math.min(240,num('T',30))),N:Math.max(1,Math.min(8,num('N',1))),ranged:$('ranged').checked,heavy:$('heavy').checked,
-    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev)},st.cp); }
+    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0},st.cp); }
   // 领袖
   const curBoss=()=>BOSSES.find(b=>b.id===$('boss').value)||null;
   const bossRaw=()=>{const b=curBoss(); if(!b)return 0; return ($('bossHid').checked&&b.hid&&b.hid[st.bossMode])?b.hid[st.bossMode]:b.hp[st.bossMode];};
@@ -116,7 +125,7 @@
 
   function renderRank(c){
     const rows=roster.map(o=>({o,r:simulate(o,st.elite[o.id],c,selOf(o))})).sort((a,b)=>b.r.dps-a.r.dps);
-    const max=Math.max(1,rows[0].r.dps);
+    const max=Math.max(1,rows[0].r.dps), food=devourInfo(c);
     if(!st.sel) st.sel=rows[0].o.id;
     const LIMIT=20, cut=CORE[c.core].none&&!st.showAll&&rows.length>LIMIT;
     $('rankMore').hidden=!cut; if(cut) $('rankMore').innerHTML=`<button type="button" class="btn" id="showAll">显示全部 ${rows.length} 名</button>`;
@@ -126,7 +135,7 @@
       return `<div class="rc${r.healer?' heal':''}${!r.healer&&i<3?' top':''}" role="button" tabindex="0" data-id="${o.id}" aria-pressed="${st.sel===o.id}" style="--col:var(${colors[o.id]||'--line-2'})">
         <span class="rk">${r.healer?'–':String(i+1).padStart(2,'0')}</span>${ava(o)}
         <div class="who"><div class="nm"><b>${o.name}</b><span>${o.cls}</span></div>
-          <div class="tags">${r.healer?'<span class="tag">治疗位，不造成伤害</span>':(sk?`<span class="tag">${sk}</span>`:'')+(eqs||'<span class="tag none">未装备</span>')}</div></div>
+          <div class="tags">${r.healer?'<span class="tag">治疗位，不造成伤害</span>':(r.eaten?`<span class="tag eq">被吞噬 · ${food.alive?'存活':food.revive?'复活':'阵亡'}</span>`:'')+(sk?`<span class="tag">${sk}</span>`:'')+(eqs||'<span class="tag none">未装备</span>')}</div></div>
         <div class="val"><button type="button" class="elite" data-el="${o.id}" aria-pressed="${e}" title="切换初始 / 精锐">${e?'精锐':'初始'}</button><div><b>${fmt(r.dps)}</b><small>攻击力 ${fmt(r.atk)}</small></div></div>
         ${r.healer?'':`<div class="meter">${barHtml(r.parts,max)}</div>`}</div>`;}).join('');
     const a=rows[0],b=rows[1], share=Math.round(a.r.parts.bond/Math.max(1,a.r.dps)*100), top3=rows.slice(0,3).reduce((s,x)=>s+x.r.dps,0);
@@ -177,15 +186,16 @@
     const xb=st.bond[o.id];
     $('detail').innerHTML=head+`
       <div class="tiles"><div class="tile"><b>${fmt(r.dps)}</b><span>每秒伤害</span></div><div class="tile"><b>${fmt(r.atk)}</b><span>战斗中攻击力</span></div><div class="tile"><b>${r.iv.toFixed(2)}<small>秒</small></b><span>攻击间隔</span></div></div>
+      ${r.eaten?`<div class="bossline">这名干员被选为“被吞噬的干员”：${r.dead?'挨不住 5000 点伤害，开战就阵亡，本场没有输出。':'能活下来（或复活），但自己不获得吞噬的攻击力。'}</div>`:''}
       ${bossHp()?`<div class="bossline">单人打完 ${curBoss().name}（${Math.abs(bossEhp()-1)>0.01?'计入减伤后相当于 ':'生命 '}${fmt(bossHp())}）约需 <b>${fmtTime(bossHp()/Math.max(1,r.dps))}</b></div>`:''}
       <div class="sec"><h4>技能</h4>${skills}</div>
       <div class="sec"><h4>装备</h4><div class="slots">${slots}</div>
         <div class="f" style="margin-top:10px"><label for="xbond">变形同构体：额外获得盟约</label><select id="xbond" data-xbond="1"><option value="">无</option>${XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${xb===b?' selected':''}>${b}</option>`).join('')}</select></div>
         <p class="hint" style="margin-top:6px">${xb?`已视为【${xb}】干员：${SUBS[xb].hint}。层数和“3 人”在参数栏的“附加盟约”里调。`:'游戏里它占一格装备，给哪个盟约由另一件装备决定；这里直接选结果，不占格子。'}</p></div>
       <div class="sec"><h4>输出时间轴 <small>每秒伤害；金色段 = 技能开启中</small></h4><div id="tl"></div></div>
-      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
+      <div class="sec"><h4>伤害构成${c.core==='iberia'&&c.bondOn?` <small>叠满 10 层：${r.full==null?'未叠满':r.full.toFixed(1)+' 秒'}</small>`:''}${r.ep?` <small>侵蚀爆发 ${r.bursts} 次，各 5000 元素伤害（计入“附加”）</small>`:''}</h4><div class="comp">${barHtml(r.parts,tot)}
         <div class="lg"><div style="--c:var(--seg-direct)"><b>${fmt(r.parts.direct)}</b><span>直接 · ${pc(r.parts.direct)}</span></div><div style="--c:var(--seg-bond)"><b>${fmt(r.parts.bond)}</b><span>盟约 · ${pc(r.parts.bond)}</span></div><div style="--c:var(--seg-extra)"><b>${fmt(r.parts.extra)}</b><span>附加 · ${pc(r.parts.extra)}</span></div></div></div></div>
-      <div class="sec"><h4>说明</h4><dl class="kv"><dt>模式特质</dt><dd>${pick(o.trait,k)}</dd>${o.extra?`<dt>天赋 / 模组</dt><dd>${pick(o.extra,k)}</dd>`:''}<dt>建模方式</dt><dd>${si>=0?'非默认技能按技能说明里的数值做通用建模；以下是默认技能的说明。':''}${o.model}</dd></dl></div>`;
+      <div class="sec"><h4>说明</h4><dl class="kv"><dt>模式特质</dt><dd>${pick(o.trait,k)}</dd>${o.extra?`<dt>天赋 / 模组</dt><dd>${pick(o.extra,k)}</dd>`:''}<dt>建模方式</dt><dd>${si>=0&&A.list[si].model?A.list[si].model:(si>=0?'非默认技能按技能说明里的数值做通用建模；以下是默认技能的说明。':'')+o.model}</dd></dl></div>`;
     timeline(r);
   }
 
@@ -226,7 +236,8 @@
 
   let timer=0;
   const syncL=()=>{const v=Math.max(0,num('Ln',0));$('Lbig').textContent=v;$('L').style.setProperty('--p',Math.min(100,v/5)+'%');};
-  function draw(){const c=cfg();lastCfg=c;syncL();renderRank(c);renderDetail(c);renderChart(c);}
+  function draw(){const c=cfg();lastCfg=c;syncL();renderRank(c);renderDetail(c);renderChart(c);
+    const info=$('coreInfo'); if(info){ const t=CORE[c.core].info?CORE[c.core].info(c):''; info.textContent=t; info.hidden=!t; } }
   function update(){clearTimeout(timer);timer=setTimeout(draw,20);}
 
   $('cores').innerHTML=Object.keys(CORE).filter(c=>!CORE[c].none).concat('none').map(c=>`<button type="button" class="core" data-c="${c}" aria-pressed="false"><b>${CORE[c].name}</b><small>${CORE_EN[c].toUpperCase()} · ${CORE[c].none?OPS.filter(o=>!o.healer).length:OPS.filter(o=>o.bonds.includes(CORE[c].name)).length}</small></button>`).join('');
@@ -241,7 +252,8 @@
   const syncPreset=()=>document.querySelectorAll('#preset button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===$('def').value&&b.dataset.r===$('res').value));
   $('preset').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('def').value=b.dataset.d;$('res').value=b.dataset.r;syncPreset();update();});
   document.querySelector('.setup').addEventListener('input',e=>{const el=e.target;
-    if(el.dataset.cp){st.cp[el.dataset.cp]=el.type==='checkbox'?el.checked:(isFinite(parseFloat(el.value))?parseFloat(el.value):0);}
+    if(el.dataset.cp){st.cp[el.dataset.cp]=el.type==='checkbox'?el.checked:el.tagName==='SELECT'?el.value:(isFinite(parseFloat(el.value))?parseFloat(el.value):0);
+      if(el.dataset.cp==='devourElite'&&$('cp-devourOp'))$('cp-devourOp').innerHTML=foodOptions(); }
     else if(el.dataset.sub){const v=st.sub[el.dataset.sub];v[el.dataset.k]=el.type==='checkbox'?el.checked:(isFinite(parseFloat(el.value))?parseFloat(el.value):0);}
     if(el.id==='def'||el.id==='res')syncPreset();
     if(['L','Ln','bulkEq','bulkAdv'].includes(el.id))return; update();});

@@ -361,6 +361,9 @@ function makeAgent(op0, elite, cfg, sel, W){
   const swi=subOf('迅捷'), swiftP=swi?Math.min(1,(20+0.35*swi.L)/100):0;
   const raid=subOf('突袭');
   const tf=op.tf?op.tf(k,ly):{}, fx=op.fx?op.fx(k,cfg):{};
+  // 队伍模拟里，与“范围内敌人数、是否在阻挡”有关的天赋按当前实际情况重新算；单人计算沿用参数栏的设定
+  const fxLive=cfg.team&&op.fx, fxOf=()=>fxLive?op.fx(k,Object.assign({},cfg,{N:tl.length,blocking:W.blocking(A)})):fx;
+  const fxD=key=>fxLive?(fxOf()[key]||0)-(fx[key]||0):0, fxDm=()=>fxLive?(fxOf().dm||1)/(fx.dm||1):1;
   const dotC=isC('iberia')?(0.11+0.0006*Lc('iberia'))*(sixC('iberia')?2:1):0;
   let sPct=E.atk+cfg.own+cfg.xAtk+(cfg.stunt>=2&&k?30:0)+(m.atkPct?m.atkPct(k,cfg):0)+(fx.atk||0)+(cfg.tileAtk||0);
   if(preOn) sPct+=10+1.2*pre.L;
@@ -398,7 +401,7 @@ function makeAgent(op0, elite, cfg, sel, W){
   const parts={direct:0,bond:0,extra:0}; let main=0, full=null, kills=0, dealt=0;
   let tl=[];   // 本帧的目标列表
   const A={op:op0,cfg,sel,k,core,six,L,cores:CS};
-  const x={S,k,cfg,fx,costMul,get f(){return W.f;},get N(){return tl.length;}};
+  const x={S,k,cfg,costMul,get fx(){return fxOf();},get f(){return W.f;},get N(){return tl.length;}};
   const R=i=>typeof i==='object'?i:tl[i];
   x.uid=i=>{ const e=R(i); return e?e.uid:-1; };
   x.byUid=u=>W.enemies.find(e=>e.uid==u);
@@ -413,9 +416,10 @@ function makeAgent(op0, elite, cfg, sel, W){
     // killAtk / killAp：击倒敌人后叠基础攻击力 / 攻击力%（只有队伍模拟里敌人会倒下）
     if(op.killAp)p+=V(op.killAp.v,k)*Math.min(V(op.killAp.max,k),kills);
     const kb=op.killAtk?V(op.killAtk.v,k)*Math.min(V(op.killAtk.max,k),kills):0;
+    if(fxLive)p+=fxD('atk');
     return (baseAtk+kb+(on?tf.base||0:0))*(1+p/100);};
   const flagMul=()=>{ if(!E.flag)return 1; const t=W.f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
-  x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0);
+  x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0)+fxD('aspd');
     if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(W.f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
     if(sgDur){ let n=0; for(const e of S.sg) if(e>W.f) n++; a+=Math.min(300,12*(n+cfg.sargRate*sgDur)); }
     a=Math.max(10,Math.min(600,a));
@@ -443,7 +447,7 @@ function makeAgent(op0, elite, cfg, sel, W){
     else if(weak) d=Math.max(ph(),mg());
     else d=t==='p'?ph():mg();
     const fm=flagMul();
-    d*=dmMul*(b.dm||1)*fm;
+    d*=dmMul*fxDm()*(b.dm||1)*fm;
     if(brDm!==1&&inBurst(W,e))d*=brDm;
     // dmBoss：[倍率, 秒]，领袖在场若干秒后受到本干员的伤害提高（蕾缪安的“通缉”）
     if(op.dmBoss&&e.boss&&W.f>=op.dmBoss[1]*30)d*=V(op.dmBoss[0],k);
@@ -451,8 +455,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
     if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(e,d*w*V(op.epAll.r,k),op.epAll.t);
-    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fm*w,e); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
-    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*w,e); if(cfg.indirect)proc(e,w,Atk);}
+    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fxDm()*fm*w,e); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
+    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*fxDm()*w,e); if(cfg.indirect)proc(e,w,Atk);}
     if(!o.indirect||cfg.indirect)proc(e,w,Atk);
     return d*w; };
   x.poison=(i,dur)=>{ const e=R(i); if(!e)return; const s=my(e); if(s.poiEnd<W.f)s.poiF=0; s.poiEnd=W.f+(dur||93); };
@@ -511,7 +515,7 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(sixC('sargon')&&S.sand!=null&&f>S.sand&&(f-S.sand)%150===0)for(const e of tl)add('bond',(5000+25*Lc('sargon'))*rm0(e),e);
     for(const e of W.enemies){ const s=mine.get(e); if(!s||e.dead)continue;
       if(s.poiEnd>=f){s.poiF++; if(s.poiF%30===0){ if(m.poisonTick)m.poisonTick(x,e); else x.hit(e,'magic',0,'extra',{fixed:m.poison(k,cfg),indirect:true,noArc:true}); }}
-      if(s.st>0){ if(s.end<f){s.st=0;} else {s.dotF++; if(s.dotF%30===0)add('bond',s.st*dotC*atkNow()*rmD(e)*(cfg.dotOwn?dmMul*(buffs().dm||1)*flagMul():1),e);} }
+      if(s.st>0){ if(s.end<f){s.st=0;} else {s.dotF++; if(s.dotF%30===0)add('bond',s.st*dotC*atkNow()*rmD(e)*(cfg.dotOwn?dmMul*fxDm()*(buffs().dm||1)*flagMul():1),e);} }
     } };
   A.result=Tlen=>{ const total=parts.direct+parts.bond+parts.extra;
     return {dps:total/Tlen,main:main/Tlen,total,parts:{direct:parts.direct/Tlen,bond:parts.bond/Tlen,extra:parts.extra/Tlen},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead,kills}; };

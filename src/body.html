@@ -155,7 +155,7 @@
         <div class="pb setup">
           <div class="g">
             <h3>地图与回合 <span class="en">Stage</span></h3>
-            <div class="fcol"><label for="tMap">战场</label><select id="tMap"></select></div>
+            <div class="fcol"><span class="lbl">战场</span><div class="mthumbs" id="tMap" role="group" aria-label="战场"></div></div>
             <div class="fcol"><label for="tRound">回合</label><select id="tRound"></select></div>
             <div class="segs" id="tMode" role="group" aria-label="难度"><button type="button" data-m="0">标准</button><button type="button" data-m="1">险境</button><button type="button" data-m="2">绝境</button><button type="button" data-m="3">终极</button></div>
             <p class="hint" id="tTok"></p>
@@ -181,15 +181,16 @@
 
       <section class="panel" aria-labelledby="h-board">
         <div class="ph"><h2 id="h-board"><span class="en">Deployment</span>摆放</h2>
-          <div class="btnrow"><span class="en" id="tCount"></span><button type="button" class="btn" id="tClear">清空</button></div></div>
+          <div class="btnrow"><div class="segs" id="tViewMode" role="group" aria-label="显示方式"><button type="button" data-real="1">实景</button><button type="button" data-real="0">示意图</button></div><span class="en" id="tCount"></span><button type="button" class="btn" id="tClear">清空</button></div></div>
         <div class="pb">
+          <p class="stagecap" id="tStageCap"></p>
           <div class="boardwrap"><div class="board" id="tBoard"></div></div>
           <div class="replay" id="tReplay" hidden>
             <button type="button" class="btn" id="tPlay">播放</button>
             <input type="range" id="tSlider" min="0" max="0" step="1" value="0" aria-label="回放时间">
             <span class="num muted" id="tTime"></span>
           </div>
-          <div class="blegend"><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
+          <div class="blegend"><span class="muted">实景取自 PRTS 的游戏截图</span><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
           <p class="hint" id="tHint" style="margin-top:10px"></p>
         </div>
         <div class="palhead"><input type="search" id="tQ" placeholder="搜索干员" aria-label="搜索干员"><div class="filter" id="tFilter"></div></div>
@@ -208,7 +209,7 @@
     <section class="panel" aria-labelledby="h-tmethod">
       <div class="ph"><h2 id="h-tmethod"><span class="en">Method</span>队伍模拟的口径</h2></div>
       <div class="pb"><ul class="plain">
-        <li><b>战场：</b>10 张地图的单人场地取自游戏数据，包括能部署的格子、围栏、高台、阻隔工事、射击台和特殊地块。同一张图的随机障碍（游戏里的“场地 1/2/3”）可以点格子切换。远程干员可以放在地面格子上，高台和射击台只能放远程干员。</li>
+        <li><b>战场：</b>10 张地图的单人场地取自游戏数据，包括能部署的格子、围栏、高台、阻隔工事、射击台和特殊地块；“实景”底图是 PRTS 收录的游戏截图，格子按透视对齐到截图上（领袖回合用领袖战的机位）。有些图的障碍是随机出现的，可以点格子切换。远程干员可以放在地面格子上，高台和射击台只能放远程干员。</li>
         <li><b>出怪：</b>每个回合的敌人种类、数量、出场时间和路线取自游戏数据。难度按游戏数据里的系数放大普通敌人的生命（标准 ×1、险境 ×1.2、绝境 ×1.35、终极 ×1.5）；领袖生命按各难度的数值。每局随机加入的“特训敌人”没有计入；随机出怪组固定取第一组。</li>
         <li><b>行走与阻挡：</b>地面敌人走最短路线（绕开围栏和障碍，斜走时两侧都要能通过），走进干员所在的格子时，如果干员还有阻挡数就被拦下。移动速度按“敌人移速 × 0.5 格/秒”计算。空中敌人沿固定路线飞行，只有远程干员能攻击。</li>
         <li><b>索敌：</b>攻击范围取自游戏数据（朝右），技能改变范围时随技能切换。优先打自己阻挡的敌人，其次是离出口最近的。</li>
@@ -222,5 +223,5 @@
     <div class="dex-in"><nav class="dex-list" id="dexList" aria-label="领袖列表"></nav><div class="dex-body" id="dexBody"></div></div>
   </dialog>
 
-  <footer>干员面板、技能、装备与盟约数值来自 <a href="https://prts.wiki/w/卫戍协议·规程/PRTS盟约记录">PRTS 卫戍协议·规程</a> 及其游戏数据。干员头像与领袖图片是《明日方舟》的游戏素材，版权归鹰角网络所有，取自 PRTS。本页是玩家自制的非官方工具，与鹰角网络无关。</footer>
+  <footer>干员面板、技能、装备与盟约数值来自 <a href="https://prts.wiki/w/卫戍协议·规程/PRTS盟约记录">PRTS 卫戍协议·规程</a> 及其游戏数据。干员头像、领袖图片与战场截图是《明日方舟》的游戏素材，版权归鹰角网络所有，取自 PRTS。本页是玩家自制的非官方工具，与鹰角网络无关。</footer>
 </div>

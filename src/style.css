@@ -401,3 +401,52 @@ footer a{color:var(--accent)}
 .eqr{display:flex;align-items:center;gap:10px}
 .eqr select{flex:1 1 auto;min-width:0}
 #tEdit .btnrow{margin-top:12px;align-items:center}
+
+/* 实景战场 */
+.stagecap{margin:0 0 8px;font-size:13px;color:var(--fg-2);font-weight:600}
+.stagebox{position:relative;width:100%;overflow:hidden;background:var(--bg);border:1px solid var(--line-2)}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.stage>img{position:absolute;left:0;top:0;display:block;user-select:none;-webkit-user-drag:none}
+.sgrid{position:absolute;left:0;top:0;transform-origin:0 0;display:grid;grid-template-columns:repeat(9,100px);grid-template-rows:repeat(4,100px)}
+.sgrid .tc{aspect-ratio:auto;width:100px;height:100px;background:transparent;box-shadow:none;outline:0;cursor:default}
+.sgrid .tc.dep{cursor:pointer}
+.sgrid .tc.dep:hover{background:rgba(255,255,255,.18)}
+.sgrid .tc.inr{background:rgba(34,167,230,.38)}
+.sgrid .tc.opt::before{border:3px dashed #f0b429;inset:8px}
+.sgrid .tc.sel{background:rgba(240,180,41,.35)}
+.stagebox.arming .sgrid .tc{opacity:1}
+.stagebox.arming .sgrid .tc.can{background:rgba(34,167,230,.30);outline:3px solid #22a7e6;outline-offset:-6px}
+.stagebox.arming .sgrid .tc:not(.can){background:rgba(0,0,0,.28)}
+.sgrid .optk{font-size:22px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000}
+.sov{position:absolute;inset:0;pointer-events:none}
+.sov .routes{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.sov polyline{fill:none;stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+.sov polyline.gnd{stroke:#ff5a5a;opacity:.85}
+.sov polyline.fly{stroke:#a78bfa;stroke-dasharray:9 8;opacity:.85}
+.su{position:absolute;transform:translate(-50%,-62%);display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
+.su .ava{width:100%;height:100%;clip-path:none;border:2px solid #fff;border-bottom-width:4px;border-bottom-color:var(--tier)}
+.su .ava svg{display:none}
+.su .ava .tr{font-size:12px;line-height:14px}
+.su.on .ava{box-shadow:0 0 0 3px #f0b429}
+.su.sel .ava{border-color:#f0b429}
+.su.gone{opacity:.35}
+.foe.sf{aspect-ratio:1;border-width:2px;border-color:#fff;transform:translate(-50%,-80%)}
+.foe.sf.bl{border-color:#ff5a5a}
+.foe.sf i{height:4px}
+.mthumbs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+@media (max-width:1180px) and (min-width:641px){.mthumbs{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.mthumb{position:relative;display:block;padding:0;border:1px solid var(--line-2);background:var(--surface-2);cursor:pointer;aspect-ratio:780/360;overflow:hidden;min-width:0}
+.mthumb img{display:block;width:100%;height:100%;object-fit:cover}
+.mthumb span{position:absolute;left:0;bottom:0;font-family:var(--num);font-size:13px;font-weight:700;letter-spacing:.06em;background:rgba(0,0,0,.65);color:#fff;padding:0 6px}
+.mthumb:hover{border-color:var(--fg-3)}
+.mthumb[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:-1px}
+.mthumb[aria-pressed="true"] span{background:var(--accent);color:var(--accent-ink)}
+.lbl{color:var(--fg-2)}
+#tViewMode button{padding:3px 10px}
+/* 战场面板放宽：宽屏三栏，中屏结果移到战场下方 */
+.tlayout{grid-template-columns:260px minmax(0,1.75fr) minmax(300px,1fr)}
+@media (max-width:1320px){.tlayout{grid-template-columns:260px minmax(0,1fr)}.tlayout>section:last-child{grid-column:2}.tlayout .side{grid-column:auto}}
+@media (max-width:860px){.tlayout{grid-template-columns:minmax(0,1fr)}.tlayout>section:last-child{grid-column:auto}}
+@media (max-width:1320px) and (min-width:861px){.tlayout .side .pb{display:flex;flex-direction:column}.tlayout .mthumbs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.tlayout .mthumbs{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.su.bad .ava,.pc.bad .ava{opacity:.45;border-color:#ff5a5a;box-shadow:0 0 0 3px rgba(255,90,90,.6)}

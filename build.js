@@ -10,6 +10,11 @@ if (fs.existsSync(avDir)) for (const f of fs.readdirSync(avDir)) if (f.endsWith(
 const bossDir = path.join(__dirname, 'src', 'bossimg');
 const bossImg = {};
 if (fs.existsSync(bossDir)) for (const f of fs.readdirSync(bossDir)) if (f.endsWith('.webp')) bossImg[f.slice(0, -5)] = 'data:image/webp;base64,' + fs.readFileSync(path.join(bossDir, f)).toString('base64');
+// 战场截图（来自 PRTS，裁剪后压成 WebP）和格子在截图上的四角位置
+const mapDir = path.join(__dirname, 'src', 'mapimg');
+const mapImg = {};
+if (fs.existsSync(mapDir)) for (const f of fs.readdirSync(mapDir)) if (f.endsWith('.webp')) mapImg[f.slice(0, -5)] = 'data:image/webp;base64,' + fs.readFileSync(path.join(mapDir, f)).toString('base64');
+const mapQuad = fs.existsSync(path.join(mapDir, 'quad.json')) ? fs.readFileSync(path.join(mapDir, 'quad.json'), 'utf8') : 'null';
 const html = `<title>卫戍协议伤害计算器</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
@@ -18,6 +23,8 @@ ${r('body.html')}
 <script>
 const AVATARS = ${JSON.stringify(avatars)};
 const BOSS_IMG = ${JSON.stringify(bossImg)};
+const MAP_IMG = ${JSON.stringify(mapImg)};
+const MAP_QUAD = ${mapQuad};
 </script>
 <script>
 /*ENGINE-START*/

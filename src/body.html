@@ -1,0 +1,131 @@
+<div class="app">
+  <header class="appbar">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2l16 9v18l-16 9-16-9V11z" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M20 9l10 5.6v10.8L20 31l-10-5.6V14.6z" fill="var(--accent-soft)" stroke="var(--line-2)" stroke-width="1"/><path d="M14 22l4-6 3 4 2-3 3 5" fill="none" stroke="var(--fg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <h1>卫戍协议伤害计算器</h1>
+        <p class="en">Garrison Protocol · Damage Simulator</p>
+      </div>
+    </div>
+    <div class="meta"><span>赛季 <b>规程 · 序列 I</b></span><span>数据 <b>PRTS 2026-11-14</b></span><span>玩家自制 · 非官方</span></div>
+  </header>
+
+  <nav class="cores" id="cores" aria-label="核心盟约"></nav>
+
+  <div class="layout">
+    <aside class="panel side" aria-label="战场参数">
+      <div class="ph"><h2><span class="en">Parameters</span>战场参数</h2></div>
+      <div class="pb setup">
+        <div class="g">
+          <h3>盟约层数 <span class="en" id="coreEn"></span></h3>
+          <div id="coreCtl" class="grp-in">
+          <div class="f"><div class="lv"><b id="Lbig">150</b><span class="muted">层</span></div><input type="number" id="Ln" min="0" max="999" step="1" value="150" aria-label="盟约层数（数字）"></div>
+          <input type="range" id="L" min="0" max="500" step="1" value="150" aria-label="盟约层数">
+          <div class="ticks"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span></div>
+          </div>
+          <p class="formula" id="bondF"></p>
+          <label class="sw" id="onWrap"><input type="checkbox" id="bondOn" checked><i></i><span>盟约已激活（在场 3 人）</span></label>
+          <label class="sw" id="sixWrap"><input type="checkbox" id="six"><i></i><span id="sixLabel">6 人效果</span></label>
+          <div id="coreParams" class="grp-in"></div>
+        </div>
+        <div class="g">
+          <h3>敌人 <span class="en">Target</span></h3>
+          <div class="segs" id="preset" role="group" aria-label="敌人预设">
+            <button type="button" data-d="500" data-r="20" aria-pressed="true">普通</button><button type="button" data-d="150" data-r="0" aria-pressed="false">脆皮</button><button type="button" data-d="1500" data-r="10" aria-pressed="false">重甲</button><button type="button" data-d="600" data-r="60" aria-pressed="false">高法抗</button>
+          </div>
+          <div class="f"><label for="boss">领袖</label><select id="boss"></select></div>
+          <div class="btnrow"><button type="button" class="btn" id="dexOpen">查看领袖资料</button></div>
+          <div id="bossCtl" class="grp-in" hidden>
+            <div class="segs" id="bossMode" role="group" aria-label="模拟难度"><button type="button" data-m="0" aria-pressed="false">标准</button><button type="button" data-m="1" aria-pressed="false">险境</button><button type="button" data-m="2" aria-pressed="false">绝境</button><button type="button" data-m="3" aria-pressed="true">终极</button></div>
+            <label class="sw" id="bossHidWrap"><input type="checkbox" id="bossHid"><i></i><span>隐秘核心（强化版）</span></label>
+            <div class="bosscard"><span class="bimg" id="bossPic"></span><p class="formula" id="bossInfo"></p></div>
+          </div>
+          <div class="pair">
+            <div class="f"><label for="def">防御力</label><input type="number" id="def" value="500" min="0" step="50"></div>
+            <div class="f"><label for="res">法术抗性</label><input type="number" id="res" value="20" min="0" max="100" step="5"></div>
+            <div class="f"><label for="T">存活时间（秒）</label><input type="number" id="T" value="30" min="3" max="240" step="1"></div>
+            <div class="f"><label for="N">范围内敌人数</label><input type="number" id="N" value="1" min="1" max="8" step="1"></div>
+          </div>
+          <p class="hint">存活时间短是清杂，长是打领袖。选了领袖会自动填好防御和法抗。</p>
+        </div>
+        <div class="g">
+          <h3>站位与敌人类型 <span class="en">Field</span></h3>
+          <label class="sw"><input type="checkbox" id="blocking" checked><i></i><span>近战位正在阻挡敌人</span></label>
+          <label class="sw"><input type="checkbox" id="melee"><i></i><span>领主近卫贴身近战</span></label>
+          <label class="sw"><input type="checkbox" id="heavy"><i></i><span>敌人重量 ≥ 3</span></label>
+          <label class="sw"><input type="checkbox" id="ranged"><i></i><span>敌人会远程攻击</span></label>
+        </div>
+        <div class="g">
+          <h3>附加盟约 <span class="en">Sub-alliance</span></h3>
+          <div id="subs" class="grp-in"></div>
+          <div class="f"><label for="stunt">绝技</label><select id="stunt"><option value="0">未激活</option><option value="2">2 精锐：攻击 +30%</option><option value="5">5 精锐：技力 −30%</option></select></div>
+        </div>
+        <div class="g">
+          <h3>统一装备 <span class="en">Loadout</span></h3>
+          <select id="bulkEq" aria-label="统一装备"></select>
+          <label class="sw"><input type="checkbox" id="bulkAdv"><i></i><span>进阶版本</span></label>
+          <div class="btnrow"><button type="button" class="btn" id="bulkSet">全员第 1 格装上</button><button type="button" class="btn" id="bulkClear">清空装备</button></div>
+        </div>
+        <div class="g">
+          <h3>额外加成 <span class="en">Extra</span></h3>
+          <div class="f"><label for="own">自持有加成</label><select id="own"><option value="0">无</option><option value="5">精1：攻击 +5%</option><option value="10">精2：攻击 +10%</option></select></div>
+          <div class="pair">
+            <div class="f"><label for="xAtk">攻击力 %</label><input type="number" id="xAtk" value="0" step="5"></div>
+            <div class="f"><label for="xAspd">攻击速度</label><input type="number" id="xAspd" value="0" step="5"></div>
+          </div>
+          <p class="hint">策略、战地广播、队友光环等未建模的加成填在这里，对全员生效。</p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel" aria-labelledby="h-rank">
+      <div class="ph"><h2 id="h-rank"><span class="en">Ranking</span>输出排行</h2>
+        <div class="btnrow"><button type="button" class="btn" id="allE">全部精锐</button><button type="button" class="btn" id="allN">全部初始</button></div></div>
+      <div class="filter" id="subFilter" hidden></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="list" id="rank"></div>
+      <div class="more" id="rankMore" hidden></div>
+      <div class="foot"><div class="legend"><span><i style="background:var(--seg-direct)"></i>直接伤害</span><span><i style="background:var(--seg-bond)"></i>盟约效果</span><span><i style="background:var(--seg-extra)"></i>附加（毒、奥术、装备、天赋）</span><span class="muted" id="rank-cap"></span></div></div>
+    </section>
+
+    <section class="panel detail" id="detail" aria-label="干员详情"></section>
+  </div>
+
+  <section class="panel" id="chartSec" aria-labelledby="h-chart">
+    <div class="ph"><h2 id="h-chart"><span class="en">Scaling</span><span id="chartTitle">输出随盟约层数的变化</span></h2><p>按每名干员当前的技能和装备计算；虚线是当前层数，选中的干员加粗</p></div>
+    <div class="pb">
+      <div id="chart"><div id="tip" hidden></div></div>
+      <div class="legend" id="chart-legend" style="margin-top:10px"></div>
+      <details style="margin-top:8px"><summary>查看数据表</summary><div class="tablebox" id="chart-table"></div></details>
+    </div>
+  </section>
+
+  <div class="docs">
+    <section class="panel" aria-labelledby="h-why">
+      <div class="ph"><h2 id="h-why"><span class="en">Notes</span>阵营要点</h2></div>
+      <div class="pb"><ul class="plain" id="notes"></ul></div>
+    </section>
+    <section class="panel" aria-labelledby="h-assume">
+      <div class="ph"><h2 id="h-assume"><span class="en">Method</span>计算口径与未确认项</h2></div>
+      <div class="pb"><ul class="plain">
+        <li>逐帧（1/30 秒）模拟：攻击间隔 = 基础间隔 ÷ 攻速%，技力按攻击或时间回复，技能就绪即自动释放。</li>
+        <li>物理伤害 = 攻击力×倍率 − 防御，法术伤害 = 攻击力×倍率×(1 − 法抗%)，两者保底 5%。攻击力 = 基础 ×(1 + 所有百分比加成之和)。</li>
+        <li>干员在模式内的等级和模组固定：Ⅰ 阶精1 Lv55 → 精锐精2 Lv50；Ⅱ 阶精1 Lv60 → 精2 Lv55；Ⅲ 阶及以上精2 Lv1 → 精2 Lv60。初始技能 4 级、无模组，精锐技能 7 级、模组 1 级（Ⅵ 阶 3 级）。</li>
+        <li><b>技能：</b>高阶干员可以换技能，低阶“预设干员”技能固定。非默认技能的建模比默认技能更粗，说明写在技能按钮下方。</li>
+        <li><b>装备：</b>收录 28 件直接影响伤害的装备，每人 2 格。条件类效果按常驻或叠满计算，假设写在装备说明里。对异常状态增伤、元素爆发增伤、终极维式重锤没有收录，可以用“其他装备”占位。</li>
+        <li><b>没有计入：</b>元素损伤与元素伤害、召唤物、给队友的光环和减益、策略、战地广播。靠元素伤害的干员（烛煌、真言、酒神、塔露拉等）实际会更高。</li>
+        <li><b>概率与条件效果取期望值；</b>需要“被攻击”才触发的效果一律未计入。</li>
+        <li><b>伊比利亚的持续法伤默认算作干员自己造成的伤害：</b>吃伤害倍率（协防、竞技旗、狙击镜、动能单手弩）和攻击方的无视法抗（精准 3 人）。没有实测依据，参数里有开关，关掉就按无来源伤害计算。两种算法下，持续法伤的每一跳都不再触发“每次造成伤害时”的效果。</li>
+        <li><b>伊比利亚未确认：</b>持续法伤按“每名干员各自叠 10 层、每次造成伤害刷新 10 秒”计算；如果实际是全队共用 10 层，多人同打一个目标时总伤害会低于各行相加。</li>
+        <li><b>谢拉格未确认：</b>“125%”与“对寒冷/冻结敌人 (135+层数)%”按相乘处理；如果是取代关系，寒冷目标上的数字要除以 1.25。</li>
+        <li>一名干员属于多个核心盟约时（锏、烛煌、薇薇安娜等），只计算当前选中的那个盟约的效果。</li>
+      </ul></div>
+    </section>
+  </div>
+
+  <dialog id="dex" class="dex" aria-label="领袖资料">
+    <div class="dex-in"><nav class="dex-list" id="dexList" aria-label="领袖列表"></nav><div class="dex-body" id="dexBody"></div></div>
+  </dialog>
+
+  <footer>干员面板、技能、装备与盟约数值来自 <a href="https://prts.wiki/w/卫戍协议·规程/PRTS盟约记录">PRTS 卫戍协议·规程</a> 及其游戏数据。干员头像与领袖图片是《明日方舟》的游戏素材，版权归鹰角网络所有，取自 PRTS。本页是玩家自制的非官方工具，与鹰角网络无关。</footer>
+</div>

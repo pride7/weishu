@@ -10,6 +10,12 @@
     <div class="meta"><span>赛季 <b>规程 · 序列 I</b></span><span>数据 <b>PRTS 2026-11-14</b></span><span>玩家自制 · 非官方</span></div>
   </header>
 
+  <nav class="views" id="views" aria-label="页面">
+    <button type="button" data-view="solo" aria-pressed="true"><b>单人排行</b><small>每名干员单独打木桩，比较谁的输出高</small></button>
+    <button type="button" data-view="team" aria-pressed="false"><b>队伍模拟</b><small>在真实战场上摆放阵容，打某一回合的出怪</small></button>
+  </nav>
+
+  <div class="view" id="soloView">
   <nav class="cores" id="cores" aria-label="核心盟约"></nav>
 
   <div class="layout">
@@ -136,6 +142,78 @@
         <li><b>伊比利亚未确认：</b>持续法伤按“每名干员各自叠 10 层、每次造成伤害刷新 10 秒”计算；如果实际是全队共用 10 层，多人同打一个目标时总伤害会低于各行相加。</li>
         <li><b>谢拉格未确认：</b>“125%”与“对寒冷/冻结敌人 (135+层数)%”按相乘处理；如果是取代关系，寒冷目标上的数字要除以 1.25。</li>
         <li>一名干员属于多个核心盟约时（锏、烛煌、薇薇安娜等），只计算当前选中的那个盟约的效果。</li>
+      </ul></div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="view" id="teamView" hidden>
+    <div class="tlayout">
+      <aside class="panel side" aria-label="战场设置">
+        <div class="ph"><h2><span class="en">Battlefield</span>战场设置</h2></div>
+        <div class="pb setup">
+          <div class="g">
+            <h3>地图与回合 <span class="en">Stage</span></h3>
+            <div class="fcol"><label for="tMap">战场</label><select id="tMap"></select></div>
+            <div class="fcol"><label for="tRound">回合</label><select id="tRound"></select></div>
+            <div class="segs" id="tMode" role="group" aria-label="难度"><button type="button" data-m="0">标准</button><button type="button" data-m="1">险境</button><button type="button" data-m="2">绝境</button><button type="button" data-m="3">终极</button></div>
+            <p class="hint" id="tTok"></p>
+          </div>
+          <div class="g">
+            <h3>盟约 <span class="en">Alliances</span></h3>
+            <div id="tBonds" class="grp-in"></div>
+            <p class="hint">按场上干员自动判定：核心盟约 3 人激活、6 人有 6 人效果；附加盟约按游戏里的人数。层数自己填。</p>
+          </div>
+          <div class="g">
+            <h3>其他 <span class="en">Extra</span></h3>
+            <div class="pair">
+              <div class="f"><label for="t-xAtk">攻击力 %</label><input type="number" id="t-xAtk" value="0" step="5"></div>
+              <div class="f"><label for="t-xAspd">攻击速度</label><input type="number" id="t-xAspd" value="0" step="5"></div>
+              <div class="f"><label for="t-cold">谢拉格：寒冷占比 %</label><input type="number" id="t-cold" value="50" min="0" max="100" step="10"></div>
+              <div class="f"><label for="t-stunt">绝技</label><select id="t-stunt"><option value="0">未激活</option><option value="2">2 精锐</option><option value="5">5 精锐</option></select></div>
+            </div>
+            <label class="sw"><input type="checkbox" id="tRoutes" checked><i></i><span>开战前显示敌人路线</span></label>
+            <p class="hint">策略、战地广播、队友光环等没有建模的加成，填在“攻击力 %”和“攻击速度”里，对全员生效。伊比利亚的三个开关沿用单人排行里的设置。</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel" aria-labelledby="h-board">
+        <div class="ph"><h2 id="h-board"><span class="en">Deployment</span>摆放</h2>
+          <div class="btnrow"><span class="en" id="tCount"></span><button type="button" class="btn" id="tClear">清空</button></div></div>
+        <div class="pb">
+          <div class="boardwrap"><div class="board" id="tBoard"></div></div>
+          <div class="replay" id="tReplay" hidden>
+            <button type="button" class="btn" id="tPlay">播放</button>
+            <input type="range" id="tSlider" min="0" max="0" step="1" value="0" aria-label="回放时间">
+            <span class="num muted" id="tTime"></span>
+          </div>
+          <div class="blegend"><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
+          <p class="hint" id="tHint" style="margin-top:10px"></p>
+        </div>
+        <div class="palhead"><input type="search" id="tQ" placeholder="搜索干员" aria-label="搜索干员"><div class="filter" id="tFilter"></div></div>
+        <div class="pal" id="tPal"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-tres">
+        <div class="ph"><h2 id="h-tres"><span class="en">Result</span>战斗结果</h2><p>按回放结束时统计</p></div>
+        <div class="kpis" id="tKpis"></div>
+        <div class="list" id="tList"></div>
+        <div class="ph" style="border-top:1px solid var(--line)"><h2><span class="en">Operator</span>选中的干员</h2></div>
+        <div class="pb" id="tEdit"></div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="h-tmethod">
+      <div class="ph"><h2 id="h-tmethod"><span class="en">Method</span>队伍模拟的口径</h2></div>
+      <div class="pb"><ul class="plain">
+        <li><b>战场：</b>10 张地图的单人场地取自游戏数据，包括能部署的格子、围栏、高台、阻隔工事、射击台和特殊地块。同一张图的随机障碍（游戏里的“场地 1/2/3”）可以点格子切换。远程干员可以放在地面格子上，高台和射击台只能放远程干员。</li>
+        <li><b>出怪：</b>每个回合的敌人种类、数量、出场时间和路线取自游戏数据。难度按游戏数据里的系数放大普通敌人的生命（标准 ×1、险境 ×1.2、绝境 ×1.35、终极 ×1.5）；领袖生命按各难度的数值。每局随机加入的“特训敌人”没有计入；随机出怪组固定取第一组。</li>
+        <li><b>行走与阻挡：</b>地面敌人走最短路线（绕开围栏和障碍，斜走时两侧都要能通过），走进干员所在的格子时，如果干员还有阻挡数就被拦下。移动速度按“敌人移速 × 0.5 格/秒”计算。空中敌人沿固定路线飞行，只有远程干员能攻击。</li>
+        <li><b>索敌：</b>攻击范围取自游戏数据（朝右），技能改变范围时随技能切换。优先打自己阻挡的敌人，其次是离出口最近的。</li>
+        <li><b>共享：</b>元素损伤、元素爆发、麻痹、侵蚀减防、初雪的减防减抗由全队共享；每名干员的伊比利亚叠层、中毒各自计算。盟约按在场人数自动激活，一名干员属于多个已激活的核心盟约时全部生效。萨尔贡的攻速按队友实际开技能的次数叠加；卡西米尔按在场人数计入部署次数；阿戈尔吞噬身前（右边）一格的干员。</li>
+        <li><b>第一版的简化：</b>干员不会被敌人打倒；敌人没有特殊能力，只会行走、被阻挡和普通攻击（普通攻击只用来触发麻痹等效果）；召唤物、治疗、给队友的增益光环没有计入。领袖回合超时后战斗继续，最多算到 240 秒。</li>
       </ul></div>
     </section>
   </div>

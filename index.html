@@ -311,6 +311,107 @@ footer a{color:var(--accent)}
 .ava.img{padding-top:0;background:var(--raise)}
 .ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .ava .tr{z-index:1}
+
+/* 页面切换 */
+.views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--line);background:var(--surface)}
+.views button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 16px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--fg-2);cursor:pointer;text-align:left;position:relative;min-width:0}
+.views button:last-child{border-right:0}
+.views b{font-size:16px;font-weight:700;letter-spacing:.03em}
+.views small{font-size:12px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.views button:hover{background:var(--surface-2);color:var(--fg)}
+.views button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg)}
+.views button[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--accent)}
+.view{display:flex;flex-direction:column;gap:16px}
+.view[hidden]{display:none}
+
+/* 队伍模拟 */
+.tlayout{display:grid;grid-template-columns:268px minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1180px){.tlayout{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.tlayout .side{grid-column:1/-1}}
+@media (max-width:860px){.tlayout{grid-template-columns:minmax(0,1fr)}}
+.bd{display:flex;align-items:center;gap:8px;color:var(--fg-3);font-size:13px}
+.bd .nm{flex:1 1 auto;min-width:0}
+.bd.on{color:var(--fg)}
+.bd .ct{font-family:var(--num);font-size:13px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.bd.on .ct{color:var(--accent)}
+.bd input[type=number]{width:62px}
+.boardwrap{width:100%;max-width:720px;margin:0 auto}
+.board{position:relative;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:2px;background:var(--line);border:1px solid var(--line-2);padding:2px;touch-action:manipulation}
+.tc{position:relative;aspect-ratio:1;border:0;padding:0;margin:0;background:var(--surface-2);cursor:pointer;display:grid;place-items:center;min-width:0;overflow:hidden}
+.tc.t-void{background:var(--bg);cursor:default}
+.tc.t-road{background:var(--surface-2)}
+.tc.t-fence{background:repeating-linear-gradient(45deg,var(--surface-2) 0 6px,var(--raise) 6px 9px)}
+.tc.t-floor{background:var(--raise);background-image:radial-gradient(var(--line-2) 1px,transparent 1.5px);background-size:8px 8px}
+.tc.t-start{background:color-mix(in srgb,var(--s8) 22%,var(--surface-2))}
+.tc.t-end{background:color-mix(in srgb,var(--accent) 26%,var(--surface-2))}
+.tc.t-high{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2));box-shadow:inset 0 0 0 3px var(--line-2)}
+.tc.t-infect{background:color-mix(in srgb,var(--s2) 24%,var(--surface-2))}
+.tc.t-mire{background:color-mix(in srgb,var(--s6) 20%,var(--surface-2))}
+.tc.t-grass{background:color-mix(in srgb,var(--s3) 26%,var(--surface-2))}
+.tc.t-speed{background:color-mix(in srgb,var(--s7) 24%,var(--surface-2))}
+.tc.o-crate{background:var(--raise);box-shadow:inset 0 0 0 2px var(--fg-3)}
+.tc.o-plat{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2));box-shadow:inset 0 0 0 3px var(--line-2)}
+.tc.opt::before{content:"";position:absolute;inset:3px;border:1px dashed var(--gold);pointer-events:none}
+.tc.inr{box-shadow:inset 0 0 0 999px var(--accent-soft)}
+.tc.inr.t-high,.tc.inr.o-plat{box-shadow:inset 0 0 0 3px var(--line-2),inset 0 0 0 999px var(--accent-soft)}
+.board.arming .tc:not(.can){opacity:.45}
+.board.arming .tc.can{outline:2px solid var(--accent);outline-offset:-2px}
+.tc.sel{outline:2px solid var(--gold);outline-offset:-2px;z-index:1}
+.tc .mk{font-size:12px;font-weight:700;color:var(--fg-2)}
+.tc .ob{font-size:20px;line-height:1;color:var(--fg-3)}
+.tc .pc{width:84%;height:84%;display:block;position:relative}
+.tc .pc .ava{width:100%;height:100%;clip-path:none;border-bottom-width:3px}
+.tc .pc .ava .tr{font-size:10px;line-height:12px;padding:0 3px}
+.tc .pc .ava svg{display:none}
+.tc .pc.on .ava{box-shadow:0 0 0 2px var(--gold)}
+.tc .pc.gone{opacity:.3}
+.ov{position:absolute;inset:2px;pointer-events:none}
+.ov .routes{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ov polyline{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.ov polyline.gnd{stroke:var(--s8);opacity:.75}
+.ov polyline.fly{stroke:var(--s7);stroke-dasharray:5 5;opacity:.7}
+.foe{position:absolute;width:5.2%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:var(--fg-2);border:2px solid var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.foe.fly{background:var(--s7)}
+.foe.boss{width:9%;background:var(--gold)}
+.foe.bl{border-color:var(--s8)}
+.foe i{position:absolute;left:-15%;bottom:-38%;height:3px;background:var(--s3);max-width:130%}
+.replay{display:flex;align-items:center;gap:10px;margin-top:10px}
+.replay input[type=range]{flex:1 1 auto}
+.replay .num{font-size:13px;white-space:nowrap}
+.blegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--fg-3);margin-top:10px}
+.blegend span{display:inline-flex;align-items:center;gap:6px}
+.blegend i{display:inline-block;width:10px;height:10px}
+.blegend .lg-gnd{border-radius:50%;background:var(--fg-2)}
+.blegend .lg-fly{border-radius:50%;background:var(--s7)}
+.blegend .lg-boss{border-radius:50%;background:var(--gold)}
+.blegend .lg-in{background:color-mix(in srgb,var(--s8) 40%,var(--surface-2))}
+.blegend .lg-out{background:color-mix(in srgb,var(--accent) 45%,var(--surface-2))}
+.blegend .lg-hi{background:color-mix(in srgb,var(--fg) 12%,var(--surface-2));box-shadow:inset 0 0 0 2px var(--line-2)}
+.palhead{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.palhead input[type=search]{margin:10px 16px 0;background:var(--surface-2);border:1px solid var(--line-2);padding:6px 9px;font:inherit;color:inherit;border-radius:0}
+.palhead .filter{border-bottom:1px solid var(--line)}
+.pal{max-height:430px;overflow:auto;padding:6px 16px 14px}
+.pg{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.pg:last-child{border-bottom:0}
+.pg>.en{padding-top:12px}
+.pl{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:4px}
+.pk{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;border:1px solid transparent;background:transparent;color:var(--fg-2);cursor:pointer;min-width:0}
+.pk span{font-size:11px;line-height:1.2;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk .ava{width:40px;height:40px}
+.pk .ava svg{display:none}
+.pk:hover{border-color:var(--line-2);color:var(--fg)}
+.pk.armed{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}
+.pk.used .ava{opacity:.35}
+.pk.used span::after{content:" ✓";color:var(--accent)}
+.ed-h{display:flex;align-items:center;gap:12px}
+.ed-h>div{display:flex;flex-direction:column;min-width:0}
+.ed-h b{font-size:17px}
+.ed-h span{font-size:12px;color:var(--fg-3)}
+.ed-h .elite{margin-left:auto}
+.ed-s{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.eqs{display:flex;flex-direction:column;gap:6px}
+.eqr{display:flex;align-items:center;gap:10px}
+.eqr select{flex:1 1 auto;min-width:0}
+#tEdit .btnrow{margin-top:12px;align-items:center}
 </style>
 <div class="app">
   <header class="appbar">
@@ -324,6 +425,12 @@ footer a{color:var(--accent)}
     <div class="meta"><span>赛季 <b>规程 · 序列 I</b></span><span>数据 <b>PRTS 2026-11-14</b></span><span>玩家自制 · 非官方</span></div>
   </header>
 
+  <nav class="views" id="views" aria-label="页面">
+    <button type="button" data-view="solo" aria-pressed="true"><b>单人排行</b><small>每名干员单独打木桩，比较谁的输出高</small></button>
+    <button type="button" data-view="team" aria-pressed="false"><b>队伍模拟</b><small>在真实战场上摆放阵容，打某一回合的出怪</small></button>
+  </nav>
+
+  <div class="view" id="soloView">
   <nav class="cores" id="cores" aria-label="核心盟约"></nav>
 
   <div class="layout">
@@ -450,6 +557,78 @@ footer a{color:var(--accent)}
         <li><b>伊比利亚未确认：</b>持续法伤按“每名干员各自叠 10 层、每次造成伤害刷新 10 秒”计算；如果实际是全队共用 10 层，多人同打一个目标时总伤害会低于各行相加。</li>
         <li><b>谢拉格未确认：</b>“125%”与“对寒冷/冻结敌人 (135+层数)%”按相乘处理；如果是取代关系，寒冷目标上的数字要除以 1.25。</li>
         <li>一名干员属于多个核心盟约时（锏、烛煌、薇薇安娜等），只计算当前选中的那个盟约的效果。</li>
+      </ul></div>
+    </section>
+  </div>
+
+  </div>
+
+  <div class="view" id="teamView" hidden>
+    <div class="tlayout">
+      <aside class="panel side" aria-label="战场设置">
+        <div class="ph"><h2><span class="en">Battlefield</span>战场设置</h2></div>
+        <div class="pb setup">
+          <div class="g">
+            <h3>地图与回合 <span class="en">Stage</span></h3>
+            <div class="fcol"><label for="tMap">战场</label><select id="tMap"></select></div>
+            <div class="fcol"><label for="tRound">回合</label><select id="tRound"></select></div>
+            <div class="segs" id="tMode" role="group" aria-label="难度"><button type="button" data-m="0">标准</button><button type="button" data-m="1">险境</button><button type="button" data-m="2">绝境</button><button type="button" data-m="3">终极</button></div>
+            <p class="hint" id="tTok"></p>
+          </div>
+          <div class="g">
+            <h3>盟约 <span class="en">Alliances</span></h3>
+            <div id="tBonds" class="grp-in"></div>
+            <p class="hint">按场上干员自动判定：核心盟约 3 人激活、6 人有 6 人效果；附加盟约按游戏里的人数。层数自己填。</p>
+          </div>
+          <div class="g">
+            <h3>其他 <span class="en">Extra</span></h3>
+            <div class="pair">
+              <div class="f"><label for="t-xAtk">攻击力 %</label><input type="number" id="t-xAtk" value="0" step="5"></div>
+              <div class="f"><label for="t-xAspd">攻击速度</label><input type="number" id="t-xAspd" value="0" step="5"></div>
+              <div class="f"><label for="t-cold">谢拉格：寒冷占比 %</label><input type="number" id="t-cold" value="50" min="0" max="100" step="10"></div>
+              <div class="f"><label for="t-stunt">绝技</label><select id="t-stunt"><option value="0">未激活</option><option value="2">2 精锐</option><option value="5">5 精锐</option></select></div>
+            </div>
+            <label class="sw"><input type="checkbox" id="tRoutes" checked><i></i><span>开战前显示敌人路线</span></label>
+            <p class="hint">策略、战地广播、队友光环等没有建模的加成，填在“攻击力 %”和“攻击速度”里，对全员生效。伊比利亚的三个开关沿用单人排行里的设置。</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel" aria-labelledby="h-board">
+        <div class="ph"><h2 id="h-board"><span class="en">Deployment</span>摆放</h2>
+          <div class="btnrow"><span class="en" id="tCount"></span><button type="button" class="btn" id="tClear">清空</button></div></div>
+        <div class="pb">
+          <div class="boardwrap"><div class="board" id="tBoard"></div></div>
+          <div class="replay" id="tReplay" hidden>
+            <button type="button" class="btn" id="tPlay">播放</button>
+            <input type="range" id="tSlider" min="0" max="0" step="1" value="0" aria-label="回放时间">
+            <span class="num muted" id="tTime"></span>
+          </div>
+          <div class="blegend"><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
+          <p class="hint" id="tHint" style="margin-top:10px"></p>
+        </div>
+        <div class="palhead"><input type="search" id="tQ" placeholder="搜索干员" aria-label="搜索干员"><div class="filter" id="tFilter"></div></div>
+        <div class="pal" id="tPal"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-tres">
+        <div class="ph"><h2 id="h-tres"><span class="en">Result</span>战斗结果</h2><p>按回放结束时统计</p></div>
+        <div class="kpis" id="tKpis"></div>
+        <div class="list" id="tList"></div>
+        <div class="ph" style="border-top:1px solid var(--line)"><h2><span class="en">Operator</span>选中的干员</h2></div>
+        <div class="pb" id="tEdit"></div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="h-tmethod">
+      <div class="ph"><h2 id="h-tmethod"><span class="en">Method</span>队伍模拟的口径</h2></div>
+      <div class="pb"><ul class="plain">
+        <li><b>战场：</b>10 张地图的单人场地取自游戏数据，包括能部署的格子、围栏、高台、阻隔工事、射击台和特殊地块。同一张图的随机障碍（游戏里的“场地 1/2/3”）可以点格子切换。远程干员可以放在地面格子上，高台和射击台只能放远程干员。</li>
+        <li><b>出怪：</b>每个回合的敌人种类、数量、出场时间和路线取自游戏数据。难度按游戏数据里的系数放大普通敌人的生命（标准 ×1、险境 ×1.2、绝境 ×1.35、终极 ×1.5）；领袖生命按各难度的数值。每局随机加入的“特训敌人”没有计入；随机出怪组固定取第一组。</li>
+        <li><b>行走与阻挡：</b>地面敌人走最短路线（绕开围栏和障碍，斜走时两侧都要能通过），走进干员所在的格子时，如果干员还有阻挡数就被拦下。移动速度按“敌人移速 × 0.5 格/秒”计算。空中敌人沿固定路线飞行，只有远程干员能攻击。</li>
+        <li><b>索敌：</b>攻击范围取自游戏数据（朝右），技能改变范围时随技能切换。优先打自己阻挡的敌人，其次是离出口最近的。</li>
+        <li><b>共享：</b>元素损伤、元素爆发、麻痹、侵蚀减防、初雪的减防减抗由全队共享；每名干员的伊比利亚叠层、中毒各自计算。盟约按在场人数自动激活，一名干员属于多个已激活的核心盟约时全部生效。萨尔贡的攻速按队友实际开技能的次数叠加；卡西米尔按在场人数计入部署次数；阿戈尔吞噬身前（右边）一格的干员。</li>
+        <li><b>第一版的简化：</b>干员不会被敌人打倒；敌人没有特殊能力，只会行走、被阻挡和普通攻击（普通攻击只用来触发麻痹等效果）；召唤物、治疗、给队友的增益光环没有计入。领袖回合超时后战斗继续，最多算到 240 秒。</li>
       </ul></div>
     </section>
   </div>
@@ -711,7 +890,7 @@ const OPS_MORE = [
   skill:'可驯服的（31/28 技力，25 秒）：攻击力 +20%/+35%，投射物附着目标并额外斩击 4 次',
   model:'投射物回收时间未计入（实际攻击间隔更长）；技能期间按每次攻击 5 段、间隔 +1 秒估算。'},
  {id:'christine',name:'Miss.Christine',tier:'Ⅱ',cls:'术师 · 本源术师',bonds:['维多利亚','奥术'],r:1,atk:[469,581],bat:1.6,aspd:[100,100],ty:'m',
-  elem:1,burstDm:[1,1.1],onPalsy:{sc:[0.8,1.2]},
+  elem:1,burstDm:[1,1.1],onPalsy:{sc:[0.8,1.2],range:1},
   sk:{t:'time',c:[42,39],i:[5,10],d:20,stop:1,tick:{ty:'m',sc:[0.75,0.85],iv:1,tg:9,brX:{t:'n',sc:[0.6,0.75]}}},
   trait:'休整期结束时，【维多利亚】【奥术】层数 +3/+6',
   extra:'范围内的敌人触发麻痹时立即受到 80%/120% 攻击力元素伤害；精锐模组：对元素爆发期间的敌人伤害 ×110%',
@@ -764,7 +943,7 @@ const OPS_MORE = [
   trait:'获得时获得 1/2 件“谢拉格不融冰”',
   skill:'心随意动（47/44 技力，25 秒）：浮游单元 +1，攻击力 +29%/+40%',model:'浮游单元按已叠满计算，技能期间两个单元各打一次。'},
  {id:'pramanix',name:'初雪',tier:'Ⅲ',cls:'辅助 · 削弱者',bonds:['谢拉格','协防干员'],r:1,atk:[356,411],bat:1.6,aspd:[100,104],ty:'m',tg:2,dm:1.12,
-  sk:{t:'time',c:[40,40],i:[13,16],d:[14,18],resMul:[0.77,0.74],defMul:[0.6,0.55]},
+  deb:1,sk:{t:'time',c:[40,40],i:[13,16],d:[14,18],resMul:[0.77,0.74],defMul:[0.6,0.55]},
   trait:'范围内每有敌人进入冻结，【谢拉格】层数 +1/+2（每回合至多 16/32）',
   skill:'自然震慑（40 技力，14/18 秒）：范围内敌人防御 −40%/−45%，法抗 −23%/−26%',model:'减防减抗只算到她自己头上，队友吃到的收益未计入。'},
  {id:'matterhorn',name:'角峰',tier:'Ⅰ',cls:'重装 · 铁卫',bonds:['谢拉格','坚守'],atk:[313,358],bat:1.2,aspd:[100,100],blk:3,
@@ -1500,7 +1679,7 @@ const clemModel=n=>{ const tal=(x,i)=>1+(x.defDown(i)>0?0.5:0.25)*0.35;
   // 漩涡：每秒 200 点侵蚀损伤 + 物理伤害，按持续到技能结束计算。
   // 漩涡落在前方约 3 格。放逐舱只带得走总重量不超过 8 的敌人，所以被她挡在身前的重型领袖不在漩涡里。
   frame(x){const S=x.S; if(n!==2||!S.skillOn||S.skT<1.5)return; S.vt++;
-    if(S.vt%30===0)for(let i=0;i<x.N;i++){ if(i===0&&x.cfg.blocking&&x.cfg.bossMass>8)continue;
+    if(S.vt%30===0)for(let i=0;i<x.N;i++){ if(x.heavyBlocked(i))continue;
       x.hit(i,'p',V([2.65,2.85],x.k)*tal(x,i),'direct',{indirect:true}); x.erode(i,200); } },
   // 与海为敌：技能期间每有敌人侵蚀爆发，消耗 1 发弹药轰击 3 次（间隔 1 秒），每次物理 + 元素伤害
   onBurst(x,i,t){const S=x.S,k=x.k; if(n!==3||t!=='w'||!S.skillOn||S.ammo<=0)return; S.ammo--;
@@ -1585,13 +1764,13 @@ function gen(op){
       const bt=(u&&u.brTy)||op.brTy, tyI=bt&&x.inBr(i,bt)?'e':ty; let dsum=0;
       for(let h=0;h<hits;h++) dsum+=x.hit(i,tyI,c,'direct',o);
       // epA：攻击附带元素损伤（of:'dmg' 按这次伤害的比例，否则按攻击力的比例；sp 是对周围其他敌人的比例）
-      for(const eA of [op.epA,u&&u.epA]) if(eA){ const mul=S.epBoost>x.f?S.epBoostMul:1; S.mk=S.mk||[];
-        x.erode(i,(eA.of==='dmg'?dsum:x.atk())*V(eA.r,k)*mul,eA.t); S.mk[i]=1;
-        if(eA.sp&&i===0) for(let j=1;j<N;j++){ x.erode(j,x.atk()*V(eA.sp,k)*mul,eA.t); S.mk[j]=1; } }
+      for(const eA of [op.epA,u&&u.epA]) if(eA){ const mul=S.epBoost>x.f?S.epBoostMul:1; S.mk=S.mk||{};
+        x.erode(i,(eA.of==='dmg'?dsum:x.atk())*V(eA.r,k)*mul,eA.t); S.mk[x.uid(i)]=1;
+        if(eA.sp&&i===0) for(let j=1;j<N;j++){ x.erode(j,x.atk()*V(eA.sp,k)*mul,eA.t); S.mk[x.uid(j)]=1; } }
       // brX：目标处于该种爆发时额外造成元素伤害
       for(const bx of [op.brX,u&&u.brX]) if(bx&&V(bx.sc,k)&&x.inBr(i,bx.t)) x.hit(i,'e',V(bx.sc,k),'extra',{indirect:true,noArc:true});
       // brDot：攻击到处于爆发的敌人后，让它每秒受到元素伤害，直到爆发结束
-      if(op.brDot&&x.inBr(i,op.brDot.t)){ S.dot=S.dot||[]; S.dot[i]=Math.max(S.dot[i]||0,V(op.brDot.sc,k)); }
+      if(op.brDot&&x.inBr(i,op.brDot.t)){ S.dot=S.dot||{}; const u=x.uid(i); S.dot[u]=Math.max(S.dot[u]||0,V(op.brDot.sc,k)); }
       if(op.shock){ const ns=V(op.shock[0],k)+((u&&u.shockAdd)||0); for(let j=0;j<ns;j++) x.hit(i,'p',c*op.shock[1],'direct',o); }
       if(op.xf) x.hit(i,'m',0,'extra',{fixed:V(op.xf,k)*hits,indirect:true,noArc:true});
       for(const e of xhs){ if(e.until&&x.f>=e.until*30) continue;
@@ -1609,7 +1788,7 @@ function gen(op){
   const pushTick=(x,t,dur,only)=>x.S.ticks.push({f:0,iv:Math.round(t.iv*30),dur:Math.round(dur*30),ty:t.ty,sc:V(t.sc,x.k),tg:t.tg||1,ep:t.ep,brX:t.brX,brTy:t.brTy,only});
   const bursts=x=>{ const k=x.k; for(const b of (s.burst||[])){ const n=V(b.n,k)||1;
       for(let h=0;h<n;h++){ const fire=()=>{ const tg=Math.min(x.N,V(b.tg,k)||1); for(let i=0;i<tg;i++){
-            if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||[]; x.S.dot[i]=Math.max(x.S.dot[i]||0,V(b.brDot,k)); }
+            if(b.brDot&&op.brDot&&x.inBr(i,op.brDot.t)){ x.S.dot=x.S.dot||{}; const u=x.uid(i); x.S.dot[u]=Math.max(x.S.dot[u]||0,V(b.brDot,k)); }
             const d=x.hit(i,b.ty,V(b.sc,k),'direct',{defPct:b.igP||0}); if(b.ep)x.erode(i,d*V(b.ep.r,k),b.ep.t); } };
         const at=(b.at||0)+(b.gap||0)*h; if(at>0) x.later(at,fire); else fire(); } } };
   M.onCast=x=>{ const k=x.k,S=x.S;
@@ -1625,7 +1804,7 @@ function gen(op){
     if(s.end){ const tg=Math.min(x.N,s.end.tg||1); S.skillOn=true; for(let i=0;i<tg;i++) x.hit(i,s.end.ty,V(s.end.sc,k),'direct'); S.skillOn=false; }
     if(s.after){ if(s.after.lock) S.lock=s.after.lock; if(s.after.hold) S.hold=s.after.lock; if(s.after.tick) pushTick(x,s.after.tick,s.after.tick.dur); } };
   M.frame=x=>{ const k=x.k,S=x.S,a=op.aura;
-    if(a&&(!a.block||x.cfg.blocking)&&x.f>0&&x.f%Math.round(a.iv*30)===0){ const tg=Math.min(x.N,a.tg||1);
+    if(a&&(!a.block||x.blocking())&&x.f>0&&x.f%Math.round(a.iv*30)===0){ const tg=Math.min(x.N,a.tg||1);
       for(let i=0;i<tg;i++){ if(a.fix) x.hit(i,'m',0,'extra',{fixed:V(a.fix,k),indirect:true,noArc:true}); else x.hit(i,a.ty,V(a.sc,k),'direct',{indirect:true,noArc:true});
         if(a.ep)x.erode(i,x.atk()*V(a.ep.r,k),a.ep.t); } }
     for(let j=S.ticks.length-1;j>=0;j--){ const t=S.ticks[j]; t.f++;
@@ -1636,195 +1815,476 @@ function gen(op){
           if(t.brX&&x.inBr(i,t.brX.t))x.hit(i,'e',V(t.brX.sc,k),'extra',{indirect:true,noArc:true}); } }
       if(t.f>=t.dur) S.ticks.splice(j,1); }
     if(x.f%30===29){
-      if(S.dot) for(let i=0;i<x.N;i++) if(S.dot[i]){ if(x.inBr(i,op.brDot.t)) x.hit(i,'e',S.dot[i],'extra',{indirect:true,noArc:true}); else S.dot[i]=0; }
+      if(S.dot) for(const u in S.dot) if(S.dot[u]){ const e=x.byUid(u); if(!e||e.dead){ delete S.dot[u]; continue; } if(x.inBr(e,op.brDot.t)) x.hit(e,'e',S.dot[u],'extra',{indirect:true,noArc:true}); else S.dot[u]=0; }
       // 技能期间，被她打过的敌人每秒继续累计元素损伤，直到爆发（酒神）
-      if(s&&s.epTick&&S.mk&&isOn(x)) for(let i=0;i<x.N;i++) if(S.mk[i]&&!x.inBr(i)) x.erode(i,x.atk()*V(s.epTick.r,k),s.epTick.t);
+      if(s&&s.epTick&&S.mk&&isOn(x)) for(const u in S.mk){ const e=x.byUid(u); if(!e||e.dead){ delete S.mk[u]; continue; } if(!x.inBr(e)) x.erode(e,x.atk()*V(s.epTick.r,k),s.epTick.t); }
     }
     if(s&&s.palsy&&isOn(x)&&S.pTrig<s.palsy.max&&x.cfg.sargRate>0&&x.f>=S.pNext){ S.pTrig++; S.pNext=x.f+Math.round(30/x.cfg.sargRate); for(let i=0;i<x.N;i++)x.palsyAdd(i,s.palsy.add); } };
   // —— 元素损伤相关的回调 ——
-  M.onBurst=(x,i,t)=>{ const k=x.k,S=x.S;
-    if(op.onBr&&op.onBr.t===t){ x.hit(i,'e',V(op.onBr.sc,k),'extra',{indirect:true,noArc:true}); if(V(op.onBr.atk,k))S.brBuff=x.f+op.onBr.dur*30; }
-    if(op.brStack&&op.brStack.t===t) S.brN=Math.min(op.brStack.max,(S.brN||0)+1);
-    if(op.brTick&&op.brTick.t===t) pushTick(x,op.brTick,op.brTick.dur,i);
+  // e 是爆发的敌人。“全场”类效果不看范围；妮芙的叠层只算自己攻击范围内的
+  M.onBurst=(x,e,t)=>{ const k=x.k,S=x.S;
+    if(op.onBr&&op.onBr.t===t){ x.hit(e,'e',V(op.onBr.sc,k),'extra',{indirect:true,noArc:true}); if(V(op.onBr.atk,k))S.brBuff=x.f+op.onBr.dur*30; }
+    if(op.brStack&&op.brStack.t===t&&x.inRange(e)) S.brN=Math.min(op.brStack.max,(S.brN||0)+1);
+    if(op.brTick&&op.brTick.t===t) pushTick(x,op.brTick,op.brTick.dur,e);
     if(s&&s.ammoBr&&s.ammoBr.t===t&&isOn(x)&&S.ammo>0) S.ammo+=s.ammoBr.n; };
-  M.onPalsy=(x,i,w)=>{ if(op.onPalsy) x.hit(i,'e',V(op.onPalsy.sc,x.k),'extra',{w,indirect:true,noArc:true}); };
+  M.onPalsy=(x,e,w)=>{ if(op.onPalsy&&(!op.onPalsy.range||x.inRange(e))) x.hit(e,'e',V(op.onPalsy.sc,x.k),'extra',{w,indirect:true,noArc:true}); };
   M.palsyKeep=x=>op.onPalsy?V(op.onPalsy.keep,x.k)||0:0;
   M.palCap=x=>(s&&s.palsy&&isOn(x))?s.palsy.cap:3;
-  M.onPalsyOver=(x,i,over)=>{ if(!(s&&s.palsy))return; const sc=V(s.palsy.sc,x.k);
-    x.hit(i,'e',sc,'extra',{w:over,indirect:true,noArc:true}); if(x.N>1)x.hit((i+1)%x.N,'e',sc,'extra',{w:over,indirect:true,noArc:true}); };
-  M.onEnemyAtk=(x,i,stopped)=>{ const k=x.k,S=x.S;
-    if(op.eAtkEp) x.erode(i,V(op.eAtkEp.v,k),op.eAtkEp.t);
-    if(s&&s.t==='def'&&!stopped&&i<(op.blk||1)){ if(isOn(x)){ if(s.onAtked)x.erode(i,x.atk()*V(s.onAtked.r,k),s.onAtked.t); } else S.sp++; } };
+  M.onPalsyOver=(x,e,over)=>{ if(!(s&&s.palsy&&isOn(x)&&x.inRange(e)))return; const sc=V(s.palsy.sc,x.k);
+    x.hit(e,'e',sc,'extra',{w:over,indirect:true,noArc:true}); const nx=x.N>1?x.nextOf(e):null; if(nx)x.hit(nx,'e',sc,'extra',{w:over,indirect:true,noArc:true}); };
+  // me：这次攻击打的是不是本干员（被它阻挡）
+  M.onEnemyAtk=(x,e,stopped,me)=>{ const k=x.k,S=x.S;
+    if(op.eAtkEp&&x.inRange(e)) x.erode(e,V(op.eAtkEp.v,k),op.eAtkEp.t);
+    if(s&&s.t==='def'&&!stopped&&me){ if(isOn(x)){ if(s.onAtked)x.erode(e,x.atk()*V(s.onAtked.r,k),s.onAtked.t); } else S.sp++; } };
   M.epSpd=(x,t)=>(s&&s.epSpd&&isOn(x)&&s.epSpd[t])||0;
-  M.epMul=(x,i)=>(op.epBoss&&x.cfg.boss&&i===0?V(op.epBoss,x.k):1)*(op.epBlk&&x.cfg.blocking?V(op.epBlk,x.k):1);
+  M.epMul=(x,e)=>(op.epBoss&&x.isBoss(e)?V(op.epBoss,x.k):1)*(op.epBlk&&x.blocking()?V(op.epBlk,x.k):1);
   return (op._m=M);
 }
 
-function simulate(op0, elite, cfg, sel){
+// ── 战场上的敌人 ──────────────────────────────────────
+// 元素损伤、爆发、减防、麻痹记在敌人身上，所有干员共享；各干员自己的叠层（伊比利亚、中毒）记在干员那边。
+const EL={n:{dur:10,dmg:6000},w:{dur:8,dmg:5000},f:{dur:10,dmg:7000},d:{dur:15},a:{dur:15}};
+function newEnemy(o){
+  const e=Object.assign({hp:Infinity,def:0,res:0,boss:false,mass:0,main:false,dead:false,mDef:1,mRes:1},o);
+  e.ep={}; for(const q in EL)e.ep[q]=0; e.own=new Map(); e.brEnd=-1; e.brT=''; e.brF=0; e.brShare=new Map(); e.defDn=0; e.palsy=0;
+  return e;
+}
+const inBurst=(W,e,q)=>W.f<e.brEnd&&(!q||e.brT===q);
+// 元素损伤累计。by 为造成损伤的干员（队友输入时为 null）。累计满时爆发：
+// 爆发的固定伤害是无来源伤害，按各干员在这次累计里的占比记到各自头上。
+function worldErode(W,e,q,v,by){
+  if(!(v>0)||e.dead||W.f<e.brEnd)return;
+  e.ep[q]+=v; if(by){ const o=e.own.get(by)||{}; o[q]=(o[q]||0)+v; e.own.set(by,o); }
+  if(e.ep[q]<(e.boss?2000:1000))return;
+  const tot=e.ep[q]; e.brShare=new Map(); for(const [a,o] of e.own) if(o[q]>0) e.brShare.set(a,Math.min(1,o[q]/tot));
+  for(const z in EL)e.ep[z]=0; e.own=new Map();
+  let spd=0; for(const a of W.agents) spd=Math.max(spd,a.epSpd(q)||0);
+  e.brT=q; e.brF=0; e.brEnd=W.f+Math.round(EL[q].dur*30/(1+spd/100));
+  if(q==='w')e.defDn+=120;
+  for(const a of W.agents) if(W.inRange(a,e)) a.noteBurst();
+  if(EL[q].dmg) for(const [a,sh] of e.brShare) a.add('extra',EL[q].dmg*sh,e);
+  if(q==='n')worldPalsy(W,e,3);
+  for(const a of W.agents) a.onBurst(e,q);
+}
+// 麻痹：上限 3 层（真言技能期间 2 层），超出上限的层数交给模型处理
+function worldPalsy(W,e,n){
+  let cap=3; for(const a of W.agents) cap=Math.min(cap,a.palCap());
+  const over=Math.max(0,e.palsy+n-cap); e.palsy=Math.min(cap,e.palsy+n);
+  if(over>0) for(const a of W.agents) a.onPalsyOver(e,over);
+}
+// 每秒：队友的元素损伤、凋亡与狂躁爆发期间的持续伤害
+function worldSecond(W){
+  if(W.f%30!==29)return;
+  const te=W.teamEp; if(te) for(const e of W.enemies) if(!e.dead) for(const q in te) if(te[q]>0&&EL[q]) worldErode(W,e,q,te[q],null);
+  for(const e of W.enemies) if(!e.dead&&W.f<e.brEnd){ e.brF++;
+    const d=e.brT==='d'?800:e.brT==='a'?Math.min(2110,160+130*e.brF):0;
+    if(d) for(const [a,sh] of e.brShare) a.add('extra',d*sh,e); }
+}
+// 敌人发动一次普通攻击：有麻痹时被打断并消耗一层
+function worldEnemyAttack(W,e){
+  let stopped=false;
+  if(e.palsy>1e-9){ let keep=0; for(const a of W.agents) keep=Math.max(keep,a.palsyKeep());
+    const use=1-keep, w=Math.min(1,e.palsy/use); e.palsy=Math.max(0,e.palsy-use); stopped=true;
+    for(const a of W.agents) a.onPalsy(e,w); }
+  for(const a of W.agents) a.onEnemyAtk(e,stopped);
+}
+
+// ── 干员个体 ──────────────────────────────────────────
+// world 需要提供：f、enemies、agents、targets(agent)（当前能攻击的敌人，已按优先级排序）、deal(agent,e,d)（返回实际伤害）、
+// blocking(agent)、blockedBy(agent,e)、inRange(agent,e)、nextOf(agent,e)、onCast(agent)，以及 teamEp（可选）。
+function makeAgent(op0, elite, cfg, sel, W){
   const k=elite?1:0; sel=sel||{};
-  if(op0.healer) return {dps:0,main:0,parts:{direct:0,bond:0,extra:0},atk:op0.atk[k],full:null,healer:true};
   const op=variant(op0,sel.skill), E=equipFx(sel.eq);
   const m=(op.m!=='gen'&&MODELS[op.m||op.id])||gen(op);
-  const N=Math.max(1,Math.min(8,cfg.N|0)), T=Math.max(1,cfg.T), F=Math.round(T*30), dt=1/30;
+  const T=Math.max(1,cfg.T), dt=1/30;
   const C=CORE[cfg.core], has=b=>op.bonds.includes(b)||sel.bond===b;   // sel.bond：变形同构体给的额外盟约
-  const dv=devourInfo(cfg);
-  const core=cfg.bondOn&&has(C.name)?cfg.core:null, L=core?cfg.L+E.layers+(core==='egir'&&dv?dv.tier:0):0, six=core&&C.six&&cfg.six;
+  // 吞噬：单人排行里按参数栏选的干员计算；队伍模拟里由站位决定（cfg.dvGain / cfg.eaten）
+  const dv=cfg.team?cfg.dvGain:devourInfo(cfg);
+  // 生效的核心盟约：单人排行只有当前选中的那个；队伍模拟里干员所属的、已激活的核心盟约都生效（cfg.cores）
+  const CS={};
+  if(cfg.team){ for(const c in (cfg.cores||{})) if(op.bonds.includes(CORE[c].name)) CS[c]={L:cfg.cores[c].L+E.layers+(c==='egir'&&dv?dv.tier:0),six:!!(CORE[c].six&&cfg.cores[c].six)}; }
+  else if(cfg.bondOn&&C&&has(C.name)) CS[cfg.core]={L:cfg.L+E.layers+(cfg.core==='egir'&&dv?dv.tier:0),six:!!(C.six&&cfg.six)};
+  const isC=c=>!!CS[c], Lc=c=>CS[c]?CS[c].L:0, sixC=c=>!!(CS[c]&&CS[c].six);
+  const core=Object.keys(CS)[0]||null, L=core?CS[core].L:0, six=core?CS[core].six:false;
   // 自己就是被吞噬的那一个：不获得攻击力；活不下来（也没有复活）就整场没有输出
-  const eaten=!!(core==='egir'&&dv&&dv.o.id===op0.id), dead=eaten&&!dv.alive&&!dv.revive;
+  const eaten=cfg.team?!!cfg.eaten:!!(isC('egir')&&dv&&dv.o.id===op0.id);
+  const dead=cfg.team?!!(cfg.eaten&&cfg.eaten.dead):eaten&&!dv.alive&&!dv.revive;
   const subOf=b=>cfg.sub[b]&&cfg.sub[b].on?cfg.sub[b]:null;
-  const ly=b=>b===C.name?L:(subOf(b)?subOf(b).L||0:0);
+  const ly=b=>{ for(const c in CS) if(CORE[c].name===b) return CS[c].L; return subOf(b)?subOf(b).L||0:0; };
   const sb=b=>has(b)?subOf(b):null;
   const pre=subOf('精准'), preOn=pre&&(has('精准')||(pre.three&&op.r));
   const arc=subOf('奥术'), arcC=sb('奥术')?0.2+0.004*arc.L:0;
   const swi=subOf('迅捷'), swiftP=swi?Math.min(1,(20+0.35*swi.L)/100):0;
   const raid=subOf('突袭');
   const tf=op.tf?op.tf(k,ly):{}, fx=op.fx?op.fx(k,cfg):{};
-  const dotC=core==='iberia'?(0.11+0.0006*L)*(six?2:1):0;
-  let sPct=E.atk+cfg.own+cfg.xAtk+(cfg.stunt>=2&&k?30:0)+(m.atkPct?m.atkPct(k,cfg):0)+(fx.atk||0);
+  const dotC=isC('iberia')?(0.11+0.0006*Lc('iberia'))*(sixC('iberia')?2:1):0;
+  let sPct=E.atk+cfg.own+cfg.xAtk+(cfg.stunt>=2&&k?30:0)+(m.atkPct?m.atkPct(k,cfg):0)+(fx.atk||0)+(cfg.tileAtk||0);
   if(preOn) sPct+=10+1.2*pre.L;
   if(sb('突袭')) sPct+=25+raid.L;
   if(sb('独行')) sPct+=60;
-  if(core==='yan') sPct+=23+0.9*L;
-  if(core==='ursus') sPct+=35+0.75*L;
-  if(core==='lethania') sPct+=30+L;
-  if(core==='kazimierz') sPct+=Math.min(50+L,20*cfg.deploys);
-  if(core==='victoria'&&six) sPct+=40*(E.n-E.adv)+80*E.adv;
-  let sAspd=E.aspd+cfg.xAspd+(fx.aspd||0);
+  if(isC('yan')) sPct+=23+0.9*Lc('yan');
+  if(isC('ursus')) sPct+=35+0.75*Lc('ursus');
+  if(isC('lethania')) sPct+=30+Lc('lethania');
+  if(isC('kazimierz')) sPct+=Math.min(50+Lc('kazimierz'),20*cfg.deploys);
+  if(sixC('victoria')) sPct+=40*(E.n-E.adv)+80*E.adv;
+  let sAspd=E.aspd+cfg.xAspd+(fx.aspd||0)+(cfg.tileAspd||0);
   if(sb('灵巧')) sAspd+=10+subOf('灵巧').L;
   if(raid&&raid.L>=50) sAspd+=50;
-  if(core==='lethania'&&six) sAspd+=20;
+  if(sixC('lethania')) sAspd+=20;
   let dmMul=(V(op.dm,k)||1)*(fx.dm||1)*E.dm*(op.r?E.rdm:1);
   const weak=op.weak||E.weak, brDm=(V(op.burstDm,k)||1)*(1+E.brDm);   // brDm：对元素爆发期间的敌人的伤害倍率
-  if(core==='victoria'&&E.n>0) dmMul*=1.25+0.008*L;
-  if(core==='kjerag') dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*L));
+  if(isC('victoria')&&E.n>0) dmMul*=1.25+0.008*Lc('victoria');
+  if(isC('kjerag')) dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*Lc('kjerag')));
   if(sb('协防干员')) dmMul*=k?1.4:1.2;
-  const baseAtk=op.atk[k]+(core==='egir'?(cfg.devour||0)+(dv&&!eaten?dv.atk:0):0);
-  const sirF=core==='siracusa'?(32+0.4*L)*30:0, sirAspd=25+0.8*L;
-  const sgDur=core==='sargon'?5+0.22*L:0;
-  const def0=cfg.def*(preOn&&pre.three?0.7:1)*(V(op.defMul,k)||1);
-  let res0=Math.max(0,cfg.res-(arc&&arc.three?30+0.05*arc.L:0)); if(preOn&&pre.three) res0*=0.7; res0=Math.min(100,Math.max(0,res0-(V(op.resF,k)||0)));
-  const rm0=1-res0/100;
+  const baseAtk=op.atk[k]+(isC('egir')?(cfg.devour||0)+(dv&&!eaten?dv.atk:0):0);
+  const sirF=isC('siracusa')?(32+0.4*Lc('siracusa'))*30:0, sirAspd=25+0.8*Lc('siracusa');
+  const sgDur=isC('sargon')?5+0.22*Lc('sargon'):0;
+  const pre3=preOn&&pre.three, arcRes=arc&&arc.three?30+0.05*arc.L:0;
+  const defOf=e=>e.def*(pre3?0.7:1)*(V(op.defMul,k)||1);
+  const resOf=e=>{ let r=Math.max(0,e.res-arcRes); if(pre3) r*=0.7; return Math.min(100,Math.max(0,r-(V(op.resF,k)||0))); };
+  const rm0=e=>1-resOf(e)/100;
   // 盟约持续法伤：dotOwn=true 时算作干员自己的伤害（吃伤害倍率和攻击方的无视法抗）；
   // 否则按无来源伤害处理，只受目标身上的减抗影响
-  const rmD=cfg.dotOwn?rm0:1-Math.min(100,Math.max(0,cfg.res-(arc&&arc.three?30+0.05*arc.L:0)))/100;
+  const rmD=e=>cfg.dotOwn?rm0(e):1-Math.min(100,Math.max(0,e.res-arcRes))/100;
   const sk=m.sk, costMul=E.cost*(cfg.stunt>=5&&k?0.7:1), cost=sk?Math.max(1,V(sk.cost,k)*costMul):0;
   const S={sp:(sk||m.nextTime?V((sk||op.sk).init||op.sk.i,k)||0:0)+(sb('独行')?15:0)+E.init,skillOn:false,skillLeft:0,casts:0,nAtk:0,atkT:0,lock:0,hold:0,delay:0,skT:0,skAtk:0,units:[],q:[],ticks:[],sg:[],sand:null,lastCast:null,castN:0};
   const sec=sel.trace?new Array(Math.ceil(T)).fill(0):null, onArr=sel.trace?new Array(Math.ceil(T)).fill(0):null;
-  const stacks=new Array(N).fill(0), stackEnd=new Array(N).fill(-1), dotF=new Array(N).fill(0);
-  const poiEnd=new Array(N).fill(-1), poiF=new Array(N).fill(0);
-  const parts={direct:0,bond:0,extra:0}; let main=0, full=null, f=0;
-  const x={S,k,N,cfg,fx,costMul,get f(){return f;}};
+  const mine=new Map();   // 每个敌人身上属于本干员的状态：伊比利亚叠层、中毒、本帧是否打到
+  const my=e=>{ let s=mine.get(e); if(!s){ s={st:0,end:-1,dotF:0,poiEnd:-1,poiF:0,mark:-1}; mine.set(e,s); } return s; };
+  const parts={direct:0,bond:0,extra:0}; let main=0, full=null, kills=0, dealt=0;
+  let tl=[];   // 本帧的目标列表
+  const A={op:op0,cfg,sel,k,core,six,L,cores:CS};
+  const x={S,k,cfg,fx,costMul,get f(){return W.f;},get N(){return tl.length;}};
+  const R=i=>typeof i==='object'?i:tl[i];
+  x.uid=i=>{ const e=R(i); return e?e.uid:-1; };
+  x.byUid=u=>W.enemies.find(e=>e.uid==u);
+  x.inRange=e=>W.inRange(A,e);
+  x.isBoss=i=>{ const e=R(i); return !!(e&&e.boss); };
+  x.blocking=()=>W.blocking(A);
+  x.heavyBlocked=i=>{ const e=R(i); return !!(e&&W.blockedBy(A,e)&&e.mass>8); };
   const buffs=()=>m.buffs?m.buffs(x):{};
-  const tfOn=()=>!tf.dur||f<tf.dur*30;
+  const tfOn=()=>!tf.dur||W.f<tf.dur*30;
   const atkNow=()=>{const on=tfOn();let p=sPct+(on?tf.atk||0:0)+(buffs().atk||0);
     if(E.castAtk)p+=Math.min(E.castAtk[1],E.castAtk[0]*S.castN); if(E.skAtk&&S.skillOn)p+=E.skAtk;
     return (baseAtk+(on?tf.base||0:0))*(1+p/100);};
-  const flagMul=()=>{ if(!E.flag)return 1; const t=f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
-  x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(f<sirF?sirAspd:0);
-    if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
-    if(sgDur){ let n=0; for(const e of S.sg) if(e>f) n++; a+=Math.min(300,12*(n+cfg.sargRate*sgDur)); }
+  const flagMul=()=>{ if(!E.flag)return 1; const t=W.f/30; return t<15?E.flag:t<30?1+(E.flag-1)*(30-t)/15:1; };
+  x.interval=()=>{ const b=buffs(); let a=op.aspd[k]+sAspd+(b.aspd||0)+(tfOn()?tf.aspd||0:0)+(W.f<sirF?sirAspd:0);
+    if(E.aspdSec)a+=Math.min(E.aspdSec[1],E.aspdSec[0]*Math.floor(W.f/30)); if(E.aspdAtk)a+=Math.min(E.aspdAtk[1],E.aspdAtk[0]*S.nAtk); if(S.skillOn)a+=E.skAspd;
+    if(sgDur){ let n=0; for(const e of S.sg) if(e>W.f) n++; a+=Math.min(300,12*(n+cfg.sargRate*sgDur)); }
     a=Math.max(10,Math.min(600,a));
     return Math.max(0.1,(op.bat+(b.batAdd||0))*(b.batMul||1))/(a/100); };
-  const add=(g,d,i)=>{if(dead)return;parts[g]+=d;if(i===0)main+=d;if(sec)sec[Math.min(sec.length-1,Math.floor(f/30))]+=d;};
-  // 元素损伤。五种：n 神经、w 侵蚀、f 灼燃、d 凋亡、a 狂躁。某一种累计满（领袖 2000，其他敌人 1000；只有主目标可能是领袖）
-  // 时爆发：n 受到 6000 元素伤害并获得 3 层麻痹；w 5000 并永久 −120 防御；f 7000 且爆发期间法抗 −20；
-  // d 每秒 800；a 每秒递增的元素伤害。爆发期间所有元素都不再累计，结束后全部清零。
-  // 爆发的固定伤害是无来源伤害，按本干员在这次累计里的占比计入（其余部分属于队友）。
-  const EL={n:{dur:10,dmg:6000},w:{dur:8,dmg:5000},f:{dur:10,dmg:7000},d:{dur:15},a:{dur:15}};
-  const ep={}, epOwn={}; for(const q in EL){ ep[q]=new Array(N).fill(0); epOwn[q]=new Array(N).fill(0); }
-  const brEnd=new Array(N).fill(-1), brT=new Array(N).fill(''), brShare=new Array(N).fill(0), brF=new Array(N).fill(0);
-  const defDn=new Array(N).fill(0), palsy=new Array(N).fill(0), hitMark=new Array(N).fill(-1);
-  const epCap=i=>(cfg.boss&&i===0)?2000:1000;
-  const epSpd=q=>(q==='w'?tf.epCd||0:0)+(core==='yan'&&six?40+0.3*L:0)+(m.epSpd?m.epSpd(x,q):0);
-  const eIv=cfg.eBat>0?Math.max(1,Math.round(cfg.eBat*30)):0;
-  x.defDown=i=>defDn[i];
-  x.inBr=(i,q)=>f<brEnd[i]&&(!q||brT[i]===q);
+  const add=(g,d,e)=>{ if(dead||!e)return; const got=W.deal(A,e,d); parts[g]+=got; dealt+=got; if(e.main)main+=got; if(sec)sec[Math.min(sec.length-1,Math.floor(W.f/30))]+=got; };
+  A.add=add; A.killed=()=>{kills++;};
+  x.defDown=i=>{ const e=R(i); return e?e.defDn:0; };
+  x.inBr=(i,q)=>{ const e=R(i); return !!e&&inBurst(W,e,q); };
   x.atk=()=>atkNow();
-  // 麻痹：上限 3 层（真言技能期间 2 层），超出上限的层数交给模型处理
-  x.palsyAdd=(i,n)=>{ const cap=m.palCap?m.palCap(x):3, over=Math.max(0,palsy[i]+n-cap); palsy[i]=Math.min(cap,palsy[i]+n); if(over>0&&m.onPalsyOver)m.onPalsyOver(x,i,over); };
-  const erode=(i,q,v,own)=>{ if(!(v>0)||f<brEnd[i])return; ep[q][i]+=v; if(own)epOwn[q][i]+=v; if(ep[q][i]<epCap(i))return;
-    const share=Math.min(1,epOwn[q][i]/ep[q][i]); for(const z in EL){ ep[z][i]=0; epOwn[z][i]=0; }
-    brT[i]=q; brShare[i]=share; brF[i]=0; brEnd[i]=f+Math.round(EL[q].dur*30/(1+epSpd(q)/100)); S.bursts=(S.bursts||0)+1;
-    if(q==='w')defDn[i]+=120;
-    if(EL[q].dmg)add('extra',EL[q].dmg*share,i);
-    if(q==='n')x.palsyAdd(i,3);
-    if(m.onBurst)m.onBurst(x,i,q); };
-  x.erode=(i,v,q)=>erode(i,q||'w',v*(m.epMul?m.epMul(x,i):1),true);
-  const proc=(i,w,A)=>{ if(!dotC)return; if(stacks[i]<=0)dotF[i]=0;
-    stacks[i]=Math.min(10,stacks[i]+w); stackEnd[i]=f+300;
-    if(full===null&&i===0&&stacks[0]>=9.999)full=f*dt;
-    if(six&&N>=2)add('bond',0.2*3*A*rm0*w,(i+1)%N); };
-  x.hit=(i,type,scale,g,o={})=>{ const b=buffs(), A=atkNow(), w=o.w==null?1:o.w, t=type[0];
-    const rm=1-Math.min(100,Math.max(0,res0*(b.resMul||1)-(x.inBr(i,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
-    const ph=()=>{const df=Math.max(0,def0*(b.defMul||1)-defDn[i]-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(A*scale-df,A*scale*0.05);};
-    const mg=()=>Math.max(A*scale*rm,A*scale*0.05);
+  x.palsyAdd=(i,n)=>{ const e=R(i); if(e)worldPalsy(W,e,n); };
+  x.erode=(i,v,q)=>{ const e=R(i); if(e)worldErode(W,e,q||'w',v*(m.epMul?m.epMul(x,e):1),A); };
+  const proc=(e,w,Atk)=>{ if(!dotC||!e)return; const s=my(e); if(s.st<=0)s.dotF=0;
+    s.st=Math.min(10,s.st+w); s.end=W.f+300;
+    if(full===null&&e.main&&s.st>=9.999)full=W.f*dt;
+    if(sixC('iberia')&&tl.length>=2){ const nx=W.nextOf(A,e); if(nx)add('bond',0.2*3*Atk*rm0(nx)*w,nx); } };
+  x.hit=(i,type,scale,g,o={})=>{ const e=R(i); if(!e||e.dead)return 0;
+    const b=buffs(), Atk=atkNow(), w=o.w==null?1:o.w, t=type[0];
+    const rm=1-Math.min(100,Math.max(0,resOf(e)*Math.min(b.resMul||1,e.mRes)-(inBurst(W,e,'f')?20:0)))/100;   // 灼燃爆发期间法抗 −20
+    const ph=()=>{const df=Math.max(0,defOf(e)*Math.min(b.defMul||1,e.mDef)-e.defDn-(o.defFlat||0))*(1-(o.defPct||0));return Math.max(Atk*scale-df,Atk*scale*0.05);};
+    const mg=()=>Math.max(Atk*scale*rm,Atk*scale*0.05);
     let d;
     if(o.fixed!=null) d=o.fixed*rm;
-    else if(t==='t'||t==='e') d=A*scale;   // 真实伤害、元素伤害：无视防御和法抗
+    else if(t==='t'||t==='e') d=Atk*scale;   // 真实伤害、元素伤害：无视防御和法抗
     else if(weak) d=Math.max(ph(),mg());
     else d=t==='p'?ph():mg();
     const fm=flagMul();
     d*=dmMul*(b.dm||1)*fm;
-    if(brDm!==1&&x.inBr(i))d*=brDm;
-    add(g,d*w,i);
-    if(g==='direct'&&!o.indirect)hitMark[i]=f;
+    if(brDm!==1&&inBurst(W,e))d*=brDm;
+    add(g,d*w,e);
+    if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
-    if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(i,d*w*V(op.epAll.r,k),op.epAll.t);
-    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(A*E.xm*rm,A*E.xm*0.05)+A*E.xt)*dmMul*fm*w,i); if(E.xm&&cfg.indirect)proc(i,w,A); }
-    if(arcC&&!o.noArc){add('extra',Math.max(A*arcC*rm,A*arcC*0.05)*dmMul*w,i); if(cfg.indirect)proc(i,w,A);}
-    if(!o.indirect||cfg.indirect)proc(i,w,A);
+    if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(e,d*w*V(op.epAll.r,k),op.epAll.t);
+    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fm*w,e); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
+    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*w,e); if(cfg.indirect)proc(e,w,Atk);}
+    if(!o.indirect||cfg.indirect)proc(e,w,Atk);
     return d*w; };
-  x.poison=(i,dur)=>{ if(poiEnd[i]<f)poiF[i]=0; poiEnd[i]=f+(dur||93); };
-  x.later=(sec,fn)=>S.q.push({at:f+Math.round(sec*30),fn});
-  const noteCast=()=>{ S.lastCast=f; S.castN++; if(sgDur){ S.sg.push(f+sgDur*30); if(S.sg.length>60)S.sg=S.sg.filter(e=>e>f); if(S.sand==null)S.sand=f; } };
+  x.poison=(i,dur)=>{ const e=R(i); if(!e)return; const s=my(e); if(s.poiEnd<W.f)s.poiF=0; s.poiEnd=W.f+(dur||93); };
+  x.later=(sec,fn)=>S.q.push({at:W.f+Math.round(sec*30),fn});
+  const noteCast=()=>{ S.lastCast=W.f; S.castN++; if(sgDur){ S.sg.push(W.f+sgDur*30); if(S.sg.length>60)S.sg=S.sg.filter(e=>e>W.f); if(S.sand==null)S.sand=W.f; } if(W.onCast)W.onCast(A); };
   x.castEvent=noteCast;
+  A.sargStack=()=>{ if(sgDur){ S.sg.push(W.f+sgDur*30); if(S.sand==null)S.sand=W.f; } };
   // 迅捷按期望值返还技力；返还量不超过一次技能的消耗，避免低消耗技能被算成无限连放
   const swiftEnd=()=>{ if(swiftP) S.sp+=swiftP*Math.min(cost||99,(has('迅捷')?12:0)+(swi.L>=40?15:0)); };
   const endSkill=()=>{ S.skillOn=false; if(m.onEnd)m.onEnd(x); swiftEnd(); };
   x.endSkill=endSkill;
   const cast=()=>{ S.sp=0; S.casts++; S.skT=0; S.skAtk=0; const d=V(sk.dur,k); if(d>0){S.skillOn=true;S.skillLeft=d;}
     noteCast(); if(m.onCast)m.onCast(x); if(!S.skillOn)swiftEnd(); };
-  for(f=0;f<F;f++){
+  // 世界回调
+  A.epSpd=q=>(q==='w'?tf.epCd||0:0)+(sixC('yan')?40+0.3*Lc('yan'):0)+(m.epSpd?m.epSpd(x,q):0);
+  A.noteBurst=()=>{ S.bursts=(S.bursts||0)+1; };
+  A.onBurst=(e,q)=>{ if(m.onBurst)m.onBurst(x,e,q); };
+  A.palCap=()=>m.palCap?m.palCap(x):3;
+  A.onPalsyOver=(e,over)=>{ if(m.onPalsyOver)m.onPalsyOver(x,e,over); };
+  A.palsyKeep=()=>m.palsyKeep?m.palsyKeep(x):0;
+  A.onPalsy=(e,w)=>{ if(m.onPalsy)m.onPalsy(x,e,w); };
+  A.onEnemyAtk=(e,stopped)=>{ if(m.onEnemyAtk)m.onEnemyAtk(x,e,stopped,W.attacksMe(A,e)); };
+  x.nextOf=e=>W.nextOf(A,e);
+  A.skillOn=()=>S.skillOn;
+  A.buffs=buffs;
+  A.dead=dead;
+  // 一帧的前半：技能、技力、攻击、模型逐帧逻辑
+  A.stepA=()=>{ const f=W.f; tl=dead?[]:W.targets(A);
     if(onArr&&S.skillOn)onArr[Math.min(onArr.length-1,Math.floor(f/30))]=1;
     if(S.skillOn){ S.skT+=dt; if(S.skillLeft!==Infinity){S.skillLeft-=dt;if(S.skillLeft<=0)endSkill();} }
     const spGain=dt*(1+E.sp+(m.spBonus?m.spBonus(x):0)+(tfOn()?tf.sp||0:0));
-    if(sk&&sk.type==='time'&&!S.skillOn){ if(S.hold>0)S.hold-=dt; else if(!(op.spBlock&&!cfg.blocking))S.sp+=spGain; }
+    if(sk&&sk.type==='time'&&!S.skillOn){ if(S.hold>0)S.hold-=dt; else if(!(op.spBlock&&!x.blocking()))S.sp+=spGain; }
     if(m.nextTime) S.sp=Math.min(V(m.nextTime,k)*3,S.sp+spGain);
     if(op.spT&&sk&&sk.type==='attack'&&!S.skillOn) S.sp+=dt*op.spT;
     if(S.lock>0)S.lock-=dt;
-    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0)cast();
+    if(sk&&!S.skillOn&&S.sp>=cost&&S.lock<=0&&tl.length>0)cast();
     for(let j=S.q.length-1;j>=0;j--)if(S.q[j].at<=f){const e=S.q.splice(j,1)[0];e.fn();}
     S.atkT-=dt;
-    if(S.atkT<=0&&S.lock<=0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;
+    if(S.atkT<=0&&S.lock<=0&&tl.length>0&&(!m.can||m.can(x))){ m.attack(x); S.nAtk++; if(S.skillOn)S.skAtk++;
       if(sk&&sk.type==='attack'&&!S.skillOn)S.sp++;
-      if(core==='kazimierz'&&six&&(f<900||(S.lastCast!=null&&f-S.lastCast<900)))add('bond',0.65*atkNow(),0);
+      if(sixC('kazimierz')&&(f<900||(S.lastCast!=null&&f-S.lastCast<900)))add('bond',0.65*atkNow(),tl[0]);
       // 【炎】6 人：每次攻击对打到的敌人造成 6% 攻击力的随机元素损伤，按五种元素各分到 1/5 的期望值计算；
       // 五种同时累计满时只爆发一种，每次爆发后换下一种，相当于爆发的种类是随机的
-      if(core==='yan'&&six){ const A=atkNow(), ks=Object.keys(EL); for(let i=0;i<N;i++) if(hitMark[i]===f) for(let z=0;z<ks.length;z++) erode(i,ks[(z+(S.bursts||0))%ks.length],A*0.012*(m.epMul?m.epMul(x,i):1),true); }
+      if(sixC('yan')){ const Atk=atkNow(), ks=Object.keys(EL); for(const e of W.enemies){ const s=mine.get(e); if(s&&s.mark===f&&!e.dead) for(let z=0;z<ks.length;z++) worldErode(W,e,ks[(z+(S.bursts||0))%ks.length],Atk*0.012*(m.epMul?m.epMul(x,e):1),A); } }
       S.atkT+=x.interval()+S.delay; S.delay=0; if(S.atkT<0)S.atkT=x.interval(); }
-    if(m.frame)m.frame(x);
-    // 每秒：队友的元素损伤、爆发期间的持续伤害
-    if(f%30===29){ const te=cfg.teamEp; if(te)for(let i=0;i<N;i++)for(const q in te)if(te[q]>0&&EL[q])erode(i,q,te[q],false);
-      for(let i=0;i<N;i++)if(f<brEnd[i]){ brF[i]++; if(brT[i]==='d')add('extra',800*brShare[i],i); else if(brT[i]==='a')add('extra',Math.min(2110,160+130*brF[i])*brShare[i],i); } }
-    // 敌人的普通攻击：有麻痹时被打断并消耗一层
-    if(eIv&&f>0&&f%eIv===0)for(let i=0;i<N;i++){ let stopped=false;
-      if(palsy[i]>1e-9){ const use=1-(m.palsyKeep?m.palsyKeep(x):0), w=Math.min(1,palsy[i]/use); palsy[i]=Math.max(0,palsy[i]-use); stopped=true; if(m.onPalsy)m.onPalsy(x,i,w); }
-      if(m.onEnemyAtk)m.onEnemyAtk(x,i,stopped); }
+    if(m.frame)m.frame(x); };
+  // 一帧的后半：召唤单元、盟约的周期伤害、中毒与伊比利亚持续法伤
+  A.stepB=()=>{ const f=W.f;
     for(let j=S.units.length-1;j>=0;j--){const u=S.units[j];u.f++;
-      if(u.f%30===0)for(let i=0;i<N;i++)x.hit(i,'magic',u.scale,'direct');
+      if(u.f%30===0)for(let i=0;i<tl.length;i++)x.hit(i,'magic',u.scale,'direct');
       if(u.f>=u.dur)S.units.splice(j,1);}
     if(f%30===29){
-      if(core==='ursus'&&six&&cfg.blocking&&op.blk&&!op.r){const A=atkNow();for(let i=0;i<Math.min(N,op.blk);i++)add('bond',(0.5+0.0025*L)*A*rm0,i);}
-      if(core==='sargon'&&six&&S.sand!=null&&S.skillOn)for(let i=0;i<N;i++)add('bond',(800+4*L)*rm0,i);
+      if(sixC('ursus')&&op.blk&&!op.r){const Atk=atkNow();for(const e of W.blockedList(A,op.blk))add('bond',(0.5+0.0025*Lc('ursus'))*Atk*rm0(e),e);}
+      if(sixC('sargon')&&S.sand!=null&&S.skillOn)for(const e of tl)add('bond',(800+4*Lc('sargon'))*rm0(e),e);
     }
-    if(core==='sargon'&&six&&S.sand!=null&&f>S.sand&&(f-S.sand)%150===0)for(let i=0;i<N;i++)add('bond',(5000+25*L)*rm0,i);
-    for(let i=0;i<N;i++){
-      if(poiEnd[i]>=f){poiF[i]++; if(poiF[i]%30===0){ if(m.poisonTick)m.poisonTick(x,i); else x.hit(i,'magic',0,'extra',{fixed:m.poison(k,cfg),indirect:true,noArc:true}); }}
-      if(stacks[i]>0){ if(stackEnd[i]<f){stacks[i]=0;} else {dotF[i]++; if(dotF[i]%30===0)add('bond',stacks[i]*dotC*atkNow()*rmD*(cfg.dotOwn?dmMul*(buffs().dm||1)*flagMul():1),i);} }
-    }
+    if(sixC('sargon')&&S.sand!=null&&f>S.sand&&(f-S.sand)%150===0)for(const e of tl)add('bond',(5000+25*Lc('sargon'))*rm0(e),e);
+    for(const e of W.enemies){ const s=mine.get(e); if(!s||e.dead)continue;
+      if(s.poiEnd>=f){s.poiF++; if(s.poiF%30===0){ if(m.poisonTick)m.poisonTick(x,e); else x.hit(e,'magic',0,'extra',{fixed:m.poison(k,cfg),indirect:true,noArc:true}); }}
+      if(s.st>0){ if(s.end<f){s.st=0;} else {s.dotF++; if(s.dotF%30===0)add('bond',s.st*dotC*atkNow()*rmD(e)*(cfg.dotOwn?dmMul*(buffs().dm||1)*flagMul():1),e);} }
+    } };
+  A.result=Tlen=>{ const total=parts.direct+parts.bond+parts.extra;
+    return {dps:total/Tlen,main:main/Tlen,total,parts:{direct:parts.direct/Tlen,bond:parts.bond/Tlen,extra:parts.extra/Tlen},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead,kills}; };
+  return A;
+}
+
+// 单人排行：一名干员对 N 个不会死、不会动、一直在范围里的目标
+function simulate(op0, elite, cfg, sel){
+  const k=elite?1:0; sel=sel||{};
+  if(op0.healer) return {dps:0,main:0,parts:{direct:0,bond:0,extra:0},atk:op0.atk[k],full:null,healer:true};
+  const N=Math.max(1,Math.min(8,cfg.N|0)), T=Math.max(1,cfg.T), F=Math.round(T*30);
+  const enemies=[]; for(let i=0;i<N;i++) enemies.push(newEnemy({uid:i,idx:i,main:i===0,def:cfg.def,res:cfg.res,boss:!!(cfg.boss&&i===0),mass:i===0?cfg.bossMass||0:0}));
+  const blk=Math.max(1,(variant(op0,sel.skill).blk)||1);
+  const W={f:0,enemies,agents:[],teamEp:cfg.teamEp,
+    targets:()=>enemies, deal:(a,e,d)=>d, inRange:()=>true,
+    blocking:()=>!!cfg.blocking, blockedBy:(a,e)=>!!cfg.blocking&&e.idx<blk, attacksMe:(a,e)=>e.idx<blk,
+    blockedList:(a,n)=>cfg.blocking?enemies.slice(0,Math.min(N,n)):[],
+    nextOf:(a,e)=>enemies[(e.idx+1)%N]};
+  const A=makeAgent(op0,elite,cfg,sel,W); W.agents=[A];
+  const eIv=cfg.eBat>0?Math.max(1,Math.round(cfg.eBat*30)):0;
+  for(W.f=0;W.f<F;W.f++){
+    A.stepA(); worldSecond(W);
+    if(eIv&&W.f>0&&W.f%eIv===0) for(const e of enemies) worldEnemyAttack(W,e);
+    A.stepB();
   }
-  const total=parts.direct+parts.bond+parts.extra;
-  return {dps:total/T,main:main/T,parts:{direct:parts.direct/T,bond:parts.bond/T,extra:parts.extra/T},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead};
+  return A.result(T);
+}
+
+// 由 tools/extract.js 生成，不要手改。数据来源：PRTS 整理的游戏数据（卫戍协议·规程 序列 I）。
+const FIELD = {"maps":[{"id":"m01","name":"#01","rows":["E..###..S","#|.|||.f#","#|.|||.f#","#|.....fS"],"tokens":[{"r":2,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":4,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E..###..T","#|.|||.ff","#|.|||.ff","#|.....fT"],"bossTokens":[{"r":2,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":4,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m02","name":"#02","rows":["E....##.S","#.||.##f#","#.||...f#","#......fS"],"tokens":[{"r":3,"c":2,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":3,"c":3,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":2,"c":5,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":2,"c":6,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E....##.T","#.||.##ff","#.||...ff","#......fT"],"bossTokens":[{"r":3,"c":2,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":3,"c":3,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":2,"c":5,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":2,"c":6,"kinds":["crate","plat"],"hidden":true,"dir":"UP"},{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m03","name":"#03","rows":["E.......S","#ff..||f#","###|.||f#","###|...fS"],"tokens":[{"r":1,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":1,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":1,"c":2,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":2,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":2,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":2,"c":5,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":2,"c":6,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E.......T","#ff..||ff","###|.||ff","###|...fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"},{"r":1,"c":1,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":1,"c":2,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":2,"c":3,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":2,"c":5,"kinds":["plat"],"hidden":false,"dir":"UP"},{"r":2,"c":6,"kinds":["plat"],"hidden":false,"dir":"UP"}]},{"id":"m04","name":"#04","rows":["E..###..S","#|..i..f#","#|..i..f#","#|.###.fS"],"tokens":[{"r":3,"c":1,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":3,"c":2,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":3,"c":6,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E..###..T","#|..i..ff","#|..i..ff","#|.###.fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"},{"r":3,"c":1,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":3,"c":2,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":3,"c":6,"kinds":["crate"],"hidden":false,"dir":"UP"}]},{"id":"m05","name":"#05","rows":["E...#...S","##H.#.#f#","##H.|.#f#","##H...#fS"],"tokens":[{"r":4,"c":3,"kinds":["blower"],"hidden":false,"dir":"DOWN"},{"r":4,"c":7,"kinds":["blower"],"hidden":false,"dir":"DOWN"},{"r":4,"c":4,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E...#...T","##H.#.|ff","##H.|.|ff","##H...|fT"],"bossTokens":[{"r":4,"c":3,"kinds":["blower"],"hidden":false,"dir":"DOWN"},{"r":4,"c":7,"kinds":["blower"],"hidden":false,"dir":"DOWN"},{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m06","name":"#06","rows":["E.......S","##H||m|f#","###H|m|f#","####Hm.fS"],"tokens":[{"r":2,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"},{"r":4,"c":4,"kinds":["mire"],"hidden":false,"dir":"UP"}],"bossRows":["E.......T","##H||m|ff","###H|m|ff","####Hm.fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m09","name":"#09","rows":["E...#g..S","#.#.Hg#f#","#.|.gg#f#","#......fS"],"tokens":[{"r":2,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":1,"c":7,"kinds":["crate"],"hidden":false,"dir":"UP"},{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E...#g..T","#.#.Hg#ff","#.|.gg#ff","#......fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m10","name":"#10","rows":["E....|#.S","#H.|.|.f#","#H.|...##","#H.....fS"],"tokens":[{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E....|#.T","#H.|.|.ff","#H.|...ff","#H.....fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m11","name":"#11","rows":["E....|#fS","#.H#...f#","#....||##","#|||...fS"],"tokens":[{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E....|#fT","#.H#...ff","#....||ff","#|||...fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]},{"id":"m12","name":"#12","rows":["E.|..u..S","#...#|###","#...#u.f#","#||..u#fS"],"tokens":[{"r":4,"c":3,"kinds":["blizzard"],"hidden":false,"dir":"UP"}],"bossRows":["E.|..u..T","#...#|#ff","#...#u.ff","#||..u#fT"],"bossTokens":[{"r":4,"c":6,"kinds":["blizzard"],"hidden":false,"dir":"UP"}]}],"rounds":[{"n":1,"lv":"01","T":45,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":3,"key":"enemy_1007_slime","n":2,"iv":5,"route":0},{"t":12,"key":"enemy_1422_lrsldr","n":2,"iv":3,"route":1},{"t":12,"key":"enemy_1005_yokai","n":2,"iv":3,"route":2}],"mul":0.5},{"n":2,"lv":"02","T":45,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":3,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":0},{"t":3,"key":"enemy_1005_yokai","n":4,"iv":7,"route":2},{"t":15,"key":"enemy_1422_lrsldr","n":3,"iv":7,"route":1},{"t":15,"key":"enemy_1005_yokai","n":5,"iv":7,"route":3}],"mul":0.5},{"n":3,"lv":"03","T":55,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":6,"key":"enemy_1422_lrsldr","n":10,"iv":5,"route":0},{"t":6,"key":"enemy_1005_yokai","n":9,"iv":5,"route":2},{"t":10,"key":"enemy_1042_frostd","n":2,"iv":10,"route":3},{"t":18,"key":"enemy_1427_lrnazg","n":1,"iv":10,"route":1}],"mul":0.5},{"n":4,"lv":"04","T":55,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":3,"key":"enemy_1422_lrsldr","n":2,"iv":6,"route":3},{"t":3,"key":"enemy_1005_yokai","n":2,"iv":6,"route":4},{"t":7,"key":"enemy_1005_yokai","n":3,"iv":8,"route":8},{"t":12,"key":"enemy_1422_lrsldr","n":2,"iv":4,"route":0},{"t":13,"key":"enemy_1427_lrnazg","n":1,"iv":12,"route":1},{"t":17,"key":"enemy_1042_frostd","n":3,"iv":9,"route":6},{"t":18,"key":"enemy_1040_bombd","n":2,"iv":9,"route":7},{"t":26,"key":"enemy_1005_yokai","n":3,"iv":6.5,"route":5},{"t":29,"key":"enemy_1425_lrcmra","n":1,"iv":7,"route":2}],"mul":0.5},{"n":5,"lv":"05","T":55,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":3,"key":"enemy_1422_lrsldr","n":2,"iv":10,"route":4},{"t":3,"key":"enemy_1005_yokai","n":3,"iv":6,"route":6},{"t":5,"key":"enemy_1005_yokai","n":3,"iv":6,"route":10},{"t":7,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":0},{"t":14,"key":"enemy_1427_lrnazg","n":2,"iv":7,"route":2},{"t":16,"key":"enemy_1005_yokai","n":4,"iv":5,"route":7},{"t":17,"key":"enemy_1042_frostd","n":3,"iv":1,"route":8},{"t":22,"key":"enemy_1422_lrsldr","n":3,"iv":8,"route":5},{"t":22,"key":"enemy_1005_yokai","n":3,"iv":6,"route":11},{"t":25,"key":"enemy_1425_lrcmra","n":1,"iv":9,"route":3},{"t":27,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":1},{"t":31,"key":"enemy_1040_bombd","n":2,"iv":6,"route":9}],"mul":0.5},{"n":6,"lv":"06","T":70,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]}],"spawns":[{"t":2,"key":"enemy_1422_lrsldr","n":3,"iv":8,"route":4},{"t":2,"key":"enemy_1005_yokai","n":4,"iv":5,"route":6},{"t":7,"key":"enemy_1422_lrsldr","n":4,"iv":8,"route":0},{"t":7,"key":"enemy_1005_yokai","n":4,"iv":8,"route":11},{"t":16,"key":"enemy_1422_lrsldr","n":3,"iv":8,"route":1},{"t":17,"key":"enemy_1042_frostd","n":3,"iv":1,"route":9},{"t":19,"key":"enemy_1422_lrsldr","n":3,"iv":8,"route":5},{"t":20,"key":"enemy_1427_lrnazg","n":2,"iv":12,"route":2},{"t":20,"key":"enemy_1005_yokai","n":4,"iv":7,"route":7},{"t":27,"key":"enemy_1005_yokai","n":4,"iv":5,"route":8},{"t":28,"key":"enemy_1425_lrcmra","n":2,"iv":14,"route":3},{"t":29,"key":"enemy_1040_bombd","n":3,"iv":5,"route":10}],"mul":0.5},{"n":7,"lv":"07","T":85,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":2,"key":"enemy_1422_lrsldr","n":3,"iv":8,"route":5},{"t":2,"key":"enemy_1005_yokai","n":2,"iv":10,"route":13},{"t":5,"key":"enemy_1427_lrnazg","n":4,"iv":17,"route":2},{"t":5,"key":"enemy_1005_yokai","n":4,"iv":5,"route":7},{"t":8,"key":"enemy_1422_lrsldr","n":4,"iv":5,"route":0},{"t":9,"key":"enemy_1040_bombd","n":1,"iv":12,"route":10},{"t":12,"key":"enemy_1425_lrcmra","n":2,"iv":14,"route":3},{"t":13,"key":"enemy_1040_bombd","n":1,"iv":12,"route":11},{"t":17,"key":"enemy_1042_frostd","n":3,"iv":11,"route":9},{"t":18,"key":"enemy_1422_lrsldr","n":3,"iv":10,"route":6},{"t":22,"key":"enemy_1422_lrsldr","n":4,"iv":9,"route":1},{"t":27,"key":"enemy_1005_yokai","n":8,"iv":4,"route":14},{"t":30,"key":"enemy_1005_yokai","n":1,"iv":5,"route":8},{"t":40,"key":"enemy_1425_lrcmra","n":1,"iv":14,"route":4},{"t":41,"key":"enemy_1042_frostd","n":2,"iv":11,"route":12}],"mul":0.5},{"n":8,"lv":"h01","T":85,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[0,4]},{"m":[0,3]},{"m":[2,3]},{"m":[2,2]},{"m":[0,2]}]}],"spawns":[{"t":2,"key":"enemy_1422_lrsldr","n":3,"iv":3,"route":0},{"t":3,"key":"enemy_1005_yokai","n":2,"iv":5,"route":8},{"t":5,"key":"enemy_1005_yokai","n":2,"iv":7,"route":11},{"t":9,"key":"enemy_1425_lrcmra","n":1,"iv":12,"route":7},{"t":10,"key":"enemy_1040_bombd","n":1,"iv":20,"route":14},{"t":11,"key":"enemy_1422_lrsldr","n":3,"iv":1,"route":5},{"t":13,"key":"enemy_1005_yokai","n":2,"iv":5,"route":12},{"t":17,"key":"enemy_1427_lrnazg","n":2,"iv":10,"route":6},{"t":17,"key":"enemy_1042_frostd","n":2,"iv":5,"route":10},{"t":25,"key":"enemy_1005_yokai","n":2,"iv":5,"route":9},{"t":28,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":1},{"t":28,"key":"enemy_1040_bombd","n":3,"iv":12,"route":15},{"t":37,"key":"enemy_1427_lrnazg","n":1,"iv":9,"route":3},{"t":39,"key":"enemy_1042_frostd","n":3,"iv":5,"route":13},{"t":42,"key":"enemy_1425_lrcmra","n":3,"iv":9,"route":4},{"t":62,"key":"enemy_1422_lrsldr","n":2,"iv":5,"route":2}],"mul":0.5},{"n":9,"lv":"h02","T":95,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]},{"w":3}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":2,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":0},{"t":3,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":5},{"t":3,"key":"enemy_1005_yokai","n":1,"iv":1,"route":9},{"t":3,"key":"enemy_1005_yokai","n":2,"iv":3,"route":15},{"t":7,"key":"enemy_1040_bombd","n":1,"iv":7,"route":13},{"t":13,"key":"enemy_1425_lrcmra","n":1,"iv":16,"route":4},{"t":13,"key":"enemy_1005_yokai","n":2,"iv":5,"route":10},{"t":17,"key":"enemy_1427_lrnazg","n":2,"iv":10,"route":3},{"t":20,"key":"enemy_1005_yokai","n":3,"iv":5,"route":11},{"t":21,"key":"enemy_1040_bombd","n":3,"iv":12,"route":14},{"t":28,"key":"enemy_1042_frostd","n":3,"iv":5,"route":16},{"t":39,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":6},{"t":40,"key":"enemy_1425_lrcmra","n":1,"iv":5,"route":7},{"t":41,"key":"enemy_1427_lrnazg","n":1,"iv":10,"route":8},{"t":41,"key":"enemy_1042_frostd","n":2,"iv":5,"route":12},{"t":42,"key":"enemy_1422_lrsldr","n":3,"iv":7,"route":1},{"t":65,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":2}],"mul":0.5},{"n":10,"lv":"h03","T":95,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]}],"spawns":[{"t":3,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":0},{"t":3,"key":"enemy_1422_lrsldr","n":2,"iv":4,"route":6},{"t":3,"key":"enemy_1005_yokai","n":2,"iv":4,"route":11},{"t":5,"key":"enemy_1422_lrsldr","n":4,"iv":5,"route":7},{"t":5,"key":"enemy_1005_yokai","n":3,"iv":5,"route":12},{"t":7,"key":"enemy_1005_yokai","n":2,"iv":5,"route":9},{"t":10,"key":"enemy_1040_bombd","n":1,"iv":10,"route":15},{"t":13,"key":"enemy_1005_yokai","n":2,"iv":5,"route":13},{"t":17,"key":"enemy_1427_lrnazg","n":3,"iv":10,"route":3},{"t":17,"key":"enemy_1425_lrcmra","n":3,"iv":13,"route":8},{"t":25,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":1},{"t":25,"key":"enemy_1040_bombd","n":3,"iv":10,"route":16},{"t":28,"key":"enemy_1042_frostd","n":3,"iv":6,"route":10},{"t":41,"key":"enemy_1427_lrnazg","n":1,"iv":10,"route":4},{"t":41,"key":"enemy_1042_frostd","n":2,"iv":5,"route":14},{"t":49,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":2},{"t":57,"key":"enemy_1425_lrcmra","n":1,"iv":5,"route":5}],"mul":0.5},{"n":11,"lv":"h04","T":115,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[0,4]},{"m":[0,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]}],"spawns":[{"t":3,"key":"enemy_1005_yokai","n":2,"iv":3,"route":15},{"t":5,"key":"enemy_1422_lrsldr","n":2,"iv":2,"route":0},{"t":5,"key":"enemy_1422_lrsldr","n":2,"iv":5,"route":8},{"t":5,"key":"enemy_1005_yokai","n":2,"iv":5,"route":16},{"t":6,"key":"enemy_1425_lrcmra","n":1,"iv":20,"route":10},{"t":7,"key":"enemy_1040_bombd","n":1,"iv":10,"route":19},{"t":9,"key":"enemy_1005_yokai","n":4,"iv":5,"route":17},{"t":10,"key":"enemy_1427_lrnazg","n":1,"iv":9,"route":4},{"t":10,"key":"enemy_1422_lrsldr","n":2,"iv":5,"route":9},{"t":17,"key":"enemy_1425_lrcmra","n":2,"iv":5,"route":6},{"t":17,"key":"enemy_1040_bombd","n":2,"iv":2,"route":14},{"t":20,"key":"enemy_1042_frostd","n":1,"iv":5,"route":18},{"t":21,"key":"enemy_1040_bombd","n":2,"iv":10,"route":20},{"t":22,"key":"enemy_1422_lrsldr","n":3,"iv":2,"route":1},{"t":27,"key":"enemy_1005_yokai","n":3,"iv":2,"route":11},{"t":28,"key":"enemy_1042_frostd","n":3,"iv":2,"route":12},{"t":42,"key":"enemy_1425_lrcmra","n":4,"iv":5,"route":7},{"t":45,"key":"enemy_1422_lrsldr","n":2,"iv":5,"route":2},{"t":50,"key":"enemy_1422_lrsldr","n":2,"iv":5,"route":3},{"t":52,"key":"enemy_1042_frostd","n":2,"iv":2,"route":13},{"t":54,"key":"enemy_1427_lrnazg","n":3,"iv":7,"route":5}],"mul":0.5},{"n":12,"lv":"h05","T":115,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]}],"spawns":[{"t":2,"key":"enemy_1425_lrcmra","n":3,"iv":10,"route":8},{"t":5,"key":"enemy_1422_lrsldr","n":3,"iv":3,"route":0},{"t":5,"key":"enemy_1422_lrsldr","n":2,"iv":3,"route":11},{"t":5,"key":"enemy_1005_yokai","n":2,"iv":1,"route":14},{"t":8,"key":"enemy_1005_yokai","n":3,"iv":4,"route":15},{"t":10,"key":"enemy_1422_lrsldr","n":2,"iv":3,"route":2},{"t":10,"key":"enemy_1425_lrcmra","n":3,"iv":10,"route":9},{"t":10,"key":"enemy_1427_lrnazg","n":3,"iv":10,"route":12},{"t":10,"key":"enemy_1005_yokai","n":3,"iv":3,"route":21},{"t":12,"key":"enemy_1427_lrnazg","n":2,"iv":10,"route":5},{"t":12,"key":"enemy_1040_bombd","n":2,"iv":5,"route":25},{"t":13,"key":"enemy_1042_frostd","n":2,"iv":5,"route":18},{"t":15,"key":"enemy_1042_frostd","n":2,"iv":5,"route":19},{"t":17,"key":"enemy_1040_bombd","n":2,"iv":10,"route":20},{"t":21,"key":"enemy_1425_lrcmra","n":2,"iv":12,"route":13},{"t":21,"key":"enemy_1005_yokai","n":3,"iv":5,"route":16},{"t":22,"key":"enemy_1040_bombd","n":3,"iv":6,"route":26},{"t":27,"key":"enemy_1005_yokai","n":3,"iv":2,"route":22},{"t":28,"key":"enemy_1042_frostd","n":3,"iv":2,"route":23},{"t":30,"key":"enemy_1422_lrsldr","n":2,"iv":3,"route":1},{"t":31,"key":"enemy_1425_lrcmra","n":2,"iv":10,"route":10},{"t":35,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":3},{"t":35,"key":"enemy_1040_bombd","n":2,"iv":5,"route":27},{"t":37,"key":"enemy_1427_lrnazg","n":2,"iv":9,"route":6},{"t":43,"key":"enemy_1005_yokai","n":3,"iv":5,"route":17},{"t":47,"key":"enemy_1042_frostd","n":3,"iv":6,"route":24},{"t":51,"key":"enemy_1422_lrsldr","n":3,"iv":4,"route":4},{"t":53,"key":"enemy_1427_lrnazg","n":2,"iv":7,"route":7}],"mul":0.5},{"n":13,"lv":"h06","T":115,"routes":[{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[0,8],"e":[0,0],"cp":[{"m":[0,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":false,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[0,7]},{"m":[0,5]},{"m":[3,5]},{"m":[3,4]},{"m":[0,4]},{"m":[0,3]},{"m":[3,3]},{"m":[3,2]},{"m":[0,2]}]},{"fly":true,"s":[3,8],"e":[0,0],"cp":[{"m":[3,7]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[3,6]},{"m":[3,3]},{"m":[0,3]},{"m":[0,2]},{"m":[3,2]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,0],"cp":[{"m":[0,6]},{"m":[2,6]},{"m":[2,4]},{"m":[1,4]},{"m":[1,3]},{"m":[2,3]},{"m":[2,1]},{"m":[0,1]}]}],"spawns":[{"t":2,"key":"enemy_1425_lrcmra","n":4,"iv":10,"route":7},{"t":3,"key":"enemy_1427_lrnazg","n":2,"iv":10,"route":11},{"t":5,"key":"enemy_1005_yokai","n":2,"iv":1,"route":13},{"t":7,"key":"enemy_1422_lrsldr","n":3,"iv":3,"route":0},{"t":7,"key":"enemy_1422_lrsldr","n":1,"iv":1,"route":10},{"t":10,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":1},{"t":10,"key":"enemy_1425_lrcmra","n":4,"iv":7,"route":8},{"t":10,"key":"enemy_1040_bombd","n":2,"iv":5,"route":22},{"t":11,"key":"enemy_1427_lrnazg","n":3,"iv":9,"route":4},{"t":13,"key":"enemy_1042_frostd","n":2,"iv":5,"route":16},{"t":15,"key":"enemy_1042_frostd","n":1,"iv":5,"route":17},{"t":17,"key":"enemy_1040_bombd","n":3,"iv":11,"route":18},{"t":21,"key":"enemy_1425_lrcmra","n":2,"iv":15,"route":12},{"t":21,"key":"enemy_1005_yokai","n":3,"iv":4,"route":14},{"t":22,"key":"enemy_1040_bombd","n":3,"iv":5,"route":23},{"t":27,"key":"enemy_1005_yokai","n":3,"iv":2,"route":19},{"t":28,"key":"enemy_1042_frostd","n":4,"iv":2,"route":20},{"t":32,"key":"enemy_1425_lrcmra","n":3,"iv":10,"route":9},{"t":35,"key":"enemy_1040_bombd","n":2,"iv":5,"route":24},{"t":37,"key":"enemy_1427_lrnazg","n":4,"iv":9,"route":5},{"t":39,"key":"enemy_1422_lrsldr","n":3,"iv":5,"route":2},{"t":50,"key":"enemy_1005_yokai","n":3,"iv":5,"route":15},{"t":55,"key":"enemy_1427_lrnazg","n":3,"iv":9,"route":6},{"t":55,"key":"enemy_1042_frostd","n":3,"iv":7,"route":21},{"t":62,"key":"enemy_1422_lrsldr","n":3,"iv":4,"route":3}],"mul":0.5}],"bosses":[{"id":"boss_1","round":14,"lv":"h07_01_s","key":"enemy_9013_acstmk","name":"假想敌：胄","blood":{"mode_multi_funny":283680,"mode_multi_normal":945600,"mode_multi_hard":2364000,"mode_multi_abyss":3940000,"mode_single_funny":226944,"mode_single_1":283680,"mode_single_2":378240,"mode_single_3":472800,"mode_single_4":567360,"mode_single_5":661920,"mode_single_6":756480,"mode_single_7":851040,"mode_single_8":945600,"mode_single_9":1182000,"mode_single_10":1418400,"mode_single_11":1654800,"mode_single_12":1891200,"mode_single_13":2127600,"mode_single_14":2364000,"mode_single_15":2626667,"mode_single_16":2889333,"mode_single_17":3152000,"mode_single_18":3414667,"mode_single_19":3677333,"mode_single_20":3940000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]}],"spawns":[{"t":0,"key":"enemy_9013_acstmk","n":1,"iv":1,"route":10},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":7,"key":"enemy_1006_shield_2","n":5,"iv":18,"route":8},{"t":25,"key":"enemy_1006_shield_2","n":4,"iv":20,"route":9},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":2},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":6},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7}],"mul":0.5},{"id":"boss_2","round":14,"lv":"h07_02_s","key":"enemy_9017_achunt","name":"假想敌：铳","blood":{"mode_multi_funny":162000,"mode_multi_normal":540000,"mode_multi_hard":1350000,"mode_multi_abyss":2250000,"mode_single_funny":129600,"mode_single_1":162000,"mode_single_2":216000,"mode_single_3":270000,"mode_single_4":324000,"mode_single_5":378000,"mode_single_6":432000,"mode_single_7":486000,"mode_single_8":540000,"mode_single_9":675000,"mode_single_10":810000,"mode_single_11":945000,"mode_single_12":1080000,"mode_single_13":1215000,"mode_single_14":1350000,"mode_single_15":1500000,"mode_single_16":1650000,"mode_single_17":1800000,"mode_single_18":1950000,"mode_single_19":2100000,"mode_single_20":2250000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[{"m":[2,4]},{"w":25}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[{"m":[2,4]},{"w":25}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9017_achunt","n":1,"iv":0,"route":4},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":3},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":5},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":12},{"t":30,"key":"enemy_1430_lrrook","n":1,"iv":30,"route":1},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":8},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":15},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":9},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":16},{"t":90,"key":"enemy_1430_lrrook","n":1,"iv":25,"route":2}],"mul":0.5},{"id":"boss_3","round":14,"lv":"h07_03_s","key":"enemy_9021_acduml","name":"假想敌：管","blood":{"mode_multi_funny":302400,"mode_multi_normal":1008000,"mode_multi_hard":2520000,"mode_multi_abyss":4200000,"mode_single_funny":241920,"mode_single_1":302400,"mode_single_2":403200,"mode_single_3":504000,"mode_single_4":604800,"mode_single_5":705600,"mode_single_6":806400,"mode_single_7":907200,"mode_single_8":1008000,"mode_single_9":1260000,"mode_single_10":1512000,"mode_single_11":1764000,"mode_single_12":2016000,"mode_single_13":2268000,"mode_single_14":2520000,"mode_single_15":2800000,"mode_single_16":3080000,"mode_single_17":3360000,"mode_single_18":3640000,"mode_single_19":3920000,"mode_single_20":4200000},"T":120,"routes":[{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]}],"spawns":[{"t":0,"key":"enemy_9023_acdums","n":2,"iv":40,"route":4},{"t":1,"key":"enemy_9021_acduml","n":1,"iv":1,"route":5},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":6},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":13},{"t":15,"key":"enemy_1209_sfden_2","n":2,"iv":25,"route":3},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":9},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":16},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":10},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":17}],"mul":0.5},{"id":"boss_4","round":14,"lv":"h07_04_s","key":"enemy_1521_dslily","name":"盐风主教昆图斯","blood":{"mode_multi_funny":314640,"mode_multi_normal":1048800,"mode_multi_hard":2622000,"mode_multi_abyss":4370000,"mode_single_funny":251712,"mode_single_1":314640,"mode_single_2":419520,"mode_single_3":524400,"mode_single_4":629280,"mode_single_5":734160,"mode_single_6":839040,"mode_single_7":943920,"mode_single_8":1048800,"mode_single_9":1311000,"mode_single_10":1573200,"mode_single_11":1835400,"mode_single_12":2097600,"mode_single_13":2359800,"mode_single_14":2622000,"mode_single_15":2913333,"mode_single_16":3204667,"mode_single_17":3496000,"mode_single_18":3787333,"mode_single_19":4078667,"mode_single_20":4370000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]}],"spawns":[{"t":0,"key":"enemy_1521_dslily","n":1,"iv":1,"route":10},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":2},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":6},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":3},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":7},{"t":7,"key":"enemy_1438_dspred","n":3,"iv":6,"route":0},{"t":45,"key":"enemy_1438_dspred","n":2,"iv":7,"route":1},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":4},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":8},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":5},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":9}],"mul":0.5},{"id":"boss_6","round":14,"lv":"h07_06_s","key":"enemy_9032_aclionk","name":"阿利斯泰尔，帝国余晖","blood":{"mode_multi_funny":266400,"mode_multi_normal":888000,"mode_multi_hard":2220000,"mode_multi_abyss":3700000,"mode_single_funny":213120,"mode_single_1":266400,"mode_single_2":355200,"mode_single_3":444000,"mode_single_4":532800,"mode_single_5":621600,"mode_single_6":710400,"mode_single_7":799200,"mode_single_8":888000,"mode_single_9":1110000,"mode_single_10":1332000,"mode_single_11":1554000,"mode_single_12":1776000,"mode_single_13":1998000,"mode_single_14":2220000,"mode_single_15":2466667,"mode_single_16":2713333,"mode_single_17":2960000,"mode_single_18":3206667,"mode_single_19":3453333,"mode_single_20":3700000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,1],"cp":[{"m":[2,7]},{"m":[2,5]},{"m":[1,4]},{"m":[1,2]},{"m":[0,1]}]},{"fly":true,"s":[3,8],"e":[0,1],"cp":[{"m":[2,7]},{"m":[2,5]},{"m":[1,4]},{"m":[1,2]},{"m":[0,1]}]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9032_aclionk","n":1,"iv":1,"route":5},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":2},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":6},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":13},{"t":15,"key":"enemy_10085_hllevi_2","n":1,"iv":50,"route":3},{"t":55,"key":"enemy_10085_hllevi_2","n":1,"iv":50,"route":4},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":9},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":16},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":10},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":17}],"mul":0.5},{"id":"boss_7","round":14,"lv":"h07_07_s","key":"enemy_9033_acdeer","name":"“萨米的意志”","blood":{"mode_multi_funny":290880,"mode_multi_normal":969600,"mode_multi_hard":2424000,"mode_multi_abyss":4040000,"mode_single_funny":232704,"mode_single_1":290880,"mode_single_2":387840,"mode_single_3":484800,"mode_single_4":581760,"mode_single_5":678720,"mode_single_6":775680,"mode_single_7":872640,"mode_single_8":969600,"mode_single_9":1212000,"mode_single_10":1454400,"mode_single_11":1696800,"mode_single_12":1939200,"mode_single_13":2181600,"mode_single_14":2424000,"mode_single_15":2693333,"mode_single_16":2962667,"mode_single_17":3232000,"mode_single_18":3501333,"mode_single_19":3770667,"mode_single_20":4040000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]}],"spawns":[{"t":0,"key":"enemy_9033_acdeer","n":1,"iv":1,"route":10},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":10,"key":"enemy_1081_sotisd","n":4,"iv":17,"route":9},{"t":21,"key":"enemy_1067_snslime","n":5,"iv":21,"route":8},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":2},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":6},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7}],"mul":0.5},{"id":"boss_11","round":14,"lv":"h07_08_s","key":"enemy_9029_acfnc","name":"假想敌：械","blood":{"mode_multi_funny":239400,"mode_multi_normal":798000,"mode_multi_hard":1995000,"mode_multi_abyss":3325000,"mode_single_funny":191520,"mode_single_1":239400,"mode_single_2":319200,"mode_single_3":399000,"mode_single_4":478800,"mode_single_5":558600,"mode_single_6":638400,"mode_single_7":718200,"mode_single_8":798000,"mode_single_9":997500,"mode_single_10":1197000,"mode_single_11":1396500,"mode_single_12":1596000,"mode_single_13":1795500,"mode_single_14":1995000,"mode_single_15":2216667,"mode_single_16":2438333,"mode_single_17":2660000,"mode_single_18":2881667,"mode_single_19":3103333,"mode_single_20":3325000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]}],"spawns":[{"t":0,"key":"enemy_9029_acfnc","n":1,"iv":1,"route":9},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":7,"key":"enemy_10196_ubba_2","n":3,"iv":20,"route":8},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":2},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":6},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7}],"mul":0.5},{"id":"boss_12","round":14,"lv":"h07_09_s","key":"enemy_9035_acspider","name":"假想敌：茧","blood":{"mode_multi_funny":298800,"mode_multi_normal":996000,"mode_multi_hard":2490000,"mode_multi_abyss":4150000,"mode_single_funny":239040,"mode_single_1":298800,"mode_single_2":398400,"mode_single_3":498000,"mode_single_4":597600,"mode_single_5":697200,"mode_single_6":796800,"mode_single_7":896400,"mode_single_8":996000,"mode_single_9":1245000,"mode_single_10":1494000,"mode_single_11":1743000,"mode_single_12":1992000,"mode_single_13":2241000,"mode_single_14":2490000,"mode_single_15":2766667,"mode_single_16":3043333,"mode_single_17":3320000,"mode_single_18":3596667,"mode_single_19":3873333,"mode_single_20":4150000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9035_acspider","n":1,"iv":1,"route":4},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":2},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":5},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":12},{"t":10,"key":"enemy_1424_lrboom","n":4,"iv":17,"route":3},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":8},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":15},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":9},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":16}],"mul":0.5},{"id":"boss_13","round":14,"lv":"h07_10_s","key":"enemy_9037_aceel","name":"假想敌：鳍","blood":{"mode_multi_funny":151200,"mode_multi_normal":504000,"mode_multi_hard":1260000,"mode_multi_abyss":2100000,"mode_single_funny":120960,"mode_single_1":151200,"mode_single_2":201600,"mode_single_3":252000,"mode_single_4":302400,"mode_single_5":352800,"mode_single_6":403200,"mode_single_7":453600,"mode_single_8":504000,"mode_single_9":630000,"mode_single_10":756000,"mode_single_11":882000,"mode_single_12":1008000,"mode_single_13":1134000,"mode_single_14":1260000,"mode_single_15":1400000,"mode_single_16":1540000,"mode_single_17":1680000,"mode_single_18":1820000,"mode_single_19":1960000,"mode_single_20":2100000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[3,6]},{"m":[0,5]},{"m":[3,3]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[3,6]},{"m":[0,5]},{"m":[3,3]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[3,6]},{"m":[0,5]},{"m":[3,3]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]}],"spawns":[{"t":0,"key":"enemy_9037_aceel","n":1,"iv":0,"route":19},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":11},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":12},{"t":30,"key":"enemy_1435_dsflys","n":1,"iv":30,"route":8},{"t":60,"key":"enemy_1435_dsflys","n":1,"iv":30,"route":9},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":4},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":15},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":5},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":16},{"t":90,"key":"enemy_1435_dsflys","n":1,"iv":25,"route":10}],"mul":0.5},{"id":"boss_17","round":14,"lv":"h07_11_s","key":"enemy_2124_dyjsfg","name":"矩兽","blood":{"mode_multi_funny":140400,"mode_multi_normal":468000,"mode_multi_hard":1170000,"mode_multi_abyss":1950000,"mode_single_funny":112320,"mode_single_1":140400,"mode_single_2":187200,"mode_single_3":234000,"mode_single_4":280800,"mode_single_5":327600,"mode_single_6":374400,"mode_single_7":421200,"mode_single_8":468000,"mode_single_9":585000,"mode_single_10":702000,"mode_single_11":819000,"mode_single_12":936000,"mode_single_13":1053000,"mode_single_14":1170000,"mode_single_15":1300000,"mode_single_16":1430000,"mode_single_17":1560000,"mode_single_18":1690000,"mode_single_19":1820000,"mode_single_20":1950000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]}],"spawns":[{"t":0,"key":"enemy_2124_dyjsfg","n":1,"iv":1,"route":9},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":10,"key":"enemy_1299_ymkilr_2","n":2,"iv":20,"route":8},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":2},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":6},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7}],"mul":0.5},{"id":"boss_8","round":15,"lv":"h08_01_s","key":"enemy_9013_acstmk_2","name":"假想敌：胄","blood":{"mode_multi_funny":492480,"mode_multi_normal":1641600,"mode_multi_hard":4104000,"mode_multi_abyss":6840000,"mode_single_funny":393984,"mode_single_1":492480,"mode_single_2":656640,"mode_single_3":820800,"mode_single_4":984960,"mode_single_5":1149120,"mode_single_6":1313280,"mode_single_7":1477440,"mode_single_8":1641600,"mode_single_9":2052000,"mode_single_10":2462400,"mode_single_11":2872800,"mode_single_12":3283200,"mode_single_13":3693600,"mode_single_14":4104000,"mode_single_15":4560000,"mode_single_16":5016000,"mode_single_17":5472000,"mode_single_18":5928000,"mode_single_19":6384000,"mode_single_20":6840000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]},{"fly":false,"s":[1,10],"e":[0,1],"cp":[]},{"fly":false,"s":[1,6],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9013_acstmk_2","n":1,"iv":1,"route":3},{"t":0,"key":"enemy_9014_acstma","n":1,"iv":1,"route":4},{"t":0,"key":"enemy_9015_acstmb","n":1,"iv":1,"route":5},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":6},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":13},{"t":11,"key":"enemy_10027_vtsk","n":3,"iv":30,"route":2},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":9},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":16},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":10},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":17}],"mul":0.5},{"id":"boss_9","round":15,"lv":"h08_02_s","key":"enemy_9017_achunt_2","name":"假想敌：铳","blood":{"mode_multi_funny":430560,"mode_multi_normal":1435200,"mode_multi_hard":3588000,"mode_multi_abyss":5980000,"mode_single_funny":344448,"mode_single_1":430560,"mode_single_2":574080,"mode_single_3":717600,"mode_single_4":861120,"mode_single_5":1004640,"mode_single_6":1148160,"mode_single_7":1291680,"mode_single_8":1435200,"mode_single_9":1794000,"mode_single_10":2152800,"mode_single_11":2511600,"mode_single_12":2870400,"mode_single_13":3229200,"mode_single_14":3588000,"mode_single_15":3986667,"mode_single_16":4385333,"mode_single_17":4784000,"mode_single_18":5182667,"mode_single_19":5581333,"mode_single_20":5980000},"T":120,"routes":[{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[2,7],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[2,9],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9018_actrpa","n":1,"iv":1,"route":1},{"t":0,"key":"enemy_9019_actrpb","n":1,"iv":1,"route":2},{"t":0,"key":"enemy_9020_actrpc","n":1,"iv":1,"route":3},{"t":0.1,"key":"enemy_9017_achunt_2","n":1,"iv":1,"route":0},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":4},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":7},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":14},{"t":12,"key":"enemy_9007_acelem","n":2,"iv":15,"route":6},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":10},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":17},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":11},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":18}],"mul":0.5},{"id":"boss_10","round":15,"lv":"h08_03_s","key":"enemy_9021_acduml_2","name":"假想敌：管","blood":{"mode_multi_funny":519840,"mode_multi_normal":1732800,"mode_multi_hard":4332000,"mode_multi_abyss":7220000,"mode_single_funny":415872,"mode_single_1":519840,"mode_single_2":693120,"mode_single_3":866400,"mode_single_4":1039680,"mode_single_5":1212960,"mode_single_6":1386240,"mode_single_7":1559520,"mode_single_8":1732800,"mode_single_9":2166000,"mode_single_10":2599200,"mode_single_11":3032400,"mode_single_12":3465600,"mode_single_13":3898800,"mode_single_14":4332000,"mode_single_15":4813333,"mode_single_16":5294667,"mode_single_17":5776000,"mode_single_18":6257333,"mode_single_19":6738667,"mode_single_20":7220000},"T":120,"routes":[{"fly":false,"s":[1,7],"e":[1,7],"cp":[{"w":999}]},{"fly":false,"s":[1,7],"e":[0,0],"cp":[{"w":500}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9023_acdums","n":2,"iv":40,"route":4},{"t":1,"key":"enemy_9021_acduml_2","n":1,"iv":1,"route":0},{"t":1,"key":"enemy_9022_acdumm","n":1,"iv":1,"route":1},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":2},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":3},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":7},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":14},{"t":15,"key":"enemy_9010_acpupp","n":1,"iv":15,"route":5},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":10},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":17},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":11},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":18},{"t":90,"key":"enemy_9010_acpupp","n":1,"iv":15,"route":6}],"mul":0.5},{"id":"boss_14","round":15,"lv":"h08_04_s","key":"enemy_9029_acfnc_2","name":"假想敌：械","blood":{"mode_multi_funny":376200,"mode_multi_normal":1254000,"mode_multi_hard":3135000,"mode_multi_abyss":5225000,"mode_single_funny":300960,"mode_single_1":376200,"mode_single_2":501600,"mode_single_3":627000,"mode_single_4":752400,"mode_single_5":877800,"mode_single_6":1003200,"mode_single_7":1128600,"mode_single_8":1254000,"mode_single_9":1567500,"mode_single_10":1881000,"mode_single_11":2194500,"mode_single_12":2508000,"mode_single_13":2821500,"mode_single_14":3135000,"mode_single_15":3483333,"mode_single_16":3831667,"mode_single_17":4180000,"mode_single_18":4528333,"mode_single_19":4876667,"mode_single_20":5225000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]}],"spawns":[{"t":0,"key":"enemy_9029_acfnc_2","n":1,"iv":1,"route":9},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":12,"key":"enemy_10196_ubba_2","n":3,"iv":30,"route":8},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":2},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":6},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7}],"mul":0.5},{"id":"boss_15","round":15,"lv":"h08_05_s","key":"enemy_9035_acspider_2","name":"假想敌：茧","blood":{"mode_multi_funny":567720,"mode_multi_normal":1892400,"mode_multi_hard":4731000,"mode_multi_abyss":7885000,"mode_single_funny":454176,"mode_single_1":567720,"mode_single_2":756960,"mode_single_3":946200,"mode_single_4":1135440,"mode_single_5":1324680,"mode_single_6":1513920,"mode_single_7":1703160,"mode_single_8":1892400,"mode_single_9":2365500,"mode_single_10":2838600,"mode_single_11":3311700,"mode_single_12":3784800,"mode_single_13":4257900,"mode_single_14":4731000,"mode_single_15":5256667,"mode_single_16":5782333,"mode_single_17":6308000,"mode_single_18":6833667,"mode_single_19":7359333,"mode_single_20":7885000},"T":120,"routes":[{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[1,8],"e":[1,8],"cp":[{"w":999}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]}],"spawns":[{"t":0,"key":"enemy_9035_acspider_2","n":1,"iv":1,"route":3},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":0},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":1},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":4},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":11},{"t":11,"key":"enemy_9040_accrit","n":3,"iv":30,"route":2},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":7},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":14},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":8},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":15}],"mul":0.5},{"id":"boss_16","round":15,"lv":"h08_06_s","key":"enemy_9037_aceel_2","name":"假想敌：鳍","blood":{"mode_multi_funny":444600,"mode_multi_normal":1482000,"mode_multi_hard":3705000,"mode_multi_abyss":6175000,"mode_single_funny":355680,"mode_single_1":444600,"mode_single_2":592800,"mode_single_3":741000,"mode_single_4":889200,"mode_single_5":1037400,"mode_single_6":1185600,"mode_single_7":1333800,"mode_single_8":1482000,"mode_single_9":1852500,"mode_single_10":2223000,"mode_single_11":2593500,"mode_single_12":2964000,"mode_single_13":3334500,"mode_single_14":3705000,"mode_single_15":4116667,"mode_single_16":4528333,"mode_single_17":4940000,"mode_single_18":5351667,"mode_single_19":5763333,"mode_single_20":6175000},"T":120,"routes":[{"fly":false,"s":[2,8],"e":[0,0],"cp":[{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"},{"o":"PATROL_MOVE"}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":true,"s":[0,8],"e":[0,1],"cp":[{"m":[0,7]},{"m":[3,7]},{"m":[3,5]},{"m":[0,5]},{"m":[0,3]},{"m":[3,3]},{"m":[3,1]},{"m":[0,1]}]},{"fly":false,"s":[0,8],"e":[0,1],"cp":[]}],"spawns":[{"t":1,"key":"enemy_9037_aceel_2","n":1,"iv":1,"route":0},{"t":3,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":1},{"t":3,"key":"enemy_1005_yokai","n":6,"iv":6,"route":5},{"t":4,"key":"enemy_1422_lrsldr","n":6,"iv":6,"route":2},{"t":4,"key":"enemy_1005_yokai","n":6,"iv":6,"route":6},{"t":12,"key":"enemy_9007_acelem","n":2,"iv":15,"route":9},{"t":63,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":3},{"t":63,"key":"enemy_1005_yokai","n":5,"iv":6,"route":7},{"t":64,"key":"enemy_1422_lrsldr","n":5,"iv":6,"route":4},{"t":64,"key":"enemy_1005_yokai","n":5,"iv":6,"route":8}],"mul":0.5}],"modes":[{"id":"mode_multi_funny","name":"标准模拟","factor":1},{"id":"mode_multi_normal","name":"险境模拟","factor":1.2},{"id":"mode_multi_hard","name":"绝境模拟","factor":1.35},{"id":"mode_multi_abyss","name":"终极模拟","factor":1.5}],"enemies":{"enemy_1007_slime":{"name":"源石虫","hp":550,"atk":130,"def":0,"res":0,"spd":1,"bat":1.7,"mass":0,"fly":false,"type":"NORMAL","lp":1},"enemy_1422_lrsldr":{"name":"萨卡兹枯朽前锋","hp":4700,"atk":300,"def":100,"res":40,"spd":0.8,"bat":3,"mass":1,"fly":false,"type":"NORMAL","lp":1,"range":-1},"enemy_1005_yokai":{"name":"妖怪","hp":800,"atk":0,"def":50,"res":0,"spd":0.9,"bat":2.3,"mass":0,"fly":true,"type":"NORMAL","lp":1},"enemy_1427_lrnazg":{"name":"“灵幛”","hp":15000,"atk":900,"def":500,"res":50,"spd":0.7,"bat":5,"mass":4,"fly":false,"type":"ELITE","lp":1,"range":1.3},"enemy_1042_frostd":{"name":"寒霜","hp":6500,"atk":100,"def":600,"res":30,"spd":0.9,"bat":1,"mass":1,"fly":true,"type":"ELITE","lp":1,"range":2.5},"enemy_1425_lrcmra":{"name":"孽罪奇美拉","hp":20000,"atk":800,"def":1000,"res":50,"spd":0.6,"bat":5,"mass":4,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_1040_bombd":{"name":"暴鸰","hp":4000,"atk":800,"def":150,"res":30,"spd":0.6,"bat":5,"mass":1,"fly":true,"type":"ELITE","lp":1,"range":2},"enemy_1006_shield_2":{"name":"重装防御组长","hp":10000,"atk":600,"def":1000,"res":0,"spd":0.75,"bat":2.6,"mass":3,"fly":false,"type":"ELITE","lp":1},"enemy_9013_acstmk":{"name":"假想敌：胄","hp":600000,"atk":650,"def":1000,"res":25,"spd":0.1,"bat":4,"mass":10,"fly":false,"type":"BOSS","lp":2,"range":8},"enemy_1430_lrrook":{"name":"愧悔魂灵圣杯","hp":100000,"atk":0,"def":0,"res":30,"spd":0.5,"bat":4,"mass":7,"fly":true,"type":"ELITE","lp":1,"range":1.7},"enemy_9017_achunt":{"name":"假想敌：铳","hp":120000,"atk":750,"def":1100,"res":60,"spd":0.4,"bat":4.5,"mass":10,"fly":false,"type":"BOSS","lp":2,"range":2},"enemy_1209_sfden_2":{"name":"堂皇","hp":18000,"atk":700,"def":1050,"res":20,"spd":0.7,"bat":3,"mass":3,"fly":false,"type":"ELITE","lp":1,"range":2},"enemy_9023_acdums":{"name":"“裂管之音”/“断弦之音”","hp":10,"atk":200,"def":0,"res":0,"spd":0.8,"bat":4,"mass":2,"fly":false,"type":"NORMAL","lp":1,"range":-1},"enemy_9021_acduml":{"name":"假想敌：管","hp":85000,"atk":300,"def":700,"res":50,"spd":1,"bat":3,"mass":7,"fly":false,"type":"BOSS","lp":2,"range":-1},"enemy_1438_dspred":{"name":"复核洋流使者","hp":13200,"atk":1050,"def":660,"res":45,"spd":1,"bat":3,"mass":4,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_1521_dslily":{"name":"盐风主教昆图斯","hp":100000,"atk":380,"def":500,"res":50,"spd":0.1,"bat":3.5,"mass":10,"fly":false,"type":"BOSS","lp":1,"range":99},"enemy_10085_hllevi_2":{"name":"“萨科塔昂首”","hp":80000,"atk":0,"def":50,"res":30,"spd":0.4,"bat":1,"mass":5,"fly":true,"type":"ELITE","lp":1,"range":-1},"enemy_9032_aclionk":{"name":"阿利斯泰尔，帝国余晖","hp":81000,"atk":820,"def":1030,"res":20,"spd":1,"bat":8.2,"mass":10,"fly":false,"type":"BOSS","lp":2,"range":3.4},"enemy_1067_snslime":{"name":"冰爆源石虫","hp":3250,"atk":300,"def":0,"res":0,"spd":1,"bat":1.7,"mass":0,"fly":false,"type":"NORMAL","lp":1},"enemy_1081_sotisd":{"name":"游击队盾卫","hp":15000,"atk":700,"def":1300,"res":60,"spd":0.7,"bat":3.8,"mass":4,"fly":false,"type":"ELITE","lp":1},"enemy_9033_acdeer":{"name":"“萨米的意志”","hp":240000,"atk":800,"def":800,"res":40,"spd":1,"bat":6,"mass":10,"fly":false,"type":"BOSS","lp":2},"enemy_10196_ubba_2":{"name":"搏命享受者","hp":25000,"atk":750,"def":1100,"res":15,"spd":0.5,"bat":3,"mass":3,"fly":false,"type":"ELITE","lp":1,"range":0.5},"enemy_9029_acfnc":{"name":"假想敌：械","hp":120000,"atk":650,"def":600,"res":30,"spd":1,"bat":10,"mass":9,"fly":false,"type":"BOSS","lp":1,"range":-1},"enemy_1424_lrboom":{"name":"恶尘源石虫","hp":6000,"atk":300,"def":100,"res":10,"spd":1,"bat":4,"mass":2,"fly":false,"type":"NORMAL","lp":1,"range":-1},"enemy_9035_acspider":{"name":"假想敌：茧","hp":120000,"atk":500,"def":800,"res":30,"spd":1,"bat":2.5,"mass":9,"fly":false,"type":"BOSS","lp":2,"range":-1},"enemy_1435_dsflys":{"name":"纤核漂游者","hp":5100,"atk":300,"def":80,"res":30,"spd":0.7,"bat":3.5,"mass":2,"fly":true,"type":"NORMAL","lp":1,"range":2.5},"enemy_9037_aceel":{"name":"假想敌：鳍","hp":120000,"atk":750,"def":600,"res":30,"spd":0.8,"bat":5,"mass":9,"fly":false,"type":"BOSS","lp":2,"range":-1},"enemy_1299_ymkilr_2":{"name":"山海众秘使","hp":11000,"atk":1000,"def":300,"res":20,"spd":1.1,"bat":2.5,"mass":3,"fly":false,"type":"ELITE","lp":1},"enemy_2124_dyjsfg":{"name":"矩兽","hp":350000,"atk":1500,"def":1000,"res":10,"spd":0.3,"bat":6,"mass":10,"fly":false,"type":"BOSS","lp":30},"enemy_10027_vtsk":{"name":"“帝国的甲胄”","hp":30000,"atk":1020,"def":1800,"res":5,"spd":0.5,"bat":5,"mass":6,"fly":false,"type":"ELITE","lp":1,"range":1.5},"enemy_9013_acstmk_2":{"name":"假想敌：胄","hp":1200000,"atk":750,"def":1200,"res":30,"spd":0.1,"bat":4,"mass":10,"fly":false,"type":"BOSS","lp":2,"range":8},"enemy_9014_acstma":{"name":"“斩胄之剑”","hp":240000,"atk":300,"def":400,"res":80,"spd":0.5,"bat":6,"mass":5,"fly":true,"type":"ELITE","lp":0,"range":1.6},"enemy_9015_acstmb":{"name":"“破胄之锤”","hp":250000,"atk":350,"def":3500,"res":10,"spd":0.5,"bat":8,"mass":5,"fly":true,"type":"ELITE","lp":0,"range":1.6},"enemy_9017_achunt_2":{"name":"假想敌：铳","hp":120000,"atk":750,"def":1100,"res":60,"spd":0.4,"bat":4.5,"mass":10,"fly":false,"type":"BOSS","lp":2,"range":2},"enemy_9018_actrpa":{"name":"“碎铳之簧”","hp":2500000,"atk":600,"def":1100,"res":60,"spd":0.3,"bat":4.5,"mass":3,"fly":false,"type":"ELITE","lp":0,"range":2},"enemy_9019_actrpb":{"name":"“碎铳之簧”","hp":2500000,"atk":600,"def":1100,"res":60,"spd":0.3,"bat":4.5,"mass":3,"fly":false,"type":"ELITE","lp":0,"range":2},"enemy_9020_actrpc":{"name":"“碎铳之簧”","hp":2500000,"atk":600,"def":1100,"res":60,"spd":0.3,"bat":4.5,"mass":3,"fly":false,"type":"ELITE","lp":0,"range":2},"enemy_9007_acelem":{"name":"假想敌：淤困","hp":36000,"atk":600,"def":200,"res":40,"spd":0.5,"bat":1,"mass":1,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_9021_acduml_2":{"name":"假想敌：管","hp":85000,"atk":300,"def":700,"res":50,"spd":1,"bat":3,"mass":7,"fly":false,"type":"BOSS","lp":2,"range":-1},"enemy_9022_acdumm":{"name":"假想敌：弦","hp":85000,"atk":120,"def":700,"res":50,"spd":1,"bat":5,"mass":7,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_9010_acpupp":{"name":"假想敌：再生","hp":12000,"atk":1100,"def":300,"res":40,"spd":0.5,"bat":5,"mass":4,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_9029_acfnc_2":{"name":"假想敌：械","hp":120000,"atk":750,"def":600,"res":30,"spd":1,"bat":10,"mass":9,"fly":false,"type":"BOSS","lp":1,"range":-1},"enemy_9040_accrit":{"name":"假想敌：丛生","hp":11000,"atk":1200,"def":400,"res":20,"spd":0.7,"bat":4.5,"mass":2,"fly":false,"type":"ELITE","lp":1,"range":-1},"enemy_9035_acspider_2":{"name":"假想敌：茧","hp":120000,"atk":500,"def":800,"res":30,"spd":1,"bat":2.5,"mass":9,"fly":false,"type":"BOSS","lp":2,"range":-1},"enemy_9037_aceel_2":{"name":"假想敌：鳍","hp":120000,"atk":750,"def":600,"res":30,"spd":0.8,"bat":5,"mass":9,"fly":false,"type":"BOSS","lp":2,"range":-1}},"ops":{"折桠":{"cid":"char_4207_branch","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],["x-4","x-4"]],"def":1},"艾丝黛尔":{"cid":"char_127_estell","rng":["1-1","1-1"],"blk":[2,3],"sk":[[null,null],[null,null]],"def":0},"幽灵鲨":{"cid":"char_143_ghost","rng":["1-1","1-1"],"blk":[2,3],"sk":[[null,null],[null,null]],"def":0},"野鬃":{"cid":"char_496_wildmn","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],["2-2","2-2"]],"def":1},"慕斯":{"cid":"char_185_frncat","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"角峰":{"cid":"char_199_yak","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],[null,null]],"def":1},"灰喉":{"cid":"char_367_swllow","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"深靛":{"cid":"char_469_indigo","rng":["3-14","3-14"],"blk":[1,1],"sk":[["4-1","4-1"],[null,null]],"def":1},"卡达":{"cid":"char_328_cammou","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],["3-3","3-3"]],"def":1},"摆渡人":{"cid":"char_4166_varkis","rng":["1-1","1-1"],"blk":[2,3],"sk":[[null,null],[null,null]],"def":1},"夏栎":{"cid":"char_492_quercu","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"杰克":{"cid":"char_347_jaksel","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"霜叶":{"cid":"char_193_frostl","rng":["3-12","3-12"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"拜松":{"cid":"char_325_bison","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],["x-5","x-5"]],"def":0},"褐果":{"cid":"char_4041_chnut","rng":["3-17","3-17"],"blk":[1,1],"sk":[[null,null],["3-2","3-2"]],"def":0},"烈夏":{"cid":"char_194_leto","rng":["3-12","3-12"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"陨星":{"cid":"char_219_meteo","rng":["3-8","3-10"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"拉普兰德":{"cid":"char_140_whitew","rng":["3-12","3-12"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"地灵":{"cid":"char_183_skgoat","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"折光":{"cid":"char_499_kaitou","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"蓝毒":{"cid":"char_129_bluep","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"泡泡":{"cid":"char_381_bubble","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],[null,null]],"def":1},"莎草":{"cid":"char_4139_papyrs","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"雪猎":{"cid":"char_4211_snhunt","rng":["4-9","4-9"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"砾":{"cid":"char_237_gravel","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"复奏":{"cid":"char_4031_liesel","rng":["3-6","3-6"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"奥斯塔":{"cid":"char_346_aosta","rng":["2-5","2-5"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"Miss.Christine":{"cid":"char_4198_christ","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"哈洛德":{"cid":"char_4114_harold","rng":["3-17","3-17"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"云迹":{"cid":"char_4165_ctrail","rng":["2-2","2-2"],"blk":[2,2],"sk":[["2-3","2-3"],["3-1","3-1"]],"def":1},"蛇屠箱":{"cid":"char_150_snakek","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],[null,null]],"def":1},"波登可":{"cid":"char_258_podego","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"承曦格雷伊":{"cid":"char_1027_greyy2","rng":["3-9","3-9"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"锡人":{"cid":"char_4151_tinman","rng":["2-1","3-5"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"宴":{"cid":"char_337_utage","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"渡桥":{"cid":"char_4147_mitm","rng":["3-3","3-3"],"blk":[1,1],"sk":[["x-5","x-5"],[null,null]],"def":1},"矩":{"cid":"char_4221_ju","rng":["4-3","4-3"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"星极":{"cid":"char_274_astesi","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"瑰盐":{"cid":"char_4163_rosesa","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"真理":{"cid":"char_195_glassb","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],["x-2","x-2"]],"def":1},"铸铁":{"cid":"char_333_sidero","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],["0-1","0-1"]],"def":0},"星源":{"cid":"char_135_halo","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],["3-3","3-3"]],"def":0},"安哲拉":{"cid":"char_218_cuttle","rng":["3-9","3-9"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"车尔尼":{"cid":"char_4047_pianst","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],[null,null]],"def":1},"卡涅利安":{"cid":"char_426_billro","rng":["x-1","x-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-2","x-2"]],"def":2},"乌啾":{"cid":"char_4224_turdus","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"海沫":{"cid":"char_4066_highmo","rng":["1-3","1-3"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":0},"旅骨":{"cid":"char_4232_hbound","rng":["3-5","3-5"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"风絮":{"cid":"char_4222_taraxa","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"极光":{"cid":"char_422_aurora","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"耶拉":{"cid":"char_4013_kjera","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"初雪":{"cid":"char_174_slbell","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"深巡":{"cid":"char_4137_udflow","rng":["2-2","2-2"],"blk":[3,3],"sk":[[null,null],["3-2","3-2"]],"def":1},"斯卡蒂":{"cid":"char_263_skadi","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"瑕光":{"cid":"char_423_blemsh","rng":["1-1","1-1"],"blk":[3,3],"sk":[["x-4","x-4"],["x-1","x-1"],["x-1","x-1"]],"def":2},"忍冬":{"cid":"char_4026_vulpis","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["3-12","3-12"],["2-2","2-2"]],"def":2},"伺夜":{"cid":"char_427_vigil","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"水灯心":{"cid":"char_4177_brigid","rng":["y-7","y-7"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"空弦":{"cid":"char_332_archet","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"吉星":{"cid":"char_4203_kichi","rng":["2-5","2-5"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"伊桑":{"cid":"char_355_ethan","rng":["y-1","y-1"],"blk":[0,0],"sk":[[null,null],[null,null]],"def":1},"罗比菈塔":{"cid":"char_484_robrta","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"乌有":{"cid":"char_455_nothin","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"历阵锐枪芬":{"cid":"char_1036_fang2","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"凯瑟琳":{"cid":"char_4162_cathy","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"盟约·辅助干员":{"cid":"char_616_pithst","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null]],"def":0},"风丸":{"cid":"char_4016_kazema","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":1},"至简":{"cid":"char_4054_malist","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":1},"奥尔佳":{"cid":"char_4245_alga","rng":["2-2","2-2"],"blk":[2,2],"sk":[[null,null],["3-2","3-2"]],"def":1},"青枳":{"cid":"char_488_buildr","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null]],"def":0},"黑键":{"cid":"char_4046_ebnhlz","rng":["3-14","3-14"],"blk":[1,1],"sk":[["4-1","4-1"],[null,null],[null,null]],"def":1},"艾雅法拉":{"cid":"char_180_amgoat","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-3","x-3"]],"def":2},"赫拉格":{"cid":"char_188_helage","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"维伊":{"cid":"char_4226_veen","rng":["3-14","3-14"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"温蒂":{"cid":"char_400_weedy","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null],["4-1","4-1"]],"def":2},"流明":{"cid":"char_4042_lumen","rng":["3-4","3-4"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"余":{"cid":"char_2026_yu","rng":["0-1","0-1"],"blk":[3,3],"sk":[[null,null],["x-1","x-1"],[null,null]],"def":2},"森蚺":{"cid":"char_416_zumama","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"灵知":{"cid":"char_206_gnosis","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"归溟幽灵鲨":{"cid":"char_1023_ghost2","rng":["1-1","1-1"],"blk":[2,2],"sk":[["x-4","x-4"],[null,null],[null,null]],"def":1},"水月":{"cid":"char_437_mizuki","rng":["y-1","y-1"],"blk":[0,0],"sk":[[null,null],[null,null],["y-4","y-4"]],"def":1},"远牙":{"cid":"char_430_fartth","rng":["3-9","3-9"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"玛恩纳":{"cid":"char_4064_mlynar","rng":["1-2","1-2"],"blk":[3,3],"sk":[[null,null],["2-3","2-3"],["3-18","3-18"]],"def":2},"涤火杰西卡":{"cid":"char_1034_jesca2","rng":["2-2","2-2"],"blk":[3,3],"sk":[[null,null],["2-5","2-5"],[null,null]],"def":2},"白铁":{"cid":"char_4072_ironmn","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null],[null,null]],"def":2},"斥罪":{"cid":"char_4065_judge","rng":["1-1","1-1"],"blk":[3,3],"sk":[[null,null],["x-4","x-4"],[null,null]],"def":1},"W":{"cid":"char_113_cqbw","rng":["3-10","3-10"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"霍尔海雅":{"cid":"char_4027_heyak","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["3-10","3-10"]],"def":1},"山":{"cid":"char_264_f12yin","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],["0-1","0-1"],["x-5","x-5"]],"def":2},"淬羽赫默":{"cid":"char_1031_slent2","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"赫德雷":{"cid":"char_4088_hodrer","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null],[null,null]],"def":2},"夜莺":{"cid":"char_179_cgbird","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null],["y-4","y-4"]],"def":2},"仇白":{"cid":"char_4082_qiubai","rng":["3-12","3-12"],"blk":[2,2],"sk":[[null,null],["4-1","4-1"],["3-1","3-1"]],"def":2},"异客":{"cid":"char_472_pasngr","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-3","x-3"]],"def":0},"安洁莉娜":{"cid":"char_291_aglina","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null],["y-4","y-4"]],"def":2},"华法琳":{"cid":"char_171_bldsk","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null]],"def":0},"寒檀":{"cid":"char_341_sntlla","rng":["3-6","3-6"],"blk":[1,1],"sk":[[null,null],["3-3","3-3"]],"def":1},"纯烬艾雅法拉":{"cid":"char_1016_agoat2","rng":["3-17","3-17"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"怒潮凛冬":{"cid":"char_1051_headb2","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["2-5","2-5"],[null,null]],"def":1},"艾丽妮":{"cid":"char_4009_irene","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["3-12","3-12"],["x-1","x-1"]],"def":2},"棘刺":{"cid":"char_293_thorns","rng":["3-12","3-12"],"blk":[2,2],"sk":[[null,null],["3-1","3-1"],["3-3","3-3"]],"def":2},"黍":{"cid":"char_2025_shu","rng":["0-1","0-1"],"blk":[3,3],"sk":[["x-4","x-4"],["x-1","x-1"],["x-2","x-2"]],"def":2},"佩佩":{"cid":"char_4058_pepe","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["2-5","2-5"],[null,null]],"def":2},"圣聆初雪":{"cid":"char_1046_sbell2","rng":["x-1","x-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-2","x-2"]],"def":2},"凛御银灰":{"cid":"char_1045_svash2","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["3-7","3-7"],["3-1","3-1"]],"def":2},"歌蕾蒂娅":{"cid":"char_474_glady","rng":["3-2","3-2"],"blk":[2,2],"sk":[[null,null],["3-14","3-14"],[null,null]],"def":2},"乌尔比安":{"cid":"char_4145_ulpia","rng":["1-1","1-1"],"blk":[2,2],"sk":[["3-2","3-2"],[null,null],["6-1","6-1"]],"def":2},"薇薇安娜":{"cid":"char_4098_vvana","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],["1-1","1-1"]],"def":2},"铃兰":{"cid":"char_358_lisa","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null],["y-8","y-8"]],"def":2},"贝洛内":{"cid":"char_4037_demetr","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],["3-13","3-13"],[null,null]],"def":1},"维娜·维多利亚":{"cid":"char_1019_siege2","rng":["1-1","1-1"],"blk":[1,1],"sk":[["x-5","x-5"],["2-2","2-2"],[null,null]],"def":2},"迷迭香":{"cid":"char_391_rosmon","rng":["3-9","3-9"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":1},"隐德来希":{"cid":"char_4010_etlchi","rng":["1-3","1-3"],"blk":[2,2],"sk":[[null,null],[null,null],["2-5","2-5"]],"def":2},"塞雷娅":{"cid":"char_202_demkni","rng":["0-1","0-1"],"blk":[3,3],"sk":[["x-4","x-4"],["x-2","x-2"],["x-3","x-3"]],"def":0},"溯光星源":{"cid":"char_1047_halo2","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null],["y-4","y-4"]],"def":2},"老鲤":{"cid":"char_322_lmlee","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-4","x-4"]],"def":1},"Mon3tr":{"cid":"char_4179_monstr","rng":["y-2","y-2"],"blk":[1,1],"sk":[["y-2","y-2"],["y-2","y-2"],["x-4","x-4"]],"def":2},"可露希尔":{"cid":"char_4228_closur","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"“暴躁铁皮”":{"cid":"char_618_acrbot","rng":["1-1","1-1"],"blk":[3,3],"sk":[[null,null]],"def":0},"鸿雪":{"cid":"char_4055_bgsnow","rng":["3-6","3-6"],"blk":[1,1],"sk":[[null,null],["3-1","3-1"],["3-1","3-1"]],"def":1},"焰尾":{"cid":"char_420_flamtl","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["x-1","x-1"],[null,null]],"def":2},"冻河":{"cid":"char_4244_tocka","rng":["3-18","3-18"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"阿米娅":{"cid":"char_002_amiya","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["3-4","3-4"]],"def":1},"引星棘刺":{"cid":"char_1039_thorn2","rng":["3-5","3-5"],"blk":[1,1],"sk":[[null,null],[null,null],["3-9","3-9"]],"def":1},"烛煌":{"cid":"char_1040_blaze2","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],["x-2","x-2"],["4-11","4-11"]],"def":2},"浊心斯卡蒂":{"cid":"char_1012_skadi2","rng":["x-1","x-1"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"克莱门莎":{"cid":"char_4231_clemnt","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],["4-1","4-1"],["3-2","3-2"]],"def":1},"耀骑士临光":{"cid":"char_1014_nearl2","rng":["1-1","1-1"],"blk":[1,1],"sk":[["2-2","2-2"],[null,null],["2-1","2-1"]],"def":2},"荒芜拉普兰德":{"cid":"char_1038_whitw2","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],["3-18","3-18"],[null,null]],"def":2},"酒神":{"cid":"char_1042_phatm2","rng":["y-2","y-2"],"blk":[1,1],"sk":[[null,null],[null,null],["y-8","y-8"]],"def":2},"逻各斯":{"cid":"char_4133_logos","rng":["3-1","3-1"],"blk":[1,1],"sk":[["3-3","3-3"],[null,null],["3-4","3-4"]],"def":2},"真言":{"cid":"char_4204_mantra","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["3-17","3-17"]],"def":2},"妮芙":{"cid":"char_4146_nymph","rng":["3-1","3-1"],"blk":[1,1],"sk":[[null,null],[null,null],["3-3","3-3"]],"def":1},"遥":{"cid":"char_4202_haruka","rng":["y-6","y-6"],"blk":[1,1],"sk":[[null,null],[null,null],["y-8","y-8"]],"def":1},"魔王":{"cid":"char_4134_cetsyr","rng":["x-1","x-1"],"blk":[1,1],"sk":[[null,null],[null,null],["x-2","x-2"]],"def":2},"史尔特尔":{"cid":"char_350_surtr","rng":["1-1","1-1"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"锏":{"cid":"char_4116_blkkgt","rng":["1-1","1-1"],"blk":[2,2],"sk":[["x-4","x-4"],["1-4","1-4"],["x-1","x-1"]],"def":2},"机械师":{"cid":"char_4230_mcnist","rng":["2-2","2-2"],"blk":[3,3],"sk":[[null,null],[null,null],[null,null]],"def":2},"塔露拉":{"cid":"char_4247_oxi","rng":["1-1","1-1"],"blk":[2,2],"sk":[[null,null],[null,null],[null,null]],"def":2},"夕":{"cid":"char_2015_dusk","rng":["3-6","3-6"],"blk":[1,1],"sk":[[null,null],["3-3","3-3"],["3-15","3-15"]],"def":1},"蕾缪安":{"cid":"char_4193_lemuen","rng":["3-9","3-9"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"缪尔赛思":{"cid":"char_249_mlyss","rng":["3-3","3-3"],"blk":[1,1],"sk":[[null,null],[null,null],[null,null]],"def":2},"帕拉斯":{"cid":"char_485_pallas","rng":["2-2","2-2"],"blk":[2,2],"sk":[[null,null],[null,null],[null,null]],"def":2}},"ranges":{"0-1":[[0,0]],"x-4":[[1,-1],[1,0],[1,1],[0,-1],[0,0],[0,1],[-1,-1],[-1,0],[-1,1]],"1-1":[[0,0],[0,1]],"2-2":[[0,0],[0,1],[0,2]],"3-3":[[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-1,3]],"3-14":[[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[-1,1],[-1,2],[-1,3]],"4-1":[[0,0],[0,1],[0,2],[0,3],[0,4]],"3-1":[[1,0],[1,1],[1,2],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2]],"y-6":[[2,0],[2,1],[1,-1],[1,0],[1,1],[1,2],[0,-1],[0,0],[0,1],[0,2],[-1,-1],[-1,0],[-1,1],[-1,2],[-2,0],[-2,1]],"3-12":[[1,0],[1,1],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1]],"x-5":[[1,0],[0,-1],[0,0],[0,1],[-1,0]],"3-17":[[2,1],[2,2],[2,3],[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-1,3],[-2,1],[-2,2],[-2,3]],"3-2":[[0,0],[0,1],[0,2],[0,3]],"3-8":[[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[0,4],[-1,0],[-1,1],[-1,2],[-1,3]],"3-10":[[1,0],[1,1],[1,2],[1,3],[1,4],[0,0],[0,1],[0,2],[0,3],[0,4],[-1,0],[-1,1],[-1,2],[-1,3],[-1,4]],"y-2":[[1,-1],[1,0],[1,1],[1,2],[0,-1],[0,0],[0,1],[0,2],[-1,-1],[-1,0],[-1,1],[-1,2]],"4-9":[[1,0],[1,1],[0,0],[0,1],[0,2],[0,3],[0,4],[-1,0],[-1,1]],"3-6":[[1,0],[1,1],[1,2],[0,0],[0,1],[0,2],[-1,0],[-1,1],[-1,2]],"2-5":[[1,1],[1,2],[0,0],[0,1],[0,2],[-1,1],[-1,2]],"2-3":[[1,0],[1,1],[0,0],[0,1],[0,2],[-1,0],[-1,1]],"3-9":[[2,0],[2,1],[2,2],[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[0,4],[-1,0],[-1,1],[-1,2],[-1,3],[-2,0],[-2,1],[-2,2]],"2-1":[[2,0],[1,0],[1,1],[0,0],[0,1],[0,2],[-1,0],[-1,1],[-2,0]],"3-5":[[2,0],[2,1],[1,0],[1,1],[1,2],[0,0],[0,1],[0,2],[-1,0],[-1,1],[-1,2],[-2,0],[-2,1]],"4-3":[[2,2],[2,3],[1,2],[1,3],[1,4],[0,2],[0,3],[0,4],[-1,2],[-1,3],[-1,4],[-2,2],[-2,3]],"x-2":[[2,-1],[2,0],[2,1],[1,-2],[1,-1],[1,0],[1,1],[1,2],[0,-2],[0,-1],[0,0],[0,1],[0,2],[-1,-2],[-1,-1],[-1,0],[-1,1],[-1,2],[-2,-1],[-2,0],[-2,1]],"x-1":[[2,0],[1,-1],[1,0],[1,1],[0,-2],[0,-1],[0,0],[0,1],[0,2],[-1,-1],[-1,0],[-1,1],[-2,0]],"1-3":[[1,1],[0,0],[0,1],[-1,1]],"y-7":[[1,-1],[1,0],[1,1],[1,2],[1,3],[0,-1],[0,0],[0,1],[0,2],[0,3],[-1,-1],[-1,0],[-1,1],[-1,2],[-1,3]],"y-1":[[1,-1],[1,0],[1,1],[0,-1],[0,0],[0,1],[0,2],[-1,-1],[-1,0],[-1,1]],"x-3":[[3,0],[2,-1],[2,0],[2,1],[1,-2],[1,-1],[1,0],[1,1],[1,2],[0,-3],[0,-2],[0,-1],[0,0],[0,1],[0,2],[0,3],[-1,-2],[-1,-1],[-1,0],[-1,1],[-1,2],[-2,-1],[-2,0],[-2,1],[-3,0]],"3-4":[[2,0],[2,1],[2,2],[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-1,3],[-2,0],[-2,1],[-2,2]],"y-4":[[2,-1],[2,0],[2,1],[1,-1],[1,0],[1,1],[1,2],[0,-1],[0,0],[0,1],[0,2],[0,3],[-1,-1],[-1,0],[-1,1],[-1,2],[-2,-1],[-2,0],[-2,1]],"1-2":[[1,0],[0,0],[0,1],[-1,0]],"3-18":[[2,0],[2,1],[1,0],[1,1],[1,2],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-2,0],[-2,1]],"3-7":[[3,0],[2,0],[2,1],[1,0],[1,1],[1,2],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-2,0],[-2,1],[-3,0]],"6-1":[[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6]],"y-8":[[2,-1],[2,0],[2,1],[2,2],[1,-1],[1,0],[1,1],[1,2],[1,3],[0,-1],[0,0],[0,1],[0,2],[0,3],[-1,-1],[-1,0],[-1,1],[-1,2],[-1,3],[-2,-1],[-2,0],[-2,1],[-2,2]],"3-13":[[1,1],[1,2],[0,0],[0,1],[0,2],[0,3],[-1,1],[-1,2]],"4-11":[[2,2],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[0,4],[-1,1],[-1,2],[-1,3],[-2,2]],"1-4":[[1,0],[1,1],[0,0],[0,1],[-1,0],[-1,1]],"3-15":[[2,0],[2,1],[2,2],[1,0],[1,1],[1,2],[1,3],[0,0],[0,1],[0,2],[0,3],[-1,0],[-1,1],[-1,2],[-1,3],[-2,0],[-2,1],[-2,2]]},"bonds":{"炎":3,"萨尔贡":3,"维多利亚":3,"谢拉格":3,"阿戈尔":3,"叙拉古":3,"卡西米尔":3,"乌萨斯":3,"伊比利亚":3,"莱塔尼亚":3,"精准":2,"迅捷":2,"灵巧":2,"坚守":2,"助力":2,"远见":2,"奇迹":2,"投资人":3,"突袭":2,"不屈":2,"调和":1,"协防干员":2,"独行":1,"绝技":2,"聚合":2,"奥术":2}};
+
+// ── 队伍模拟 ──────────────────────────────────────────
+// 在真实战场上摆放干员，按该回合的出怪表让敌人入场、行走、被阻挡、被击倒。
+// 干员共用敌人身上的状态（元素损伤、减防减抗、麻痹）；各自的技能模型沿用单人计算。
+// 第一阶段的简化：干员不会被敌人打倒；敌人只会行走、被阻挡和普通攻击（只用于触发麻痹等效果），没有特殊能力。
+const TEAM={
+  W:9, H:4,
+  PASS:new Set(['.','f','S','E','T','i','m','g','u']),          // 地面敌人可以通行的地块
+  DEPLOY:{'.':1,'|':1,'i':1,'m':1,'g':1,'u':1,'H':2},           // 1 所有干员可部署，2 仅远程（高台）
+  TILE_NAME:{'.':'地面','|':'围栏（敌人不能通行）','#':'不可用','f':'通道（不可部署）','S':'敌人入口','T':'敌人入口','E':'出口',
+    'H':'高台（仅远程）','i':'活性源石：攻击力 +20%、攻速 +20','m':'泥沼','g':'草丛（隐匿）','u':'优化模块：攻速提升'},
+};
+
+// 某张地图、某个回合的场地。tok：会随机出现的障碍的选择 {"r,c": "crate"|"plat"|""}
+function teamBoard(map, boss, tok){
+  const rows=boss?map.bossRows:map.rows, toks=boss?map.bossTokens:map.tokens;
+  const cell=[]; for(let r=0;r<TEAM.H;r++){ cell[r]=[]; for(let c=0;c<TEAM.W;c++){ const ch=rows[r][c]; cell[r][c]={ch,obs:''}; } }
+  for(const t of toks){ if(t.r>=TEAM.H)continue; const kinds=t.kinds.filter(x=>x==='crate'||x==='plat'); if(!kinds.length)continue;
+    const key=t.r+','+t.c, pick=t.hidden?((tok&&key in tok)?tok[key]:''):kinds[0];
+    cell[t.r][t.c].obs=kinds.includes(pick)?pick:''; cell[t.r][t.c].opt=t.hidden?kinds:null; }
+  const pass=(r,c)=>r>=0&&r<TEAM.H&&c>=0&&c<TEAM.W&&TEAM.PASS.has(cell[r][c].ch)&&!cell[r][c].obs;
+  // 1 所有干员，2 仅远程，0 不可部署
+  const deploy=(r,c)=>{ const x=cell[r]&&cell[r][c]; if(!x)return 0; if(x.obs==='crate')return 0; if(x.obs==='plat')return 2; return TEAM.DEPLOY[x.ch]||0; };
+  let end=null; for(let r=0;r<TEAM.H&&!end;r++)for(let c=0;c<TEAM.W;c++)if(cell[r][c].ch==='E'){end=[r,c];break;}
+  return {cell,pass,deploy,end,boss:!!boss,tokens:toks};
+}
+
+// 地面寻路：8 方向，斜走时两侧都要能通行。返回格子中心组成的折线
+function teamPath(B,a,b,ignoreObs){
+  const ok=(r,c)=>ignoreObs?(r>=0&&r<TEAM.H&&c>=0&&c<TEAM.W&&TEAM.PASS.has(B.cell[r][c].ch)):B.pass(r,c);
+  const key=(r,c)=>r*TEAM.W+c, dist=new Map(), prev=new Map(), q=[[0,a[0],a[1]]]; dist.set(key(a[0],a[1]),0);
+  while(q.length){ q.sort((x,y)=>x[0]-y[0]); const [d,r,c]=q.shift(); if(d>dist.get(key(r,c)))continue; if(r===b[0]&&c===b[1])break;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const nr=r+dr,nc=c+dc; if(!ok(nr,nc))continue;
+      if(dr&&dc&&(!ok(r+dr,c)||!ok(r,c+dc)))continue;
+      const nd=d+(dr&&dc?Math.SQRT2:1), nk=key(nr,nc); if(nd<(dist.has(nk)?dist.get(nk):Infinity)){ dist.set(nk,nd); prev.set(nk,key(r,c)); q.push([nd,nr,nc]); } } }
+  if(!dist.has(key(b[0],b[1]))) return null;
+  const out=[]; let k=key(b[0],b[1]); while(k!==undefined){ out.unshift([Math.floor(k/TEAM.W),k%TEAM.W]); k=prev.get(k); }
+  return out;
+}
+
+// 把一条出怪路线变成折线（[行,列] 点列，WAIT 用 {w:秒} 表示）
+function teamRoute(B,route){
+  const fixEnd=p=>(B.cell[p[0]]&&B.cell[p[0]][p[1]]&&B.cell[p[0]][p[1]].ch==='E')||route.fly?p:(B.end||p);
+  const wps=[]; for(const c of route.cp){ if(c.m)wps.push({p:c.m}); else if(c.w!=null)wps.push({w:c.w}); }
+  wps.push({p:fixEnd(route.e)});
+  let cur=route.s; const line=[{p:cur}]; let blockedPath=false;
+  for(const w of wps){
+    if(w.w!=null){ line.push({w:w.w,p:cur}); continue; }
+    if(route.fly){ line.push({p:w.p}); cur=w.p; continue; }
+    let seg=teamPath(B,cur,w.p,false); if(!seg){ seg=teamPath(B,cur,w.p,true); blockedPath=true; }   // 被障碍堵死时，敌人会拆掉阻隔工事
+    if(!seg){ line.push({p:w.p}); cur=w.p; continue; }
+    for(let i=1;i<seg.length;i++)line.push({p:seg[i]}); cur=w.p;
+  }
+  // 预先算好每个点到终点的剩余路程，用来决定“离出口最近”的索敌优先级
+  let rem=0; for(let i=line.length-1;i>=0;i--){ line[i].rem=rem; if(i>0){ const a=line[i-1].p,b=line[i].p; rem+=Math.hypot(a[0]-b[0],a[1]-b[1]); } }
+  return {line,fly:route.fly,len:rem,blockedPath};
+}
+
+// 攻击范围（格子偏移，朝右）
+function teamRange(op,elite,skillOn,si){
+  const F=FIELD.ops[op.name]; if(!F) return [[0,0]];
+  const k=elite?1:0; let id=F.rng[k];
+  if(skillOn&&F.sk[si]&&F.sk[si][k]) id=F.sk[si][k];
+  return FIELD.ranges[id]||[[0,0]];
+}
+// 当前用的是第几个技能（游戏里的技能序号，从 0 开始）
+function teamSkillIndex(op,si){ const A=ALT[op.id], F=FIELD.ops[op.name];
+  if(A&&si>=0&&A.list[si]) return A.list[si].no-1;
+  if(A) return A.def-1; return F?F.def:0; }
+
+// 按在场阵容判定盟约：核心盟约 3 人激活、6 人 6 人效果；附加盟约按游戏里的激活人数
+function teamBonds(members){
+  const cnt={};
+  for(const m of members){ const bs=new Set(m.op.bonds.concat(m.sel.bond?[m.sel.bond]:[])); for(const b of bs) cnt[b]=(cnt[b]||0)+1; }
+  const cores={}; for(const c in CORE){ if(CORE[c].none)continue; const n=cnt[CORE[c].name]||0; cores[c]={n,on:n>=((FIELD.bonds||{})[CORE[c].name]||3),six:n>=6}; }
+  const subs={}; for(const s in SUBS){ const n=cnt[s]||0, need=(FIELD.bonds||{})[s]||2; subs[s]={n,need,on:n>=need,three:n>=3}; }
+  return {cnt,cores,subs};
+}
+
+// 跑一局。setup:
+//   map, boss（领袖回合时为 FIELD.bosses 里的一项）/ round（普通回合），mode（FIELD.modes 里的一项），tok，
+//   members:[{op,elite,sel,r,c}]，L:{核心盟约 id: 层数}，subL:{附加盟约: 层数}，base（其余参数，同单人计算），trace
+function teamRun(setup){
+  const B=teamBoard(setup.map,!!setup.boss,setup.tok);
+  const R=setup.boss||setup.round, mode=setup.mode, fac=mode?mode.factor:1;
+  const T=R.T, TMAX=setup.boss?Math.max(T,240):T;   // 领袖回合超时后战斗继续（游戏里按秒扣生命），这里最多算到 240 秒
+  const routes=R.routes.map(r=>teamRoute(B,r));
+  const bonds=teamBonds(setup.members);
+  const occ={}; for(const m of setup.members) occ[m.r+','+m.c]=m;
+  // 阿戈尔吞噬：每名【阿戈尔】干员吞掉身前（右边）一格的干员
+  const dvGain=new Map(), eaten=new Map();
+  if(bonds.cores.egir&&bonds.cores.egir.on){ const L=(setup.L||{}).egir||0;
+    for(const m of setup.members){ if(!m.op.bonds.includes('阿戈尔'))continue; const f=occ[m.r+','+(m.c+1)]; if(!f||eaten.has(f))continue;
+      const kf=f.elite?1:0, s=STATS[f.op.name]||[0,0,0,0,0,0], own=f.op.bonds.includes('阿戈尔');
+      const hp=Math.round(s[kf*3]*(own?1+(35+L)/100:1)), def=s[kf*3+1], dmg=Math.max(5000-def,250), alive=hp>dmg;
+      dvGain.set(m,{atk:f.op.atk[kf],tier:TIERV[f.op.tier]||1});
+      eaten.set(f,{by:m,hp,dmg,alive,dead:!alive&&!(own&&bonds.cores.egir.six)}); } }
+  const enemies=[], W={f:0,enemies,agents:[],team:true};
+  const agents=[];
+  for(const m of setup.members){ if(m.op.healer)continue;
+    // 干员所属、且已激活的核心盟约全部生效
+    const cores={}; for(const c in bonds.cores){ const b=bonds.cores[c]; if(b.on&&m.op.bonds.includes(CORE[c].name)) cores[c]={L:(setup.L||{})[c]||0,six:b.six}; }
+    const coreId=Object.keys(cores)[0]||null;
+    const sub={}; for(const s in SUBS){ const b=bonds.subs[s]; sub[s]={on:b.on,L:(setup.subL||{})[s]||0,three:b.three}; }
+    // 独行：在场只有 1 名时才生效
+    if(sub['独行']) sub['独行'].on=bonds.subs['独行'].n===1;
+    const cell=B.cell[m.r][m.c];
+    const cfg=Object.assign({},setup.base,{core:coreId||'none',cores,bondOn:!!coreId,six:false,L:0,
+      sub,T:TMAX,N:1,team:true,dvGain:dvGain.get(m)||null,eaten:eaten.get(m)||null,deploys:setup.members.length,sargRate:0,
+      boss:!!setup.boss,teamEp:null,blocking:true,
+      tileAtk:cell.ch==='i'?20:0,tileAspd:cell.ch==='i'?20:0});
+    const A=makeAgent(m.op,m.elite,cfg,Object.assign({trace:!!setup.trace},m.sel),W);
+    A.m=m; A.si=teamSkillIndex(m.op,m.sel.skill); A.blk=m.op.healer?0:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0]; A.blocked=[];
+    A.ranged=!!m.op.r;
+    agents.push(A);
+  }
+  W.agents=agents;
+  // 在场、能阻挡的单位：存活的干员，加上治疗干员（不输出，但同样占格子、阻挡敌人）。被吞噬并阵亡的干员不在场上
+  const onField=agents.filter(a=>!a.dead);
+  for(const m of setup.members) if(m.op.healer) onField.push({m,healer:true,blk:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0],blocked:[]});
+  // ── 敌人 ──
+  let uid=0, leaked=0, leakedN=0, killed=0, spawned=0, lastKill=0;
+  const queue=[]; for(const s of R.spawns) for(let j=0;j<s.n;j++) queue.push({t:s.t+j*s.iv,key:s.key,route:s.route});
+  queue.sort((a,b)=>a.t-b.t);
+  const total=queue.length;
+  const spawn=q=>{ const d=FIELD.enemies[q.key], rt=routes[q.route]; if(!rt)return;
+    const isBoss=d.type==='BOSS';
+    const hp=isBoss&&setup.boss?(setup.boss.blood[mode.id]||d.hp):d.hp*fac;
+    const p=rt.line[0].p;
+    const e=newEnemy({uid:uid++,key:q.key,name:d.name,hp,maxHp:hp,def:d.def,res:d.res,boss:isBoss,mass:d.mass,fly:d.fly,spd:d.spd,lp:d.lp,
+      bat:d.bat||2,range:d.range,rt,seg:0,y:p[0],x:p[1],wait:0,blockedBy:null,atkT:d.bat||2,born:W.f});
+    enemies.push(e); spawned++; };
+  const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
+  // 范围缓存：每名干员当前用的范围（技能开启时可能变大）
+  const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
+  const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p; return ln[i+1].rem+Math.hypot(nx[0]-e.y,nx[1]-e.x); };
+  W.inRange=(a,e)=>{ if(e.dead||e.gone)return false; if(e.fly&&!a.ranged)return false; const t=tileOf(e); return rangeSet(a).has(t[0]+','+t[1]); };
+  W.targets=a=>{ const s=rangeSet(a), out=[];
+    for(const e of enemies){ if(e.dead||e.gone)continue; if(e.fly&&!a.ranged)continue; const t=tileOf(e); if(s.has(t[0]+','+t[1])||e.blockedBy===a) out.push(e); }
+    out.sort((p,q)=>((q.blockedBy===a)-(p.blockedBy===a))||(remOf(p)-remOf(q))||(p.uid-q.uid));
+    return out; };
+  W.deal=(a,e,d)=>{ if(e.dead||e.gone||!(d>0))return 0; const got=Math.min(d,e.hp); e.hp-=d;
+    if(e.hp<=0){ e.dead=true; e.hp=0; killed++; lastKill=W.f; a.killed(); if(e.blockedBy){ const b=e.blockedBy; b.blocked=b.blocked.filter(z=>z!==e); e.blockedBy=null; } }
+    return got; };
+  W.blocking=a=>a.blocked.length>0;
+  W.blockedBy=(a,e)=>e.blockedBy===a;
+  W.attacksMe=(a,e)=>e.blockedBy===a;
+  W.blockedList=(a,n)=>a.blocked.slice(0,n);
+  W.nextOf=(a,e)=>{ const t=W.targets(a); return t.find(z=>z!==e)||null; };
+  W.onCast=a=>{ if(a.cores.sargon) for(const b of agents) if(b!==a&&b.cores.sargon) b.sargStack(); };
+  // 回放：每 0.5 秒记一帧
+  const frames=setup.trace?[]:null;
+  const F=Math.round(TMAX*30); let qi=0, endF=F;
+  for(W.f=0;W.f<F;W.f++){
+    const t=W.f/30;
+    while(qi<queue.length&&queue[qi].t<=t){ spawn(queue[qi]); qi++; }
+    // 减防减抗类光环：技能开启时作用于范围内所有敌人，所有干员共享
+    for(const e of enemies){ e.mDef=1; e.mRes=1; }
+    for(const a of agents){ if(!a.m.op.deb||!a.skillOn())continue; const b=a.buffs();
+      for(const e of enemies) if(!e.dead&&!e.gone&&W.inRange(a,e)){ e.mDef=Math.min(e.mDef,b.defMul||1); e.mRes=Math.min(e.mRes,b.resMul||1); } }
+    for(const a of agents) a.stepA();
+    worldSecond(W);
+    // 敌人普通攻击（被阻挡时，或射程内有干员时）
+    for(const e of enemies){ if(e.dead||e.gone)continue;
+      let engaged=!!e.blockedBy;
+      if(!engaged&&e.range>0) for(const a of onField){ if(Math.hypot(a.m.r-e.y,a.m.c-e.x)<=e.range+0.5){ engaged=true; break; } }
+      if(engaged){ e.atkT-=1/30; if(e.atkT<=0){ e.atkT+=e.bat; worldEnemyAttack(W,e); } } else e.atkT=Math.min(e.atkT,e.bat); }
+    for(const a of agents) a.stepB();
+    // 敌人移动
+    for(const e of enemies){ if(e.dead||e.gone||e.blockedBy)continue;
+      if(e.wait>0){ e.wait-=1/30; continue; }
+      let step=e.spd*R.mul/30; const ln=e.rt.line;
+      while(step>0&&e.seg<ln.length-1){ const nx=ln[e.seg+1];
+        if(nx.w!=null&&!nx.done){ e.seg++; e.wait=nx.w; break; }
+        const dy=nx.p[0]-e.y, dx=nx.p[1]-e.x, d=Math.hypot(dy,dx);
+        if(d<=step){ e.y=nx.p[0]; e.x=nx.p[1]; e.seg++; step-=d; } else { e.y+=dy/d*step; e.x+=dx/d*step; step=0; } }
+      if(e.seg>=ln.length-1&&!(e.wait>0)&&!e.boss){ e.gone=true; leaked+=e.lp; leakedN++; continue; }
+      // 阻挡：地面敌人走进干员所在的格子，且该干员还有阻挡数
+      if(!e.fly){ const t=tileOf(e); for(const a of onField){ if(a.blk>0&&a.m.r===t[0]&&a.m.c===t[1]&&a.blocked.length<a.blk&&Math.abs(e.y-a.m.r)<0.5&&Math.abs(e.x-a.m.c)<0.5){ e.blockedBy=a; a.blocked.push(e); break; } } }
+    }
+    if(frames&&W.f%15===0) frames.push({t,en:enemies.filter(e=>!e.dead&&!e.gone).map(e=>[e.uid,+e.y.toFixed(2),+e.x.toFixed(2),+(e.hp/e.maxHp).toFixed(3),e.blockedBy?1:0]),
+      ag:agents.map(a=>[a.skillOn()?1:0,Math.round(a.result(1).total)])});
+    // 普通回合：全部出完并且场上没有敌人就结束；领袖回合：领袖倒下就结束
+    if(qi>=queue.length&&enemies.every(e=>e.dead||e.gone)){ endF=W.f+1; break; }
+    if(setup.boss){ const bo=enemies.find(e=>e.boss); if(bo&&bo.dead){ endF=W.f+1; break; } }
+  }
+  const dur=endF/30;
+  const boss=enemies.find(e=>e.boss);
+  const res=agents.map(a=>{ const r=a.result(dur); return {m:a.m,r,dps:r.total/dur,total:r.total,kills:r.kills,eaten:eaten.get(a.m)||null,dv:dvGain.get(a.m)||null}; });
+  for(const m of setup.members) if(m.op.healer) res.push({m,healer:true,total:0,dps:0,kills:0});
+  return {dur,T,total,spawned,killed,leaked,leakedN,alive:enemies.filter(e=>!e.dead&&!e.gone).length,cleared:killed+leakedN>=total&&enemies.every(e=>e.dead||e.gone),
+    clearT:killed?lastKill/30:null,boss:boss?{name:boss.name,hp:boss.maxHp,left:boss.hp,dead:boss.dead,t:boss.dead?dur:null}:null,
+    res,bonds,frames,routes,board:B,enemies:enemies.map(e=>({uid:e.uid,key:e.key,name:e.name,fly:e.fly,boss:e.boss})),eaten:[...eaten.values()]};
 }
 
 // 领袖资料：攻击方式、能力说明（按游戏内图鉴整理，数值取自敌人数据）、隐秘核心的变化，以及对击杀时间的影响。
@@ -2275,6 +2735,221 @@ const NOTES = {
   $('bossHid').addEventListener('input',applyBoss);
   $('bossMode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;st.bossMode=+b.dataset.m;applyBoss();update();});
   setCore('iberia');
+  // 给队伍模拟页面用的共享状态和工具
+  window.__ui={st,ava,selOf,defName,skillLabel,eqName,fmt,update,XBONDS,ROMAN,TIERN};
+})();
+
+</script>
+<script>
+// 队伍模拟页面：选地图和回合、在格子上摆放干员、看回放和每人的输出
+(function(){
+  const U=window.__ui; if(!U||typeof teamRun!=='function') return;
+  const {st,ava,selOf,defName,fmt}=U;
+  const $=id=>document.getElementById(id);
+  const byId=id=>OPS.find(o=>o.id===id);
+  const STORE='weishu.team.v1';
+  const TS={map:0,round:'r5',mode:3,tok:{},members:[],L:{},subL:{},cold:50,xAtk:0,xAspd:0,stunt:0,pick:null,sel:null,fi:0,filter:'',q:'',routes:true};
+  // 第一次打开时放一套示例阵容（战场 #01、第 5 回合），之后记住自己的摆放
+  let saved=null; try{ saved=JSON.parse(localStorage.getItem(STORE)||'null'); }catch(e){}
+  if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes']){ if(k in saved) TS[k]=saved[k]; }
+  else TS.members=[{id:'indigo',r:3,c:4},{id:'bluep',r:2,c:6},{id:'thorn2',r:1,c:6},{id:'thorns',r:0,c:1},{id:'irene',r:3,c:2}];
+  TS.members=(TS.members||[]).filter(m=>byId(m.id));
+  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes']) o[k]=TS[k]; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
+  const MAXN=8;
+  const curMap=()=>FIELD.maps[TS.map]||FIELD.maps[0];
+  const curBoss=()=>TS.round.startsWith('b:')?FIELD.bosses.find(b=>b.id===TS.round.slice(2)):null;
+  const curRound=()=>curBoss()||FIELD.rounds[(+TS.round.slice(1)||1)-1];
+  const board=()=>teamBoard(curMap(),!!curBoss(),TS.tok);
+  const memberAt=(r,c)=>TS.members.find(m=>m.r===r&&m.c===c);
+  const coreName=c=>CORE[c].name;
+  const isRanged=o=>!!o.r;
+  let res=null, timer=0, playT=0;
+
+  // ── 运行 ──
+  function setup(trace){
+    const members=TS.members.map(m=>{ const op=byId(m.id); return {op,elite:!!st.elite[op.id],sel:selOf(op),r:m.r,c:m.c}; });
+    const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
+    const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=TS.L[c]??150;
+    const subL={}; for(const s in SUBS) subL[s]=TS.subL[s]??50;
+    return {map:curMap(),round:curBoss()?null:curRound(),boss:curBoss(),mode:FIELD.modes[TS.mode],tok:TS.tok,members,L,subL,base,trace};
+  }
+  function run(){ clearTimeout(timer); timer=setTimeout(()=>{ stop(); res=TS.members.length?teamRun(setup(true)):null; TS.fi=0; render(); save(); },30); }
+
+  // ── 渲染 ──
+  const TILECLS={'.':'road','|':'fence','#':'void','f':'floor','S':'start','T':'start','E':'end','H':'high','i':'infect','m':'mire','g':'grass','u':'speed'};
+  function renderBoard(){
+    const B=board(), sel=TS.sel&&memberAt(TS.sel[0],TS.sel[1]), pick=TS.pick&&byId(TS.pick);
+    let rng=new Set();
+    if(sel){ const op=byId(sel.id); for(const [dr,dc] of teamRange(op,!!st.elite[op.id],false,teamSkillIndex(op,st.skill[op.id]))) rng.add((sel.r+dr)+','+(sel.c+dc)); }
+    const fr=res&&res.frames&&res.frames[TS.fi];
+    const agIdx=new Map(); if(res) res.res.forEach((x,i)=>{ if(!x.healer) agIdx.set(x.m.r+','+x.m.c,i); });
+    let h='';
+    for(let r=TEAM.H-1;r>=0;r--) for(let c=0;c<TEAM.W;c++){
+      const cell=B.cell[r][c], m=memberAt(r,c), dep=B.deploy(r,c);
+      const can=pick?(dep===1||(dep===2&&isRanged(pick))):false;
+      const cls=['tc','t-'+(TILECLS[cell.ch]||'void')];
+      if(cell.obs) cls.push('o-'+cell.obs); if(cell.opt) cls.push('opt');
+      if(rng.has(r+','+c)) cls.push('inr'); if(can&&!m) cls.push('can');
+      if(sel&&sel.r===r&&sel.c===c) cls.push('sel');
+      let inner='';
+      if(m){ const op=byId(m.id), ai=agIdx.get(r+','+c), on=fr&&ai!=null&&fr.ag[ai]&&fr.ag[ai][0];
+        const eat=res&&res.res.find(x=>x.m.r===r&&x.m.c===c&&x.eaten&&x.eaten.dead);
+        inner=`<span class="pc${on?' on':''}${eat?' gone':''}">${ava(op)}</span>`; }
+      else if(cell.obs==='crate') inner='<span class="ob" title="阻隔工事：敌人绕行，不能部署">▦</span>';
+      else if(cell.obs==='plat') inner='<span class="ob" title="射击台：敌人不能通行，只能部署远程干员">▲</span>';
+      else if(cell.ch==='S'||cell.ch==='T') inner='<span class="mk">入</span>';
+      else if(cell.ch==='E') inner='<span class="mk">出</span>';
+      const tip=(TEAM.TILE_NAME[cell.ch]||'')+(cell.opt?'（随机障碍位：点击切换）':'');
+      h+=`<button type="button" class="${cls.join(' ')}" data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
+    }
+    // 路线和敌人画在格子上面的一层
+    const X=c=>((c+0.5)/TEAM.W*100), Y=r=>((TEAM.H-1-r+0.5)/TEAM.H*100);
+    let ov='';
+    if(TS.routes&&(!fr||TS.fi===0)){ const R=curRound(), seen=new Set();
+      ov+='<svg class="routes" viewBox="0 0 900 400" preserveAspectRatio="none" aria-hidden="true">';
+      for(const rt of R.routes){ const t=teamRoute(B,rt), key=JSON.stringify(t.line.map(p=>p.p)); if(seen.has(key))continue; seen.add(key);
+        ov+=`<polyline points="${t.line.map(p=>(X(p.p[1])*9).toFixed(0)+','+(Y(p.p[0])*4).toFixed(0)).join(' ')}" class="${rt.fly?'fly':'gnd'}"/>`; }
+      ov+='</svg>'; }
+    if(fr&&res){ const meta=new Map(res.enemies.map(e=>[e.uid,e]));
+      for(const [uid,y,x,hp,bl] of fr.en){ const e=meta.get(uid)||{};
+        ov+=`<span class="foe${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}" style="left:${X(x).toFixed(2)}%;top:${Y(y).toFixed(2)}%" title="${e.name||''} ${Math.round(hp*100)}%"><i style="width:${(hp*100).toFixed(0)}%"></i></span>`; } }
+    $('tBoard').innerHTML=h+`<div class="ov">${ov}</div>`;
+    $('tBoard').classList.toggle('arming',!!pick);
+  }
+  function renderSide(){
+    $('tMap').innerHTML=FIELD.maps.map((m,i)=>`<option value="${i}"${i===TS.map?' selected':''}>战场 ${m.name}</option>`).join('');
+    const ro=FIELD.rounds.map(r=>`<option value="r${r.n}"${TS.round==='r'+r.n?' selected':''}>第 ${r.n} 回合 · ${r.spawns.reduce((a,s)=>a+s.n,0)} 个敌人 · 限时 ${r.T} 秒</option>`).join('');
+    const bo=[14,15].map(n=>`<optgroup label="第 ${n} 回合 · 领袖">${FIELD.bosses.filter(b=>b.round===n).map(b=>`<option value="b:${b.id}"${TS.round==='b:'+b.id?' selected':''}>${b.name}</option>`).join('')}</optgroup>`).join('');
+    $('tRound').innerHTML=`<optgroup label="普通回合">${ro}</optgroup>${bo}`;
+    document.querySelectorAll('#tMode button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.m===TS.mode));
+    const B=board(), opts=B.cell.flat().filter(c=>c.opt).length;
+    $('tTok').textContent=opts?`这张图有 ${opts} 个随机障碍位（虚线框），点击可以在“空 / 阻隔工事 / 射击台”之间切换，对应游戏里同一张图的不同场地。`:'这张图没有随机障碍。';
+    // 盟约：按在场阵容自动判定
+    const members=TS.members.map(m=>({op:byId(m.id),sel:selOf(byId(m.id))}));
+    const bd=teamBonds(members);
+    const cores=Object.keys(bd.cores).filter(c=>bd.cores[c].n>0).sort((a,b)=>bd.cores[b].n-bd.cores[a].n);
+    const subs=Object.keys(bd.subs).filter(s=>bd.subs[s].n>0&&SUBS[s].fx).sort((a,b)=>bd.subs[b].n-bd.subs[a].n);
+    const row=(name,n,need,on,six,key,val,kind)=>`<div class="bd${on?' on':''}"><span class="nm">${name}</span><span class="ct">${n}/${need}${six?' · 6 人':''}</span>${on?`<input type="number" min="0" max="999" step="5" value="${val}" data-${kind}="${key}" aria-label="${name}层数"><span class="muted">层</span>`:'<span class="muted">未激活</span>'}</div>`;
+    $('tBonds').innerHTML=(cores.map(c=>row(coreName(c),bd.cores[c].n,(FIELD.bonds||{})[coreName(c)]||3,bd.cores[c].on,bd.cores[c].six&&CORE[c].six,c,TS.L[c]??150,'tl')).join('')
+      +subs.map(s=>row(s,bd.subs[s].n,bd.subs[s].need,bd.subs[s].on,false,s,TS.subL[s]??50,'ts')).join(''))||'<p class="hint">放上干员后，这里会按在场人数自动判定盟约。</p>';
+  }
+  function renderPalette(){
+    const q=TS.q.trim(), fl=TS.filter;
+    const list=OPS.filter(o=>(!fl||o.bonds.includes(fl))&&(!q||o.name.includes(q)));
+    const used=new Set(TS.members.map(m=>m.id));
+    const tiers=[6,5,4,3,2,1];
+    $('tPal').innerHTML=tiers.map(t=>{ const l=list.filter(o=>U.TIERN[o.tier]===t); if(!l.length)return '';
+      return `<div class="pg"><span class="en">${U.ROMAN[t]}</span><div class="pl">${l.map(o=>`<button type="button" class="pk${TS.pick===o.id?' armed':''}${used.has(o.id)?' used':''}" data-pick="${o.id}" title="${o.name} · ${o.cls}${o.r?'':' · 近战'}" aria-pressed="${TS.pick===o.id}">${ava(o)}<span>${o.name}</span></button>`).join('')}</div></div>`; }).join('')||'<p class="hint">没有符合的干员。</p>';
+    $('tCount').textContent=`${TS.members.length} / ${MAXN}`;
+    $('tHint').textContent=TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子可以放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}。再点一次头像取消。`:'点选干员，再点战场上的格子放置；点场上的干员可以调整技能装备、移动或撤下。';
+  }
+  const fmtT=s=>s==null?'—':(s<60?s.toFixed(1)+' 秒':Math.floor(s/60)+' 分 '+(s%60).toFixed(0).padStart(2,'0')+' 秒');
+  function renderResults(){
+    const R=curRound(), boss=curBoss();
+    if(!res){ $('tKpis').innerHTML=''; $('tList').innerHTML='<p class="hint" style="padding:14px 16px">还没有干员上场。</p>'; $('tReplay').hidden=true; return; }
+    $('tReplay').hidden=!res.frames||!res.frames.length;
+    let k='';
+    if(boss){ const b=res.boss||{left:0,hp:1};
+      k+=`<div class="kpi"><b>${b.dead?fmtT(b.t):Math.round(b.left/b.hp*100)+'%'}</b><small>${b.dead?'击倒领袖用时':'领袖剩余生命（算到 '+Math.round(res.dur)+' 秒）'}</small></div>`;
+      k+=`<div class="kpi"><b>${b.dead&&b.t<=res.T?'限时内':b.dead?'超时':'未击倒'}</b><small>限时 ${res.T} 秒，超时后每秒扣 1 生命</small></div>`;
+    } else {
+      const left=res.alive+(res.total-res.spawned);
+      k+=`<div class="kpi"><b>${res.leakedN?'漏 '+res.leakedN:left?'未清完':'清场'}</b><small>${[res.leakedN?'扣 '+res.leaked+' 生命':'',left?'时间到还剩 '+left+' 个':'',!res.leakedN&&!left?'没有敌人漏过去':''].filter(Boolean).join('，')}</small></div>`;
+      k+=`<div class="kpi"><b>${res.cleared?fmtT(res.dur):fmtT(res.dur)}</b><small>${res.cleared?'清场用时':'战斗时长'}（限时 ${res.T} 秒）</small></div>`;
+    }
+    const tot=res.res.reduce((a,x)=>a+x.total,0);
+    k+=`<div class="kpi"><b>${res.killed}<small class="muted"> / ${res.total}</small></b><small>击倒敌人</small></div>`;
+    k+=`<div class="kpi"><b>${fmt(tot/Math.max(1,res.dur))}</b><small>全队每秒伤害</small></div>`;
+    $('tKpis').innerHTML=k;
+    const rows=res.res.slice().sort((a,b)=>b.total-a.total), max=Math.max(1,...rows.map(x=>x.total));
+    $('tList').innerHTML=rows.map((x,i)=>{ const o=x.m.op, tags=[];
+      if(x.healer) tags.push('<span class="tag">治疗位，不造成伤害</span>');
+      if(x.dv) tags.push(`<span class="tag eq">吞噬身前干员 · 基础攻击 +${x.dv.atk}</span>`);
+      if(x.eaten) tags.push(`<span class="tag eq">被吞噬 · ${x.eaten.dead?'阵亡':x.eaten.alive?'存活':'复活'}</span>`);
+      const sk=U.skillLabel(o,st.elite[o.id]?1:0); if(sk&&!x.healer) tags.push(`<span class="tag">${sk}</span>`);
+      return `<div class="rc${x.healer?' heal':''}${TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c?'':''}" role="button" tabindex="0" data-cell="${x.m.r},${x.m.c}" aria-pressed="${!!(TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c)}">
+        <span class="rk">${x.healer?'–':String(i+1).padStart(2,'0')}</span>${ava(o)}
+        <div class="who"><div class="nm"><b>${o.name}</b><span>第 ${TEAM.H-x.m.r} 行第 ${x.m.c+1} 列${x.kills?' · 击倒 '+x.kills:''}</span></div><div class="tags">${tags.join('')}</div></div>
+        <div class="val"><div><b>${fmt(x.total)}</b><small>每秒 ${fmt(x.dps)}</small></div></div>
+        ${x.healer?'':`<div class="meter"><div class="bar"><i class="b" style="width:${(x.total/max*100).toFixed(1)}%"></i></div></div>`}</div>`; }).join('');
+    renderReplay();
+  }
+  function renderReplay(){ if(!res||!res.frames)return; const n=res.frames.length;
+    $('tSlider').max=n-1; $('tSlider').value=TS.fi; $('tSlider').style.setProperty('--p',(TS.fi/Math.max(1,n-1)*100)+'%');
+    const fr=res.frames[TS.fi]; $('tTime').textContent=`第 ${fr?fr.t.toFixed(1):0} 秒 · 场上敌人 ${fr?fr.en.length:0}`; $('tPlay').textContent=playT?'暂停':'播放'; }
+  // 选中的场上干员：技能、装备、移除
+  function renderEditor(){
+    const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); const box=$('tEdit');
+    if(!m){ box.innerHTML='<p class="hint">点场上的干员，在这里调整精锐、技能和装备。</p>'; return; }
+    const o=byId(m.id), e=!!st.elite[o.id], k=e?1:0, A=ALT[o.id], si=st.skill[o.id];
+    let skills='';
+    if(A){ const all=[{idx:-1,no:A.def,name:defName(o,k),d:true}].concat(A.list.map((a,i)=>({idx:i,no:a.no,name:a.name}))).sort((x,y)=>x.no-y.no);
+      skills=`<div class="seg">${all.map(q=>`<button type="button" data-tskill="${q.idx}" aria-pressed="${si===q.idx}"><em>S${q.no}</em><span>${q.name}</span></button>`).join('')}</div>`; }
+    else skills=`<p class="hint">${o.skill?String(Array.isArray(o.skill)?o.skill[k]:o.skill).split(/[（：]/)[0]:'无'} · 预设干员，技能固定</p>`;
+    const opts=cur=>'<option value="">空</option>'+[1,2,3,4,5,6,0].map(t=>{const l=EQUIP.filter(q=>q.t===t); return l.length?`<optgroup label="${t?U.ROMAN[t]+' 阶':'其他'}">${l.map(q=>`<option value="${q.id}"${q.id===cur?' selected':''}>${q.n}</option>`).join('')}</optgroup>`:'';}).join('');
+    const eq=st.eq[o.id];
+    box.innerHTML=`<div class="ed-h">${ava(o)}<div><b>${o.name}</b><span>${o.cls}</span></div><button type="button" class="elite" data-tel="1" aria-pressed="${e}">${e?'精锐':'初始'}</button></div>
+      <div class="ed-s"><span class="en">Skill</span>${skills}</div>
+      <div class="ed-s"><span class="en">Equipment</span><div class="eqs">${eq.map((it,i)=>{const q=EQUIP.find(z=>z.id===it.id);return `<div class="eqr"><select data-teq="${i}" aria-label="装备栏 ${i+1}">${opts(it.id)}</select><label class="sw"><input type="checkbox" data-tadv="${i}" ${it.adv?'checked':''} ${!q||q.one?'disabled':''}><i></i><span>进阶</span></label></div>`;}).join('')}</div></div>
+      <div class="ed-s"><div class="f"><label for="tIso">变形同构体</label><select id="tIso" data-tiso="1"><option value="">无</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select></div></div>
+      <div class="btnrow"><button type="button" class="btn" data-tdel="1">撤下</button><span class="hint">要移动：选中后点另一个空格子；点另一名干员则互换位置。</span></div>`;
+  }
+  function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); }
+
+  // ── 交互 ──
+  function stop(){ if(playT){ clearInterval(playT); playT=0; } }
+  function canPlace(op,r,c){ const d=board().deploy(r,c); return d===1||(d===2&&isRanged(op)); }
+  $('tBoard').addEventListener('click',e=>{ const b=e.target.closest('.tc'); if(!b)return; const r=+b.dataset.r,c=+b.dataset.c, m=memberAt(r,c), B=board(), cell=B.cell[r][c];
+    if(TS.pick){ const op=byId(TS.pick);
+      if(!canPlace(op,r,c))return;
+      if(m){ m.id=op.id; } else { if(TS.members.length>=MAXN)return; TS.members.push({id:op.id,r,c}); }
+      TS.members=TS.members.filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i||(x.r===r&&x.c===c));
+      // 同一名干员只放一次：放到新位置时移走旧的
+      const dup=TS.members.filter(x=>x.id===op.id); if(dup.length>1) TS.members=TS.members.filter(x=>x.id!==op.id||(x.r===r&&x.c===c));
+      TS.sel=[r,c]; TS.pick=null; run(); return; }
+    if(TS.sel&&!(TS.sel[0]===r&&TS.sel[1]===c)){ const s=memberAt(TS.sel[0],TS.sel[1]);
+      if(s){ if(m){ if(canPlace(byId(s.id),r,c)&&canPlace(byId(m.id),s.r,s.c)){ const t=[s.r,s.c]; s.r=r;s.c=c; m.r=t[0]; m.c=t[1]; TS.sel=[r,c]; run(); return; } }
+        else if(canPlace(byId(s.id),r,c)){ s.r=r; s.c=c; TS.sel=[r,c]; run(); return; } } }
+    if(m){ TS.sel=(TS.sel&&TS.sel[0]===r&&TS.sel[1]===c)?null:[r,c]; render(); return; }
+    if(cell.opt){ const seq=[''].concat(cell.opt), key=r+','+c, cur=TS.tok[key]||''; TS.tok[key]=seq[(seq.indexOf(cur)+1)%seq.length];
+      if(TS.tok[key]&&memberAt(r,c)&&!canPlace(byId(memberAt(r,c).id),r,c)) TS.members=TS.members.filter(x=>!(x.r===r&&x.c===c));
+      run(); return; }
+    TS.sel=null; render(); });
+  $('tPal').addEventListener('click',e=>{ const b=e.target.closest('[data-pick]'); if(!b)return; TS.pick=TS.pick===b.dataset.pick?null:b.dataset.pick; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); });
+  $('tQ').addEventListener('input',e=>{ TS.q=e.target.value; renderPalette(); });
+  $('tFilter').innerHTML='<button type="button" data-tf="" aria-pressed="true">全部</button>'+Object.keys(CORE).filter(c=>!CORE[c].none).map(c=>`<button type="button" data-tf="${CORE[c].name}" aria-pressed="false">${CORE[c].name}</button>`).join('');
+  $('tFilter').addEventListener('click',e=>{ const b=e.target.closest('[data-tf]'); if(!b)return; TS.filter=b.dataset.tf; document.querySelectorAll('#tFilter button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderPalette(); });
+  $('tMap').addEventListener('change',e=>{ TS.map=+e.target.value; TS.tok={}; const B=board(); TS.members=TS.members.filter(m=>canPlace(byId(m.id),m.r,m.c)); run(); });
+  $('tRound').addEventListener('change',e=>{ TS.round=e.target.value; const B=board(); TS.members=TS.members.filter(m=>canPlace(byId(m.id),m.r,m.c)); run(); });
+  $('tMode').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b)return; TS.mode=+b.dataset.m; run(); });
+  $('tBonds').addEventListener('input',e=>{ const t=e.target; const v=Math.max(0,parseFloat(t.value)||0); if(t.dataset.tl)TS.L[t.dataset.tl]=v; if(t.dataset.ts)TS.subL[t.dataset.ts]=v; clearTimeout(timer); timer=setTimeout(()=>{ res=teamRun(setup(true)); TS.fi=0; renderBoard(); renderResults(); save(); },150); });
+  for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).addEventListener('input',e=>{ TS[id]=parseFloat(e.target.value)||0; run(); });
+  $('tRoutes').addEventListener('input',e=>{ TS.routes=e.target.checked; renderBoard(); save(); });
+  $('tClear').addEventListener('click',()=>{ TS.members=[]; TS.sel=null; TS.pick=null; run(); });
+  $('tList').addEventListener('click',e=>{ const c=e.target.closest('[data-cell]'); if(!c)return; const [r,cc]=c.dataset.cell.split(',').map(Number); TS.sel=[r,cc]; render(); });
+  $('tEdit').addEventListener('click',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id);
+    if(e.target.closest('[data-tel]')){ st.elite[o.id]=!st.elite[o.id]; U.update(); run(); return; }
+    const s=e.target.closest('[data-tskill]'); if(s){ st.skill[o.id]=+s.dataset.tskill; U.update(); run(); return; }
+    if(e.target.closest('[data-tdel]')){ TS.members=TS.members.filter(x=>x!==m); TS.sel=null; run(); } });
+  $('tEdit').addEventListener('change',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id), el=e.target, it=st.eq[o.id];
+    if(el.dataset.teq!=null){ it[+el.dataset.teq]={id:el.value,adv:it[+el.dataset.teq].adv}; }
+    else if(el.dataset.tadv!=null){ it[+el.dataset.tadv].adv=el.checked; }
+    else if(el.dataset.tiso){ st.bond[o.id]=el.value; }
+    U.update(); run(); });
+  $('tSlider').addEventListener('input',e=>{ stop(); TS.fi=+e.target.value; renderBoard(); renderReplay(); });
+  $('tPlay').addEventListener('click',()=>{ if(!res||!res.frames)return; if(playT){ stop(); renderReplay(); return; }
+    if(TS.fi>=res.frames.length-1) TS.fi=0;
+    playT=setInterval(()=>{ TS.fi++; if(TS.fi>=res.frames.length-1){ TS.fi=res.frames.length-1; stop(); } renderBoard(); renderReplay(); },100); renderReplay(); });
+  // 页面切换
+  const views={solo:$('soloView'),team:$('teamView')};
+  $('views').addEventListener('click',e=>{ const b=e.target.closest('[data-view]'); if(!b)return; const v=b.dataset.view;
+    for(const k in views) views[k].hidden=k!==v; document.querySelectorAll('#views button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+    try{ localStorage.setItem('weishu.view',v); }catch(err){}
+    if(v==='team'){ run(); } else { stop(); U.update(); } });
+  for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).value=TS[id];
+  $('tRoutes').checked=!!TS.routes;
+  let v0='solo'; try{ v0=localStorage.getItem('weishu.view')||'solo'; }catch(e){}
+  if(v0==='team') document.querySelector('#views [data-view="team"]').click(); else render();
 })();
 
 </script>

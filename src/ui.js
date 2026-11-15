@@ -284,4 +284,6 @@
   $('bossHid').addEventListener('input',applyBoss);
   $('bossMode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;st.bossMode=+b.dataset.m;applyBoss();update();});
   setCore('iberia');
+  // 给队伍模拟页面用的共享状态和工具
+  window.__ui={st,ava,selOf,defName,skillLabel,eqName,fmt,update,XBONDS,ROMAN,TIERN};
 })();

@@ -1,0 +1,193 @@
+// ── 队伍模拟 ──────────────────────────────────────────
+// 在真实战场上摆放干员，按该回合的出怪表让敌人入场、行走、被阻挡、被击倒。
+// 干员共用敌人身上的状态（元素损伤、减防减抗、麻痹）；各自的技能模型沿用单人计算。
+// 第一阶段的简化：干员不会被敌人打倒；敌人只会行走、被阻挡和普通攻击（只用于触发麻痹等效果），没有特殊能力。
+const TEAM={
+  W:9, H:4,
+  PASS:new Set(['.','f','S','E','T','i','m','g','u']),          // 地面敌人可以通行的地块
+  DEPLOY:{'.':1,'|':1,'i':1,'m':1,'g':1,'u':1,'H':2},           // 1 所有干员可部署，2 仅远程（高台）
+  TILE_NAME:{'.':'地面','|':'围栏（敌人不能通行）','#':'不可用','f':'通道（不可部署）','S':'敌人入口','T':'敌人入口','E':'出口',
+    'H':'高台（仅远程）','i':'活性源石：攻击力 +20%、攻速 +20','m':'泥沼','g':'草丛（隐匿）','u':'优化模块：攻速提升'},
+};
+
+// 某张地图、某个回合的场地。tok：会随机出现的障碍的选择 {"r,c": "crate"|"plat"|""}
+function teamBoard(map, boss, tok){
+  const rows=boss?map.bossRows:map.rows, toks=boss?map.bossTokens:map.tokens;
+  const cell=[]; for(let r=0;r<TEAM.H;r++){ cell[r]=[]; for(let c=0;c<TEAM.W;c++){ const ch=rows[r][c]; cell[r][c]={ch,obs:''}; } }
+  for(const t of toks){ if(t.r>=TEAM.H)continue; const kinds=t.kinds.filter(x=>x==='crate'||x==='plat'); if(!kinds.length)continue;
+    const key=t.r+','+t.c, pick=t.hidden?((tok&&key in tok)?tok[key]:''):kinds[0];
+    cell[t.r][t.c].obs=kinds.includes(pick)?pick:''; cell[t.r][t.c].opt=t.hidden?kinds:null; }
+  const pass=(r,c)=>r>=0&&r<TEAM.H&&c>=0&&c<TEAM.W&&TEAM.PASS.has(cell[r][c].ch)&&!cell[r][c].obs;
+  // 1 所有干员，2 仅远程，0 不可部署
+  const deploy=(r,c)=>{ const x=cell[r]&&cell[r][c]; if(!x)return 0; if(x.obs==='crate')return 0; if(x.obs==='plat')return 2; return TEAM.DEPLOY[x.ch]||0; };
+  let end=null; for(let r=0;r<TEAM.H&&!end;r++)for(let c=0;c<TEAM.W;c++)if(cell[r][c].ch==='E'){end=[r,c];break;}
+  return {cell,pass,deploy,end,boss:!!boss,tokens:toks};
+}
+
+// 地面寻路：8 方向，斜走时两侧都要能通行。返回格子中心组成的折线
+function teamPath(B,a,b,ignoreObs){
+  const ok=(r,c)=>ignoreObs?(r>=0&&r<TEAM.H&&c>=0&&c<TEAM.W&&TEAM.PASS.has(B.cell[r][c].ch)):B.pass(r,c);
+  const key=(r,c)=>r*TEAM.W+c, dist=new Map(), prev=new Map(), q=[[0,a[0],a[1]]]; dist.set(key(a[0],a[1]),0);
+  while(q.length){ q.sort((x,y)=>x[0]-y[0]); const [d,r,c]=q.shift(); if(d>dist.get(key(r,c)))continue; if(r===b[0]&&c===b[1])break;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const nr=r+dr,nc=c+dc; if(!ok(nr,nc))continue;
+      if(dr&&dc&&(!ok(r+dr,c)||!ok(r,c+dc)))continue;
+      const nd=d+(dr&&dc?Math.SQRT2:1), nk=key(nr,nc); if(nd<(dist.has(nk)?dist.get(nk):Infinity)){ dist.set(nk,nd); prev.set(nk,key(r,c)); q.push([nd,nr,nc]); } } }
+  if(!dist.has(key(b[0],b[1]))) return null;
+  const out=[]; let k=key(b[0],b[1]); while(k!==undefined){ out.unshift([Math.floor(k/TEAM.W),k%TEAM.W]); k=prev.get(k); }
+  return out;
+}
+
+// 把一条出怪路线变成折线（[行,列] 点列，WAIT 用 {w:秒} 表示）
+function teamRoute(B,route){
+  const fixEnd=p=>(B.cell[p[0]]&&B.cell[p[0]][p[1]]&&B.cell[p[0]][p[1]].ch==='E')||route.fly?p:(B.end||p);
+  const wps=[]; for(const c of route.cp){ if(c.m)wps.push({p:c.m}); else if(c.w!=null)wps.push({w:c.w}); }
+  wps.push({p:fixEnd(route.e)});
+  let cur=route.s; const line=[{p:cur}]; let blockedPath=false;
+  for(const w of wps){
+    if(w.w!=null){ line.push({w:w.w,p:cur}); continue; }
+    if(route.fly){ line.push({p:w.p}); cur=w.p; continue; }
+    let seg=teamPath(B,cur,w.p,false); if(!seg){ seg=teamPath(B,cur,w.p,true); blockedPath=true; }   // 被障碍堵死时，敌人会拆掉阻隔工事
+    if(!seg){ line.push({p:w.p}); cur=w.p; continue; }
+    for(let i=1;i<seg.length;i++)line.push({p:seg[i]}); cur=w.p;
+  }
+  // 预先算好每个点到终点的剩余路程，用来决定“离出口最近”的索敌优先级
+  let rem=0; for(let i=line.length-1;i>=0;i--){ line[i].rem=rem; if(i>0){ const a=line[i-1].p,b=line[i].p; rem+=Math.hypot(a[0]-b[0],a[1]-b[1]); } }
+  return {line,fly:route.fly,len:rem,blockedPath};
+}
+
+// 攻击范围（格子偏移，朝右）
+function teamRange(op,elite,skillOn,si){
+  const F=FIELD.ops[op.name]; if(!F) return [[0,0]];
+  const k=elite?1:0; let id=F.rng[k];
+  if(skillOn&&F.sk[si]&&F.sk[si][k]) id=F.sk[si][k];
+  return FIELD.ranges[id]||[[0,0]];
+}
+// 当前用的是第几个技能（游戏里的技能序号，从 0 开始）
+function teamSkillIndex(op,si){ const A=ALT[op.id], F=FIELD.ops[op.name];
+  if(A&&si>=0&&A.list[si]) return A.list[si].no-1;
+  if(A) return A.def-1; return F?F.def:0; }
+
+// 按在场阵容判定盟约：核心盟约 3 人激活、6 人 6 人效果；附加盟约按游戏里的激活人数
+function teamBonds(members){
+  const cnt={};
+  for(const m of members){ const bs=new Set(m.op.bonds.concat(m.sel.bond?[m.sel.bond]:[])); for(const b of bs) cnt[b]=(cnt[b]||0)+1; }
+  const cores={}; for(const c in CORE){ if(CORE[c].none)continue; const n=cnt[CORE[c].name]||0; cores[c]={n,on:n>=((FIELD.bonds||{})[CORE[c].name]||3),six:n>=6}; }
+  const subs={}; for(const s in SUBS){ const n=cnt[s]||0, need=(FIELD.bonds||{})[s]||2; subs[s]={n,need,on:n>=need,three:n>=3}; }
+  return {cnt,cores,subs};
+}
+
+// 跑一局。setup:
+//   map, boss（领袖回合时为 FIELD.bosses 里的一项）/ round（普通回合），mode（FIELD.modes 里的一项），tok，
+//   members:[{op,elite,sel,r,c}]，L:{核心盟约 id: 层数}，subL:{附加盟约: 层数}，base（其余参数，同单人计算），trace
+function teamRun(setup){
+  const B=teamBoard(setup.map,!!setup.boss,setup.tok);
+  const R=setup.boss||setup.round, mode=setup.mode, fac=mode?mode.factor:1;
+  const T=R.T, TMAX=setup.boss?Math.max(T,240):T;   // 领袖回合超时后战斗继续（游戏里按秒扣生命），这里最多算到 240 秒
+  const routes=R.routes.map(r=>teamRoute(B,r));
+  const bonds=teamBonds(setup.members);
+  const occ={}; for(const m of setup.members) occ[m.r+','+m.c]=m;
+  // 阿戈尔吞噬：每名【阿戈尔】干员吞掉身前（右边）一格的干员
+  const dvGain=new Map(), eaten=new Map();
+  if(bonds.cores.egir&&bonds.cores.egir.on){ const L=(setup.L||{}).egir||0;
+    for(const m of setup.members){ if(!m.op.bonds.includes('阿戈尔'))continue; const f=occ[m.r+','+(m.c+1)]; if(!f||eaten.has(f))continue;
+      const kf=f.elite?1:0, s=STATS[f.op.name]||[0,0,0,0,0,0], own=f.op.bonds.includes('阿戈尔');
+      const hp=Math.round(s[kf*3]*(own?1+(35+L)/100:1)), def=s[kf*3+1], dmg=Math.max(5000-def,250), alive=hp>dmg;
+      dvGain.set(m,{atk:f.op.atk[kf],tier:TIERV[f.op.tier]||1});
+      eaten.set(f,{by:m,hp,dmg,alive,dead:!alive&&!(own&&bonds.cores.egir.six)}); } }
+  const enemies=[], W={f:0,enemies,agents:[],team:true};
+  const agents=[];
+  for(const m of setup.members){ if(m.op.healer)continue;
+    // 干员所属、且已激活的核心盟约全部生效
+    const cores={}; for(const c in bonds.cores){ const b=bonds.cores[c]; if(b.on&&m.op.bonds.includes(CORE[c].name)) cores[c]={L:(setup.L||{})[c]||0,six:b.six}; }
+    const coreId=Object.keys(cores)[0]||null;
+    const sub={}; for(const s in SUBS){ const b=bonds.subs[s]; sub[s]={on:b.on,L:(setup.subL||{})[s]||0,three:b.three}; }
+    // 独行：在场只有 1 名时才生效
+    if(sub['独行']) sub['独行'].on=bonds.subs['独行'].n===1;
+    const cell=B.cell[m.r][m.c];
+    const cfg=Object.assign({},setup.base,{core:coreId||'none',cores,bondOn:!!coreId,six:false,L:0,
+      sub,T:TMAX,N:1,team:true,dvGain:dvGain.get(m)||null,eaten:eaten.get(m)||null,deploys:setup.members.length,sargRate:0,
+      boss:!!setup.boss,teamEp:null,blocking:true,
+      tileAtk:cell.ch==='i'?20:0,tileAspd:cell.ch==='i'?20:0});
+    const A=makeAgent(m.op,m.elite,cfg,Object.assign({trace:!!setup.trace},m.sel),W);
+    A.m=m; A.si=teamSkillIndex(m.op,m.sel.skill); A.blk=m.op.healer?0:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0]; A.blocked=[];
+    A.ranged=!!m.op.r;
+    agents.push(A);
+  }
+  W.agents=agents;
+  // 在场、能阻挡的单位：存活的干员，加上治疗干员（不输出，但同样占格子、阻挡敌人）。被吞噬并阵亡的干员不在场上
+  const onField=agents.filter(a=>!a.dead);
+  for(const m of setup.members) if(m.op.healer) onField.push({m,healer:true,blk:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0],blocked:[]});
+  // ── 敌人 ──
+  let uid=0, leaked=0, leakedN=0, killed=0, spawned=0, lastKill=0;
+  const queue=[]; for(const s of R.spawns) for(let j=0;j<s.n;j++) queue.push({t:s.t+j*s.iv,key:s.key,route:s.route});
+  queue.sort((a,b)=>a.t-b.t);
+  const total=queue.length;
+  const spawn=q=>{ const d=FIELD.enemies[q.key], rt=routes[q.route]; if(!rt)return;
+    const isBoss=d.type==='BOSS';
+    const hp=isBoss&&setup.boss?(setup.boss.blood[mode.id]||d.hp):d.hp*fac;
+    const p=rt.line[0].p;
+    const e=newEnemy({uid:uid++,key:q.key,name:d.name,hp,maxHp:hp,def:d.def,res:d.res,boss:isBoss,mass:d.mass,fly:d.fly,spd:d.spd,lp:d.lp,
+      bat:d.bat||2,range:d.range,rt,seg:0,y:p[0],x:p[1],wait:0,blockedBy:null,atkT:d.bat||2,born:W.f});
+    enemies.push(e); spawned++; };
+  const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
+  // 范围缓存：每名干员当前用的范围（技能开启时可能变大）
+  const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
+  const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p; return ln[i+1].rem+Math.hypot(nx[0]-e.y,nx[1]-e.x); };
+  W.inRange=(a,e)=>{ if(e.dead||e.gone)return false; if(e.fly&&!a.ranged)return false; const t=tileOf(e); return rangeSet(a).has(t[0]+','+t[1]); };
+  W.targets=a=>{ const s=rangeSet(a), out=[];
+    for(const e of enemies){ if(e.dead||e.gone)continue; if(e.fly&&!a.ranged)continue; const t=tileOf(e); if(s.has(t[0]+','+t[1])||e.blockedBy===a) out.push(e); }
+    out.sort((p,q)=>((q.blockedBy===a)-(p.blockedBy===a))||(remOf(p)-remOf(q))||(p.uid-q.uid));
+    return out; };
+  W.deal=(a,e,d)=>{ if(e.dead||e.gone||!(d>0))return 0; const got=Math.min(d,e.hp); e.hp-=d;
+    if(e.hp<=0){ e.dead=true; e.hp=0; killed++; lastKill=W.f; a.killed(); if(e.blockedBy){ const b=e.blockedBy; b.blocked=b.blocked.filter(z=>z!==e); e.blockedBy=null; } }
+    return got; };
+  W.blocking=a=>a.blocked.length>0;
+  W.blockedBy=(a,e)=>e.blockedBy===a;
+  W.attacksMe=(a,e)=>e.blockedBy===a;
+  W.blockedList=(a,n)=>a.blocked.slice(0,n);
+  W.nextOf=(a,e)=>{ const t=W.targets(a); return t.find(z=>z!==e)||null; };
+  W.onCast=a=>{ if(a.cores.sargon) for(const b of agents) if(b!==a&&b.cores.sargon) b.sargStack(); };
+  // 回放：每 0.5 秒记一帧
+  const frames=setup.trace?[]:null;
+  const F=Math.round(TMAX*30); let qi=0, endF=F;
+  for(W.f=0;W.f<F;W.f++){
+    const t=W.f/30;
+    while(qi<queue.length&&queue[qi].t<=t){ spawn(queue[qi]); qi++; }
+    // 减防减抗类光环：技能开启时作用于范围内所有敌人，所有干员共享
+    for(const e of enemies){ e.mDef=1; e.mRes=1; }
+    for(const a of agents){ if(!a.m.op.deb||!a.skillOn())continue; const b=a.buffs();
+      for(const e of enemies) if(!e.dead&&!e.gone&&W.inRange(a,e)){ e.mDef=Math.min(e.mDef,b.defMul||1); e.mRes=Math.min(e.mRes,b.resMul||1); } }
+    for(const a of agents) a.stepA();
+    worldSecond(W);
+    // 敌人普通攻击（被阻挡时，或射程内有干员时）
+    for(const e of enemies){ if(e.dead||e.gone)continue;
+      let engaged=!!e.blockedBy;
+      if(!engaged&&e.range>0) for(const a of onField){ if(Math.hypot(a.m.r-e.y,a.m.c-e.x)<=e.range+0.5){ engaged=true; break; } }
+      if(engaged){ e.atkT-=1/30; if(e.atkT<=0){ e.atkT+=e.bat; worldEnemyAttack(W,e); } } else e.atkT=Math.min(e.atkT,e.bat); }
+    for(const a of agents) a.stepB();
+    // 敌人移动
+    for(const e of enemies){ if(e.dead||e.gone||e.blockedBy)continue;
+      if(e.wait>0){ e.wait-=1/30; continue; }
+      let step=e.spd*R.mul/30; const ln=e.rt.line;
+      while(step>0&&e.seg<ln.length-1){ const nx=ln[e.seg+1];
+        if(nx.w!=null&&!nx.done){ e.seg++; e.wait=nx.w; break; }
+        const dy=nx.p[0]-e.y, dx=nx.p[1]-e.x, d=Math.hypot(dy,dx);
+        if(d<=step){ e.y=nx.p[0]; e.x=nx.p[1]; e.seg++; step-=d; } else { e.y+=dy/d*step; e.x+=dx/d*step; step=0; } }
+      if(e.seg>=ln.length-1&&!(e.wait>0)&&!e.boss){ e.gone=true; leaked+=e.lp; leakedN++; continue; }
+      // 阻挡：地面敌人走进干员所在的格子，且该干员还有阻挡数
+      if(!e.fly){ const t=tileOf(e); for(const a of onField){ if(a.blk>0&&a.m.r===t[0]&&a.m.c===t[1]&&a.blocked.length<a.blk&&Math.abs(e.y-a.m.r)<0.5&&Math.abs(e.x-a.m.c)<0.5){ e.blockedBy=a; a.blocked.push(e); break; } } }
+    }
+    if(frames&&W.f%15===0) frames.push({t,en:enemies.filter(e=>!e.dead&&!e.gone).map(e=>[e.uid,+e.y.toFixed(2),+e.x.toFixed(2),+(e.hp/e.maxHp).toFixed(3),e.blockedBy?1:0]),
+      ag:agents.map(a=>[a.skillOn()?1:0,Math.round(a.result(1).total)])});
+    // 普通回合：全部出完并且场上没有敌人就结束；领袖回合：领袖倒下就结束
+    if(qi>=queue.length&&enemies.every(e=>e.dead||e.gone)){ endF=W.f+1; break; }
+    if(setup.boss){ const bo=enemies.find(e=>e.boss); if(bo&&bo.dead){ endF=W.f+1; break; } }
+  }
+  const dur=endF/30;
+  const boss=enemies.find(e=>e.boss);
+  const res=agents.map(a=>{ const r=a.result(dur); return {m:a.m,r,dps:r.total/dur,total:r.total,kills:r.kills,eaten:eaten.get(a.m)||null,dv:dvGain.get(a.m)||null}; });
+  for(const m of setup.members) if(m.op.healer) res.push({m,healer:true,total:0,dps:0,kills:0});
+  return {dur,T,total,spawned,killed,leaked,leakedN,alive:enemies.filter(e=>!e.dead&&!e.gone).length,cleared:killed+leakedN>=total&&enemies.every(e=>e.dead||e.gone),
+    clearT:killed?lastKill/30:null,boss:boss?{name:boss.name,hp:boss.maxHp,left:boss.hp,dead:boss.dead,t:boss.dead?dur:null}:null,
+    res,bonds,frames,routes,board:B,enemies:enemies.map(e=>({uid:e.uid,key:e.key,name:e.name,fly:e.fly,boss:e.boss})),eaten:[...eaten.values()]};
+}

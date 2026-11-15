@@ -46,18 +46,36 @@ function teamBoard(map, boss, tok){
   return {cell,pass,deploy,end,boss:!!boss,tokens:toks};
 }
 
-// 地面寻路：8 方向，斜走时两侧都要能通行。返回格子中心组成的折线
-function teamPath(B,a,b,ignoreObs){
-  const ok=(r,c)=>ignoreObs?(r>=0&&r<TEAM.H&&c>=0&&c<TEAM.W&&TEAM.PASS.has(B.cell[r][c].ch)):B.pass(r,c);
-  const key=(r,c)=>r*TEAM.W+c, dist=new Map(), prev=new Map(), q=[[0,a[0],a[1]]]; dist.set(key(a[0],a[1]),0);
-  while(q.length){ q.sort((x,y)=>x[0]-y[0]); const [d,r,c]=q.shift(); if(d>dist.get(key(r,c)))continue; if(r===b[0]&&c===b[1])break;
-    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc)continue; const nr=r+dr,nc=c+dc; if(!ok(nr,nc))continue;
-      if(dr&&dc&&(!ok(r+dr,c)||!ok(r,c+dc)))continue;
-      const nd=d+(dr&&dc?Math.SQRT2:1), nk=key(nr,nc); if(nd<(dist.has(nk)?dist.get(nk):Infinity)){ dist.set(nk,nd); prev.set(nk,key(r,c)); q.push([nd,nr,nc]); } } }
-  if(!dist.has(key(b[0],b[1]))) return null;
-  const out=[]; let k=key(b[0],b[1]); while(k!==undefined){ out.unshift([Math.floor(k/TEAM.W),k%TEAM.W]); k=prev.get(k); }
-  return out;
+// 官方地面寻路（据 sganggs/Stronghold-Protocol docs/research/08 §3.1，解自游戏客户端 Torappu.Battle.SPFA）：
+//   从目的地出发做 4 方向 SPFA，邻居顺序 上(行+1)、右、下、左，阻隔工事代价 1000、其余 1，同代价时保留最先到达的父节点；
+//   然后按行优先、原地做视线平滑：每个格子的父节点沿链往前跳，只要 Bresenham 视线畅通（斜步时两侧都要能通行）。
+//   敌人从所在格子直走向父节点的中心。行号与游戏一致（0 在最下面）。
+function teamFlow(B,dest){
+  const key=dest[0]+','+dest[1]; B._ff=B._ff||{}; if(B._ff[key]) return B._ff[key];
+  const H=TEAM.H, W=TEAM.W, N=H*W, id=(r,c)=>r*W+c;
+  // 射击台把地块改成高地（PRTS：可以阻挡路线，无敌），地面敌人不能通行；阻隔工事可以被拆，按代价 1000 绕行
+  const walk=(r,c)=>r>=0&&r<H&&c>=0&&c<W&&TEAM.PASS.has(B.cell[r][c].ch)&&B.cell[r][c].obs!=='plat';
+  const crate=(r,c)=>B.cell[r][c].obs==='crate';
+  const clear=(r,c)=>walk(r,c)&&!crate(r,c);
+  const dist=new Int32Array(N).fill(-1), par=new Int32Array(N).fill(-1), inQ=new Uint8Array(N);
+  if(!walk(dest[0],dest[1])) return (B._ff[key]={dist,par});
+  const q=[id(dest[0],dest[1])]; dist[q[0]]=0; inQ[q[0]]=1;
+  for(let h=0;h<q.length;h++){ const cur=q[h]; inQ[cur]=0; const r=Math.floor(cur/W), c=cur%W;
+    for(const [dr,dc] of [[1,0],[0,1],[-1,0],[0,-1]]){ const nr=r+dr, nc=c+dc; if(!walk(nr,nc)) continue;
+      const nb=id(nr,nc), nd=dist[cur]+(crate(nr,nc)?1000:1);
+      if(dist[nb]<0||nd<dist[nb]){ dist[nb]=nd; par[nb]=cur; if(!inQ[nb]){ q.push(nb); inQ[nb]=1; } } } }
+  const los=(a,b)=>{ let r0=Math.floor(a/W), c0=a%W; const r1=Math.floor(b/W), c1=b%W;
+    const dx=Math.abs(c1-c0), dy=-Math.abs(r1-r0), sx=c0<c1?1:-1, sy=r0<r1?1:-1; let err=dx+dy;
+    while(true){ if(!clear(r0,c0)) return false; if(r0===r1&&c0===c1) return true;
+      const e2=2*err; let mc=false, mr=false; if(e2>dy){ err+=dy; c0+=sx; mc=true; } if(e2<dx){ err+=dx; r0+=sy; mr=true; }   // 恰好居中时先走直步，再走斜步
+      if(mc&&mr&&(!clear(r0-sy,c0)||!clear(r0,c0-sx))) return false; } };
+  for(let r=0;r<H;r++) for(let c=0;c<W;c++){ const n=id(r,c); if(dist[n]<0||par[n]<0) continue;
+    let b=par[n]; while(par[b]>=0&&los(n,par[b])) b=par[b]; par[n]=b; }
+  return (B._ff[key]={dist,par});
 }
+// 沿流场从 a 走到 b：返回格子中心组成的折线；走不到时返回 null
+function teamFlowPath(B,a,b){ const F=teamFlow(B,b), W=TEAM.W; let n=a[0]*W+a[1]; if(F.dist[n]<0) return null;
+  const out=[[a[0],a[1]]]; let guard=0; while(F.par[n]>=0&&guard++<200){ n=F.par[n]; out.push([Math.floor(n/W),n%W]); } return out; }
 
 // 把一条出怪路线变成折线（[行,列] 点列，WAIT 用 {w:秒} 表示）
 function teamRoute(B,route){
@@ -67,17 +85,21 @@ function teamRoute(B,route){
   const wps=[]; for(const c of route.cp){ if(c.m)wps.push({p:c.m}); else if(c.w!=null)wps.push({w:c.w}); else if(c.pm)break; }
   if(pms.length){ for(const p of pms) wps.push({p}); wps.push({p:pms[0],close:1}); }
   else wps.push({p:fixEnd(route.e)});
-  let cur=route.s; const line=[{p:cur}]; let blockedPath=false, loop=null;
+  let cur=route.s; const line=[{p:cur}], legs=[]; let blockedPath=false, loop=null;
   for(const w of wps){
     if(w.w!=null){ line.push({w:w.w,p:cur}); continue; }
     if(route.fly){ line.push({p:w.p}); cur=w.p; }
-    else { let seg=teamPath(B,cur,w.p,false); if(!seg){ seg=teamPath(B,cur,w.p,true); blockedPath=true; }   // 被障碍堵死时，敌人会拆掉阻隔工事
-      if(!seg){ line.push({p:w.p}); cur=w.p; } else { for(let i=1;i<seg.length;i++)line.push({p:seg[i]}); cur=w.p; } }
+    else { const seg=teamFlowPath(B,cur,w.p), F=teamFlow(B,w.p), d0=F.dist[cur[0]*TEAM.W+cur[1]];
+      if(d0>=1000) blockedPath=true;   // 只能穿过阻隔工事：敌人被工事挡住并把它拆掉
+      legs.push({dest:w.p,F});
+      if(!seg){ line.push({p:w.p,leg:legs.length-1}); cur=w.p; } else { for(let i=1;i<seg.length;i++)line.push({p:seg[i],leg:legs.length-1}); cur=w.p; } }
     if(pms.length&&loop==null&&w.p===pms[0]&&!w.close) loop=line.length-1;
   }
   // 预先算好每个点到终点的剩余路程，用来决定“离出口最近”的索敌优先级；巡逻的敌人不会走到出口，排在最后
   let rem=0; for(let i=line.length-1;i>=0;i--){ line[i].rem=loop!=null?50+rem:rem; if(i>0){ const a=line[i-1].p,b=line[i].p; rem+=Math.hypot(a[0]-b[0],a[1]-b[1]); } }
-  return {line,fly:route.fly,len:rem,blockedPath,loop,patrol:pms.length>0};
+  // 地面路线：每一段（到某个检查点/终点）的流场距离，后面各段的距离加起来作为“段尾”，索敌按 PRTS 仇恨的路径距离计算
+  if(!route.fly&&!pms.length){ let tail=0; for(let i=legs.length-1;i>=0;i--){ legs[i].tail=tail; const st=i?legs[i-1].dest:route.s, d=legs[i].F.dist[st[0]*TEAM.W+st[1]]; tail+=d>=1000?d-999:d>=0?d:0; } }
+  return {line,fly:route.fly,len:rem,blockedPath,loop,patrol:pms.length>0,legs:!route.fly&&!pms.length?legs:null};
 }
 
 // 银行家舍入（.5 取偶数），替换数量公式用
@@ -251,7 +273,12 @@ function teamRun(setup){
   const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
   // 范围缓存：每名干员当前用的范围（技能开启时可能变大）
   const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
-  const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p; return ln[i+1].rem+Math.hypot(nx[0]-e.y,nx[1]-e.x); };
+  // 离终点的距离（索敌用）：地面路线按 PRTS 仇恨——所在格子到终点的寻路距离 + 修正值（所在位置→格子中心的向量在前进方向上的投影）
+  const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p;
+    const L=e.rt.legs&&ln[i+1].leg!=null?e.rt.legs[ln[i+1].leg]:null;
+    if(L){ const tr=Math.round(e.y), tc=Math.round(e.x), d=tr>=0&&tr<TEAM.H&&tc>=0&&tc<TEAM.W?L.F.dist[tr*TEAM.W+tc]:-1;
+      if(d>=0){ const vy=nx[0]-e.y, vx=nx[1]-e.x, n=Math.hypot(vy,vx)||1; return (d>=1000?d-999:d)+L.tail+((tr-e.y)*vy+(tc-e.x)*vx)/n; } }
+    return ln[i+1].rem+Math.hypot(nx[0]-e.y,nx[1]-e.x); };
   const hidden=e=>{ if(e.blockedBy)return false; if(e.camo)return true;
     if(EAB){ if(e.emberOn&&e.ab.ember.hide) return true; for(const z of hideSrc) if(z!==e&&dEE(z,e)<=z.ab.hideAura.r) return true; } const t=tileOf(e), c=B.cell[t[0]]&&B.cell[t[0]][t[1]]; return !!(c&&c.ch==='g'); };
   const selectable=(a,e)=>!(e.dead||e.gone||e.down>W.f||(e.fly&&!a.ranged)||hidden(e));

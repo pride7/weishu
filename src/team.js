@@ -258,7 +258,9 @@ function teamRun(setup){
   const boss=enemies.find(e=>e.boss);
   const res=agents.map(a=>{ const r=a.result(dur); return {m:a.m,r,dps:r.total/dur,total:r.total,kills:r.kills,eaten:eaten.get(a.m)||null,dv:dvGain.get(a.m)||null}; });
   for(const m of setup.members) if(m.op.healer) res.push({m,healer:true,total:0,dps:0,kills:0});
-  return {dur,T,total,spawned,killed,leaked,leakedN,alive:enemies.filter(e=>!e.dead&&!e.gone).length,cleared:killed+leakedN>=total&&enemies.every(e=>e.dead||e.gone),
+  // 回合结束时按未击倒的敌人数扣目标生命，每回合至多 10 点（PRTS 卫戍协议/帮助 §回合结束）
+  const lifeLoss=setup.boss?0:Math.min(10,total-killed);
+  return {dur,T,total,spawned,killed,leaked,leakedN,lifeLoss,alive:enemies.filter(e=>!e.dead&&!e.gone).length,cleared:killed+leakedN>=total&&enemies.every(e=>e.dead||e.gone),
     clearT:killed?lastKill/30:null,boss:boss?{name:boss.name,hp:boss.maxHp,left:boss.hp,dead:boss.dead,t:boss.dead?dur:null}:null,
     res,bonds,frames,routes,board:B,queue,scale:sc,enemies:enemies.map(e=>({uid:e.uid,key:e.key,name:e.name,fly:e.fly,boss:e.boss,route:e.route,child:e.child,born:e.born/30,deadAt:e.deadAt!=null?e.deadAt/30:null,leakAt:e.leakAt!=null?e.leakAt/30:null,maxHp:e.maxHp,left:e.hp,dmgBy:e.dmgBy,killer:e.killer})),eaten:[...eaten.values()]};
 }

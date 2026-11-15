@@ -11,11 +11,20 @@
   if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']){ if(k in saved) TS[k]=saved[k]; }
   else TS.members=[{id:'indigo',r:3,c:4},{id:'bluep',r:2,c:6},{id:'thorn2',r:1,c:6},{id:'thorns',r:0,c:1},{id:'irene',r:3,c:2}];
   TS.members=(TS.members||[]).filter(m=>byId(m.id));
-  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
+  // 阵容快照：位置之外还带上每名干员的精锐、技能、装备、变形同构体（这些设置和单人排行共用）
+  const blankEq=()=>[{id:'',adv:false},{id:'',adv:false}];
+  const snap=()=>({members:TS.members.map(m=>({id:m.id,r:m.r,c:m.c,e:!!st.elite[m.id],s:st.skill[m.id],q:JSON.parse(JSON.stringify(st.eq[m.id]||blankEq())),b:st.bond[m.id]||''})),L:Object.assign({},TS.L),subL:Object.assign({},TS.subL)});
+  const applyOps=list=>{ for(const m of list){ if(!byId(m.id))continue; if(m.e!=null)st.elite[m.id]=!!m.e; if(m.s!=null)st.skill[m.id]=m.s; if(Array.isArray(m.q)&&m.q.length)st.eq[m.id]=JSON.parse(JSON.stringify(m.q)); if(m.b!=null)st.bond[m.id]=m.b; } };
+  const applySnap=sn=>{ const ms=(sn.members||[]).filter(m=>byId(m.id)); applyOps(ms); TS.members=ms.map(m=>({id:m.id,r:m.r,c:m.c})); TS.L=Object.assign({},sn.L||{}); TS.subL=Object.assign({},sn.subL||{}); TS.sel=null; TS.pick=null; };
+  if(saved&&saved.members) applyOps(saved.members);
+  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; o.members=snap().members; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
   const MAXN=8;
   const curMap=()=>FIELD.maps[TS.map]||FIELD.maps[0];
-  const curBoss=()=>TS.round.startsWith('b:')?FIELD.bosses.find(b=>b.id===TS.round.slice(2)):null;
-  const curRound=()=>curBoss()||FIELD.rounds[(+TS.round.slice(1)||1)-1];
+  const bossOf=rk=>rk.startsWith('b:')?FIELD.bosses.find(b=>b.id===rk.slice(2)):null;
+  const roundOf=rk=>bossOf(rk)||FIELD.rounds[(+rk.slice(1)||1)-1];
+  const roundNoOf=rk=>bossOf(rk)?bossOf(rk).round:roundOf(rk).n;
+  const curBoss=()=>bossOf(TS.round);
+  const curRound=()=>roundOf(TS.round);
   const board=()=>teamBoard(curMap(),!!curBoss(),TS.tok);
   const memberAt=(r,c)=>TS.members.find(m=>m.r===r&&m.c===c);
   const coreName=c=>CORE[c].name;
@@ -24,20 +33,21 @@
   // 旧版本存的是难度序号，换成编号
   if(typeof TS.mode==='number') TS.mode=(FIELD.modes[TS.mode]||FIELD.modes[3]).id;
   const curMode=()=>FIELD.modes.find(m=>m.id===TS.mode)||FIELD.modes[3];
-  const roundNo=()=>curBoss()?curBoss().round:curRound().n;
+  const roundNo=()=>roundNoOf(TS.round);
   const SPN=()=>curMode().single?2:3;   // 本局特训类型数：联机 3 种，单人 2 种
   const spType=id=>FIELD.special.types.find(t=>t.id===id);
   // 某类型在本回合可抽到的特训敌人：前 7 回合用前半程名单，之后用后半程名单；去掉本难度禁用的
-  const spPool=type=>{ const half=roundNo()<=FIELD.special.firstHalfMaxRound, ban=new Set(curMode().inactive||[]);
+  const spPool=(type,rk=TS.round)=>{ const half=roundNoOf(rk)<=FIELD.special.firstHalfMaxRound, ban=new Set(curMode().inactive||[]);
     const all=FIELD.special.entries.filter(x=>x.type===type&&!ban.has(x.key)); const h=all.filter(x=>x.first===half); return h.length?h:all; };
   // 本回合的抽取结果（可手动改）；没设过时用本局组合的第一种，没选组合则是“特异”
-  function curPick(){ const st0=TS.spPick[TS.round]||{}; let type=st0.type||(TS.spTypes[0]||'SPECIAL');
+  function curPick(rk=TS.round){ const st0=TS.spPick[rk]||{}; let type=st0.type||(TS.spTypes[0]||'SPECIAL');
     if(type==='NONE') return {type};
     if(!spType(type)) type='SPECIAL';
-    const pool=spPool(type); let x=pool.find(p=>p.key===st0.entry)||pool[0]; if(!x) return {type:'NONE'};
+    const pool=spPool(type,rk); let x=pool.find(p=>p.key===st0.entry)||pool[0]; if(!x) return {type:'NONE'};
     const n=x.N.includes(st0.n)?st0.n:x.N[0], e=x.E.includes(st0.e)?st0.e:x.E[0];
     return {type,entry:x.key,n,e,x,pool}; }
-  const curSp=()=>{ const p=curPick(); return p.type==='NONE'?null:{entry:p.entry,n:p.n,e:p.e}; };
+  const spOf=rk=>{ const p=curPick(rk); return p.type==='NONE'?null:{entry:p.entry,n:p.n,e:p.e}; };
+  const curSp=()=>spOf(TS.round);
   const curQueue=()=>teamExpand(curRound(),curSp());
   const EI=(typeof ENEMY_IMG!=='undefined')?ENEMY_IMG:{};
   // 敌人头像；没有图的用名字首字代替
@@ -47,13 +57,17 @@
   function canPlace(op,r,c){ const d=board().deploy(r,c); return d===1||(d===2&&isRanged(op)); }
 
   // ── 运行 ──
-  function setup(trace){
-    const members=TS.members.filter(m=>canPlace(byId(m.id),m.r,m.c)).map(m=>{ const op=byId(m.id); return {op,elite:!!st.elite[op.id],sel:selOf(op),r:m.r,c:m.c}; });
+  // 按阵容快照和回合生成一局的设置；领袖回合用领袖战的场地，落在不能部署的格子上的干员不参与
+  function setupFor(sn,rk,trace){
+    const boss=bossOf(rk), B=teamBoard(curMap(),!!boss,TS.tok);
+    const ok=(op,r,c)=>{ const d=B.deploy(r,c); return d===1||(d===2&&isRanged(op)); };
+    const members=sn.members.filter(m=>byId(m.id)&&ok(byId(m.id),m.r,m.c)).map(m=>({op:byId(m.id),elite:!!m.e,sel:{skill:m.s==null?-1:m.s,eq:m.q||blankEq(),bond:m.b||null},r:m.r,c:m.c}));
     const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
-    const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=TS.L[c]??150;
-    const subL={}; for(const s in SUBS) subL[s]=TS.subL[s]??50;
-    return {map:curMap(),round:curBoss()?null:curRound(),boss:curBoss(),mode:curMode(),sp:curSp(),tok:TS.tok,members,L,subL,base,trace};
+    const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=(sn.L||{})[c]??150;
+    const subL={}; for(const s in SUBS) subL[s]=(sn.subL||{})[s]??50;
+    return {map:curMap(),round:boss?null:roundOf(rk),boss,mode:curMode(),sp:spOf(rk),tok:TS.tok,members,L,subL,base,trace,skipped:sn.members.length-members.length};
   }
+  const setup=trace=>setupFor(snap(),TS.round,trace);
   function run(){ clearTimeout(timer); timer=setTimeout(()=>{ stop(); TS.ef=TS.ef&&enemyKinds().some(k=>k.key===TS.ef)?TS.ef:null; res=TS.members.some(m=>canPlace(byId(m.id),m.r,m.c))?teamRun(setup(true)):null; TS.fi=0; render(); save(); },30); }
 
   // ── 渲染 ──
@@ -89,6 +103,7 @@
     const fr=res&&res.frames&&res.frames[TS.fi];
     const agIdx=new Map(); if(res) res.res.forEach((x,i)=>{ if(!x.healer) agIdx.set(x.m.r+','+x.m.c,i); });
     const SG=TS.real?stageOf():null;
+    const HC=heatCells();
     const unit=(m,r,c)=>{ const op=byId(m.id), ai=agIdx.get(r+','+c), on=fr&&ai!=null&&fr.ag[ai]&&fr.ag[ai][0];
       const eat=res&&res.res.find(x=>x.m.r===r&&x.m.c===c&&x.eaten&&x.eaten.dead);
       return {op,cls:'pc'+(on?' on':'')+(eat?' gone':'')+(sel&&sel.r===r&&sel.c===c?' sel':'')+(canPlace(op,r,c)?'':' bad')}; };
@@ -100,6 +115,8 @@
       if(dep) cls.push('dep'); if(cell.obs) cls.push('o-'+cell.obs); if(cell.opt) cls.push('opt');
       if(rng.has(r+','+c)) cls.push('inr'); if(can&&!m) cls.push('can');
       if(sel&&sel.r===r&&sel.c===c) cls.push('sel');
+      const hv=HC&&HC.cells[r+','+c]; let hstyle='';
+      if(hv){ cls.push('hm'); if(HC.best===r+','+c) cls.push('hbest'); hstyle=` style="--hm:${(0.12+0.6*hv.n).toFixed(2)}"`; }
       let inner='';
       if(!SG){
         if(m){ const u=unit(m,r,c); inner=`<span class="${u.cls}">${ava(u.op)}</span>`; }
@@ -109,7 +126,8 @@
         else if(cell.ch==='E') inner='<span class="mk">出</span>';
       } else if(cell.opt&&!m) inner=`<span class="optk">${cell.obs==='crate'?'工事':cell.obs==='plat'?'射击台':'空'}</span>`;
       const tip=(cell.obs==='crate'?'阻隔工事':cell.obs==='plat'?'射击台（仅远程）':(TEAM.TILE_NAME[cell.ch]||''))+(cell.opt?'（随机障碍位：点击切换）':'');
-      h+=`<button type="button" class="${cls.join(' ')}" data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
+      if(hv&&!SG) inner+=`<span class="hv ${hv.cls||''}">${hv.lab}</span>`;
+      h+=`<button type="button" class="${cls.join(' ')}"${hstyle} data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
     }
     const routes=[], R0=curRound(), kinds=enemyKinds(), Q=curQueue();
     const showRoutes=TS.ef||(TS.routes&&(!fr||TS.fi===0));
@@ -132,6 +150,7 @@
       if(fr) for(const [uid,y,x,hp,bl,hd] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
         const dim=TS.ef&&e.key!==TS.ef;
         units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${hd?' hid':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
+      if(HC) for(const k in HC.cells){ const [r,c]=k.split(',').map(Number), hv=HC.cells[k], p=SG.at(c,r-0.32); units.push({y:p[1]+50,html:`<span class="shv hv ${hv.cls||''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px">${hv.lab}</span>`}); }
       units.sort((a,b)=>a.y-b.y);   // 远的先画，近的盖在上面
       box.className='stagebox'+(pick?' arming':'');
       box.innerHTML=`<div class="stage" data-w="${SG.W}" data-h="${SG.H}" style="width:${SG.W}px;height:${SG.H}px"><img src="${SG.img}" alt="${curMap().name} 游戏内截图" width="${SG.W}" height="${SG.H}"><div class="sgrid" style="width:${GW}px;height:${GH}px;transform:${SG.m3}">${h}</div><div class="sov">${ov}${units.map(u=>u.html).join('')}</div></div>`;
@@ -191,7 +210,7 @@
       k+=`<div class="kpi"><b>${b.dead&&b.t<=res.T?'限时内':b.dead?'超时':'未击倒'}</b><small>限时 ${res.T} 秒，超时后每秒扣 1 生命</small></div>`;
     } else {
       const left=res.alive+(res.total-res.spawned);
-      k+=`<div class="kpi"><b>${res.leakedN?'漏 '+res.leakedN:left?'未清完':'清场'}</b><small>${[res.leakedN?'扣 '+res.leaked+' 生命':'',left?'时间到还剩 '+left+' 个':'',!res.leakedN&&!left?'没有敌人漏过去':''].filter(Boolean).join('，')}</small></div>`;
+      k+=`<div class="kpi"><b>${res.leakedN?'漏 '+res.leakedN:left?'未清完':'清场'}</b><small>${[left?'时间到还剩 '+left+' 个':'',res.lifeLoss?'扣 '+res.lifeLoss+' 目标生命（每回合至多 10）':'没有敌人漏过去'].filter(Boolean).join('，')}</small></div>`;
       k+=`<div class="kpi"><b>${res.cleared?fmtT(res.dur):fmtT(res.dur)}</b><small>${res.cleared?'清场用时':'战斗时长'}（限时 ${res.T} 秒）</small></div>`;
     }
     const tot=res.res.reduce((a,x)=>a+x.total,0);
@@ -229,6 +248,7 @@
       <div class="ed-s"><span class="en">Skill</span>${skills}</div>
       <div class="ed-s"><span class="en">Equipment</span><div class="eqs">${eq.map((it,i)=>{const q=EQUIP.find(z=>z.id===it.id);return `<div class="eqr"><select data-teq="${i}" aria-label="装备栏 ${i+1}">${opts(it.id)}</select><label class="sw"><input type="checkbox" data-tadv="${i}" ${it.adv?'checked':''} ${!q||q.one?'disabled':''}><i></i><span>进阶</span></label></div>`;}).join('')}</div></div>
       <div class="ed-s"><div class="f"><label for="tIso">变形同构体</label><select id="tIso" data-tiso="1"><option value="">无</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select></div></div>
+      <div class="ed-s"><span class="en">Placement</span><div class="btnrow"><button type="button" class="btn" data-theat="1">试遍能放的格子</button><span class="hint">把这名干员挪到每个能放的空格子各跑一局，结果标在战场上。</span></div></div>
       <div class="btnrow"><button type="button" class="btn" data-tdel="1">撤下</button><span class="hint">要移动：选中后点另一个空格子；点另一名干员则互换位置。</span></div>`;
   }
   // 本回合的敌人种类（按出场先后），以及模拟结果里每种敌人的情况
@@ -280,7 +300,92 @@
           ${d.abt?`<span class="abt">${d.abt.join('；')}${mod.length?` <em>已计入：${mod.join('、')}</em>`:' <em class="no">能力未计入</em>'}</span>`:''}</span>
         <span class="eo">${out}${life!=null?`<small>平均 ${life.toFixed(1)} 秒倒下</small>`:''}${top&&names[top[0]]?`<small>主要由 ${names[top[0]]} 击杀</small>`:''}</span></button>`; }).join('');
   }
-  function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); renderEnemies(); }
+  // ── 研究工具 ──
+  // 分批跑多局模拟，每批之间让出主线程，界面不卡
+  let job=null;
+  function runJobs(list,onEach,onDone){ const id={}; job=id; let i=0;
+    const step=()=>{ if(job!==id)return; const t0=performance.now();
+      while(i<list.length&&performance.now()-t0<60){ onEach(i,list[i]()); i++; }
+      if(i<list.length) setTimeout(step,0); else { job=null; onDone(); } };
+    setTimeout(step,0); return id; }
+  // 一局的战果：普通回合看漏怪和清场用时，领袖回合看击倒用时和剩余生命。score 越大越好
+  function outcome(R){
+    if(R.isBoss){ const b=R.boss||{left:1,hp:1,dead:false};
+      if(b.dead) return {cls:b.t<=R.T?'ok':'mid',lab:(b.t<=R.T?'':'超时 ')+b.t.toFixed(0)+' 秒',score:1000-b.t};
+      const p=b.left/b.hp; return {cls:'bad',lab:'剩 '+Math.round(p*100)+'%',score:-100*p}; }
+    const left=R.alive+(R.total-R.spawned);
+    if(R.leakedN) return {cls:'bad',lab:'漏 '+R.leakedN,sub:'扣 '+R.lifeLoss+' 生命',score:-1000*R.leakedN-left};
+    if(left) return {cls:'mid',lab:'剩 '+left,sub:'时间到 · 扣 '+R.lifeLoss+' 生命',score:-left};
+    return {cls:'ok',lab:R.dur.toFixed(0)+' 秒',score:1000-R.dur}; }
+  const runOne=(sn,rk)=>{ const S=setupFor(sn,rk,false); const R=S.members.length?teamRun(S):null; if(R){ R.isBoss=!!S.boss; R.skipped=S.skipped; } return R; };
+  // 方案：保存的阵容（位置 + 干员设置 + 层数）
+  const SLOTS='weishu.team.slots';
+  let slots=[]; try{ slots=JSON.parse(localStorage.getItem(SLOTS)||'[]')||[]; }catch(e){ slots=[]; }
+  const saveSlots=()=>{ try{ localStorage.setItem(SLOTS,JSON.stringify(slots)); }catch(e){} };
+  const roundLabel=rk=>bossOf(rk)?'第 '+bossOf(rk).round+' 回合 · '+bossOf(rk).name:'第 '+roundOf(rk).n+' 回合';
+  let sweep=null;   // {cols:[{name,n}], rows:[rk], cells:{'rk|i':outcome}, done, n}
+  function sweepRun(){
+    const cols=[{name:'当前阵容',sn:snap()}].concat(slots.filter(x=>x.cmp).map(x=>({name:x.name,sn:x})));
+    const rows=FIELD.rounds.map(r=>'r'+r.n); if(curBoss()) rows.push(TS.round);
+    const jobs=[]; for(const rk of rows) cols.forEach((c,i)=>jobs.push(()=>({rk,i,R:runOne(c.sn,rk)})));
+    sweep={cols:cols.map(c=>({name:c.name,n:c.sn.members.length})),rows,cells:{},done:0,n:jobs.length,map:curMap().name,mode:curMode().name};
+    renderLab();
+    runJobs(jobs,(k,o)=>{ sweep.cells[o.rk+'|'+o.i]=o.R?Object.assign(outcome(o.R),{dps:o.R.res.reduce((a,x)=>a+x.total,0)/Math.max(1,o.R.dur),skipped:o.R.skipped}):{cls:'',lab:'—',score:-1e9};
+      sweep.done=k+1; if((k+1)%3===0||k+1===jobs.length) renderLab(); },()=>renderLab()); }
+  // 摆位试算：把选中的干员挪到每个能放的空格子，各跑一局
+  let heat=null;   // {key,id,vals:{'r,c':{out,dmg}},done,n}
+  const heatKey=id=>{ const sn=snap(); sn.members=sn.members.map(m=>m.id===id?Object.assign({},m,{r:-1,c:-1}):m);
+    return JSON.stringify([TS.map,TS.round,TS.mode,curSp(),TS.tok,TS.xAtk,TS.xAspd,TS.cold,TS.stunt,sn]); };
+  const heatOn=()=>heat&&TS.members.some(m=>m.id===heat.id)&&heat.key===heatKey(heat.id)?heat:null;
+  function heatRun(){ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const op=byId(m.id);
+    const tiles=[]; for(let r=0;r<TEAM.H;r++)for(let c=0;c<TEAM.W;c++){ const o=memberAt(r,c); if(canPlace(op,r,c)&&(!o||o===m)) tiles.push([r,c]); }
+    const base=snap(), idx=base.members.findIndex(x=>x.id===m.id);
+    heat={key:heatKey(m.id),id:m.id,vals:{},done:0,n:tiles.length};
+    renderBoard(); renderHeatCap();
+    runJobs(tiles.map(([r,c])=>()=>{ const sn=JSON.parse(JSON.stringify(base)); sn.members[idx].r=r; sn.members[idx].c=c; const R=runOne(sn,TS.round); const me=R&&R.res.find(x=>x.m.op.id===m.id); return {r,c,out:R?outcome(R):null,dmg:me?me.total:0}; }),
+      (k,o)=>{ heat.vals[o.r+','+o.c]={out:o.out,dmg:o.dmg}; heat.done=k+1; if((k+1)%3===0){ renderBoard(); renderHeatCap(); } },()=>{ renderBoard(); renderHeatCap(); }); }
+  const wan=n=>n>=1e4?(n/1e4).toFixed(n>=1e5?0:1)+'万':String(Math.round(n));
+  // 每个格子的试算值（0–1，越大越好）和标签
+  function heatCells(){ const H=heatOn(); if(!H)return null; const met=TS.hm||'out', out={}; const ks=Object.keys(H.vals); if(!ks.length)return {cells:out,best:null};
+    const v=k=>met==='dmg'?H.vals[k].dmg:(H.vals[k].out?H.vals[k].out.score:-1e9);
+    const vs=ks.map(v), lo=Math.min(...vs), hi=Math.max(...vs); let best=null;
+    for(const k of ks){ const x=v(k), n=hi>lo?(x-lo)/(hi-lo):1;
+      out[k]={n,lab:met==='dmg'?wan(H.vals[k].dmg):(H.vals[k].out?H.vals[k].out.lab.replace(' 秒','s'):'—'),cls:met==='dmg'?'':(H.vals[k].out||{}).cls};
+      if(best==null||x>v(best)) best=k; }
+    return {cells:out,best}; }
+  function renderHeatCap(){ const el=$('tHeatCap'), H=heatOn(); if(!H){ el.hidden=true; el.innerHTML=''; return; } el.hidden=false;
+    const name=byId(H.id).name, met=TS.hm||'out';
+    el.innerHTML=`<span class="hc-t"><b>摆位试算 · ${name}</b> ${H.done<H.n?`计算中 ${H.done}/${H.n}`:`${H.n} 个格子`}。${met==='dmg'?'数字是这名干员的总伤害':'数字是全队战果（清场用时或漏怪数）'}，颜色越深越好，金框是最好的格子。</span><span class="segs" role="group" aria-label="试算指标"><button type="button" data-hm="out" aria-pressed="${met==='out'}">全队战果</button><button type="button" data-hm="dmg" aria-pressed="${met==='dmg'}">该干员伤害</button></span><button type="button" class="btn" data-hclr="1">清除</button>`; }
+  // 分享：阵容和战场设置编码进链接
+  const b64e=o=>{ const b=new TextEncoder().encode(JSON.stringify(o)); let bin=''; b.forEach(x=>bin+=String.fromCharCode(x)); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); };
+  const b64d=str=>{ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4)str+='='; const bin=atob(str); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); };
+  function shareCode(){ const sn=snap();
+    return b64e({v:1,map:curMap().id,round:TS.round,mode:TS.mode,sp:TS.spTypes,pk:TS.spPick,tok:TS.tok,x:[+TS.xAtk||0,+TS.xAspd||0,+TS.cold||0,+TS.stunt||0],L:sn.L,S:sn.subL,
+      m:sn.members.map(m=>[m.id,m.r,m.c,m.e?1:0,m.s,m.q.map(q=>[q.id,q.adv?1:0]),m.b])}); }
+  function importCode(code){ const o=b64d(code); if(!o||o.v!==1) throw new Error('版本不对');
+    const mi=FIELD.maps.findIndex(x=>x.id===o.map); if(mi>=0) TS.map=mi;
+    if(o.round&&(bossOf(o.round)||/^r\d+$/.test(o.round))) TS.round=o.round;
+    if(FIELD.modes.some(x=>x.id===o.mode)) TS.mode=o.mode;
+    TS.spTypes=o.sp||[]; TS.spPick=o.pk||{}; TS.tok=o.tok||{};
+    [TS.xAtk,TS.xAspd,TS.cold,TS.stunt]=o.x||[0,0,50,0];
+    applySnap({members:(o.m||[]).map(a=>({id:a[0],r:a[1],c:a[2],e:!!a[3],s:a[4],q:(a[5]||[]).map(q=>({id:q[0],adv:!!q[1]})),b:a[6]||''})),L:o.L,subL:o.S});
+    for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).value=TS[id];
+    U.update(); }
+  const shareLink=()=>location.href.split('#')[0]+'#team='+shareCode();
+  function renderLab(){
+    $('tSlots').innerHTML=slots.length?slots.map((x,i)=>`<div class="slot"><label class="sw"><input type="checkbox" data-scmp="${i}" ${x.cmp?'checked':''}><i></i><span>对比</span></label>
+      <span class="sn"><b>${x.name}</b><span class="savas">${x.members.filter(m=>byId(m.id)).map(m=>ava(byId(m.id))).join('')}</span></span>
+      <span class="sbtn"><button type="button" class="btn" data-sload="${i}">载入</button><button type="button" class="btn" data-sdel="${i}" aria-label="删除方案 ${x.name}">删除</button></span></div>`).join('')
+      :'<p class="hint">还没有保存的方案。摆好一套阵容后起个名字保存，之后可以随时载入，或勾选“对比”放进全回合对比。</p>';
+    const out=$('tSweepOut');
+    if(!sweep){ out.innerHTML='<p class="hint">用当前的地图、难度和特训设置，把当前阵容（以及勾选了“对比”的方案）在第 1–13 回合各跑一遍；选中的是领袖回合时也会算上。点回合名可以切换到那一回合看回放。</p>'; $('tSweepProg').textContent=''; return; }
+    $('tSweepProg').textContent=sweep.done<sweep.n?`计算中 ${sweep.done}/${sweep.n}`:`${sweep.map} · ${sweep.mode}`;
+    const best={}; for(const rk of sweep.rows){ let b=null; sweep.cols.forEach((c,i)=>{ const x=sweep.cells[rk+'|'+i]; if(x&&(b==null||x.score>b))b=x.score; }); best[rk]=b; }
+    out.innerHTML=`<table class="sweep"><thead><tr><th scope="col">回合</th>${sweep.cols.map(c=>`<th scope="col">${c.name}<small>${c.n} 人</small></th>`).join('')}</tr></thead><tbody>${sweep.rows.map(rk=>`<tr${rk===TS.round?' class="cur"':''}><th scope="row"><button type="button" class="lnk" data-sround="${rk}">${roundLabel(rk)}</button></th>${sweep.cols.map((c,i)=>{ const x=sweep.cells[rk+'|'+i];
+      if(!x) return '<td class="pend">…</td>';
+      return `<td class="${sweep.cols.length>1&&x.score===best[rk]&&x.score>-1e9?'top':''}"><b class="${x.cls}">${x.lab}</b><small>${x.sub?x.sub+' · ':''}每秒 ${fmt(x.dps||0)}${x.skipped?` · ${x.skipped} 人不能部署`:''}</small></td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+  }
+  function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); renderEnemies(); renderHeatCap(); renderLab(); }
 
   // ── 交互 ──
   function stop(){ if(playT){ clearInterval(playT); playT=0; } }
@@ -324,6 +429,7 @@
   $('tEdit').addEventListener('click',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id);
     if(e.target.closest('[data-tel]')){ st.elite[o.id]=!st.elite[o.id]; U.update(); run(); return; }
     const s=e.target.closest('[data-tskill]'); if(s){ st.skill[o.id]=+s.dataset.tskill; U.update(); run(); return; }
+    if(e.target.closest('[data-theat]')){ heatRun(); return; }
     if(e.target.closest('[data-tdel]')){ TS.members=TS.members.filter(x=>x!==m); TS.sel=null; run(); } });
   $('tEdit').addEventListener('change',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id), el=e.target, it=st.eq[o.id];
     if(el.dataset.teq!=null){ it[+el.dataset.teq]={id:el.value,adv:it[+el.dataset.teq].adv}; }
@@ -335,6 +441,21 @@
   $('tPlay').addEventListener('click',()=>{ if(!res||!res.frames)return; if(playT){ stop(); renderReplay(); return; }
     if(TS.fi>=res.frames.length-1) TS.fi=0;
     playT=setInterval(()=>{ TS.fi++; if(TS.fi>=res.frames.length-1){ TS.fi=res.frames.length-1; stop(); } renderBoard(); renderReplay(); },100); renderReplay(); });
+  $('tSlotSave').addEventListener('click',()=>{ if(!TS.members.length)return; const nm=($('tSlotName').value||'').trim()||('方案 '+(slots.length+1));
+    const i=slots.findIndex(x=>x.name===nm); const o=Object.assign({name:nm,cmp:i>=0?slots[i].cmp:true},snap()); if(i>=0) slots[i]=o; else slots.push(o); saveSlots(); $('tSlotName').value=''; renderLab(); });
+  $('tSlots').addEventListener('click',e=>{ const l=e.target.closest('[data-sload]'), d=e.target.closest('[data-sdel]');
+    if(l){ applySnap(slots[+l.dataset.sload]); U.update(); run(); return; }
+    if(d){ slots.splice(+d.dataset.sdel,1); saveSlots(); renderLab(); } });
+  $('tSlots').addEventListener('change',e=>{ const c=e.target.closest('[data-scmp]'); if(!c)return; slots[+c.dataset.scmp].cmp=c.checked; saveSlots(); });
+  $('tSweep').addEventListener('click',()=>sweepRun());
+  $('tSweepOut').addEventListener('click',e=>{ const b=e.target.closest('[data-sround]'); if(!b)return; TS.round=b.dataset.sround; renderSpecial(); run(); });
+  $('tHeatCap').addEventListener('click',e=>{ const m=e.target.closest('[data-hm]'); if(m){ TS.hm=m.dataset.hm; renderBoard(); renderHeatCap(); return; }
+    if(e.target.closest('[data-hclr]')){ heat=null; job=null; renderBoard(); renderHeatCap(); } });
+  $('tShare').addEventListener('click',async()=>{ const link=shareLink(); const box=$('tShareOut'); box.value=link; box.hidden=false; box.select();
+    let ok=false; try{ await navigator.clipboard.writeText(link); ok=true; }catch(err){}
+    $('tShareHint').textContent=ok?'链接已复制。打开链接会还原这套阵容（含精锐、技能、装备）、地图、回合、难度、特训和层数。':'浏览器没有允许自动复制，请手动复制上面的链接。'; });
+  $('tImportGo').addEventListener('click',()=>{ const v=($('tImport').value||'').trim(); const m=v.match(/team=([\w-]+)/); const code=m?m[1]:v;
+    try{ importCode(code); $('tImport').value=''; $('tShareHint').textContent='已导入。'; run(); }catch(err){ $('tShareHint').textContent='没能识别这段链接或代码。'; } });
   // 页面切换
   const views={solo:$('soloView'),team:$('teamView')};
   $('views').addEventListener('click',e=>{ const b=e.target.closest('[data-view]'); if(!b)return; const v=b.dataset.view;
@@ -344,5 +465,8 @@
   for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).value=TS[id];
   $('tRoutes').checked=!!TS.routes;
   let v0='solo'; try{ v0=localStorage.getItem('weishu.view')||'solo'; }catch(e){}
+  // 打开带 #team= 的分享链接时导入，然后去掉地址里的这段，之后的修改照常保存
+  const hm=location.hash.match(/team=([\w-]+)/);
+  if(hm){ try{ importCode(hm[1]); v0='team'; history.replaceState(null,'',location.href.split('#')[0]); }catch(e){} }
   if(v0==='team') document.querySelector('#views [data-view="team"]').click(); else render();
 })();

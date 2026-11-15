@@ -193,6 +193,7 @@
           <div class="btnrow"><div class="segs" id="tViewMode" role="group" aria-label="显示方式"><button type="button" data-real="1">实景</button><button type="button" data-real="0">示意图</button></div><span class="en" id="tCount"></span><button type="button" class="btn" id="tClear">清空</button></div></div>
         <div class="pb">
           <p class="stagecap" id="tStageCap"></p>
+          <div class="heatcap" id="tHeatCap" hidden></div>
           <div class="boardwrap"><div class="board" id="tBoard"></div></div>
           <div class="replay" id="tReplay" hidden>
             <button type="button" class="btn" id="tPlay">播放</button>
@@ -215,6 +216,26 @@
         <div class="pb" id="tEdit"></div>
       </section>
     </div>
+
+    <section class="panel lab" aria-labelledby="h-tlab">
+      <div class="ph"><h2 id="h-tlab"><span class="en">Research</span>研究工具</h2><p>保存方案、跨回合对比、分享阵容</p></div>
+      <div class="labgrid">
+        <div class="labcol">
+          <h3>方案 <span class="en">Lineups</span></h3>
+          <div class="slotsave"><input type="text" id="tSlotName" placeholder="方案名称（同名会覆盖）" aria-label="方案名称" maxlength="24"><button type="button" class="btn" id="tSlotSave">保存当前阵容</button></div>
+          <div id="tSlots" class="slots"></div>
+          <h3>分享 <span class="en">Share</span></h3>
+          <div class="btnrow"><button type="button" class="btn" id="tShare">复制分享链接</button></div>
+          <input type="text" id="tShareOut" class="shareout" readonly hidden aria-label="分享链接">
+          <div class="slotsave"><input type="text" id="tImport" placeholder="粘贴分享链接或代码" aria-label="导入分享链接"><button type="button" class="btn" id="tImportGo">导入</button></div>
+          <p class="hint" id="tShareHint">链接里包含阵容（位置、精锐、技能、装备、变形同构体）、地图、回合、难度、特训和层数，不含个人信息。</p>
+        </div>
+        <div class="labcol">
+          <div class="labh"><h3>全回合对比 <span class="en">All rounds</span></h3><span class="num muted" id="tSweepProg"></span><button type="button" class="btn" id="tSweep">跑一遍全部回合</button></div>
+          <div id="tSweepOut" class="sweepwrap"></div>
+        </div>
+      </div>
+    </section>
 
     <section class="panel" aria-labelledby="h-tmethod">
       <div class="ph"><h2 id="h-tmethod"><span class="en">Method</span>队伍模拟的口径</h2></div>

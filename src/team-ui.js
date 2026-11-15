@@ -13,9 +13,9 @@
   TS.members=(TS.members||[]).filter(m=>byId(m.id));
   // 阵容快照：位置之外还带上每名干员的精锐、技能、装备、变形同构体（这些设置和单人排行共用）
   const blankEq=()=>[{id:'',adv:false},{id:'',adv:false}];
-  const snap=()=>({members:TS.members.map(m=>({id:m.id,r:m.r,c:m.c,e:!!st.elite[m.id],s:st.skill[m.id],q:JSON.parse(JSON.stringify(st.eq[m.id]||blankEq())),b:st.bond[m.id]||''})),L:Object.assign({},TS.L),subL:Object.assign({},TS.subL)});
+  const snap=()=>({members:TS.members.map(m=>({id:m.id,r:m.r,c:m.c,d:m.d||0,e:!!st.elite[m.id],s:st.skill[m.id],q:JSON.parse(JSON.stringify(st.eq[m.id]||blankEq())),b:st.bond[m.id]||''})),L:Object.assign({},TS.L),subL:Object.assign({},TS.subL)});
   const applyOps=list=>{ for(const m of list){ if(!byId(m.id))continue; if(m.e!=null)st.elite[m.id]=!!m.e; if(m.s!=null)st.skill[m.id]=m.s; if(Array.isArray(m.q)&&m.q.length)st.eq[m.id]=JSON.parse(JSON.stringify(m.q)); if(m.b!=null)st.bond[m.id]=m.b; } };
-  const applySnap=sn=>{ const ms=(sn.members||[]).filter(m=>byId(m.id)); applyOps(ms); TS.members=ms.map(m=>({id:m.id,r:m.r,c:m.c})); TS.L=Object.assign({},sn.L||{}); TS.subL=Object.assign({},sn.subL||{}); TS.sel=null; TS.pick=null; };
+  const applySnap=sn=>{ const ms=(sn.members||[]).filter(m=>byId(m.id)); applyOps(ms); TS.members=ms.map(m=>({id:m.id,r:m.r,c:m.c,d:m.d||0})); TS.L=Object.assign({},sn.L||{}); TS.subL=Object.assign({},sn.subL||{}); TS.sel=null; TS.pick=null; };
   if(saved&&saved.members) applyOps(saved.members);
   const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','L','subL','cold','xAtk','xAspd','xHp','hurt','eab','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; o.members=snap().members; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
   const MAXN=8;
@@ -26,6 +26,7 @@
   const curBoss=()=>bossOf(TS.round);
   const curRound=()=>roundOf(TS.round);
   const board=()=>teamBoard(curMap(),!!curBoss(),TS.tok);
+  const DIRN=['右','上','左','下'], DIRA=['→','↑','←','↓'];
   const memberAt=(r,c)=>TS.members.find(m=>m.r===r&&m.c===c);
   const coreName=c=>CORE[c].name;
   const isRanged=o=>!!o.r;
@@ -61,7 +62,7 @@
   function setupFor(sn,rk,trace){
     const boss=bossOf(rk), B=teamBoard(curMap(),!!boss,TS.tok);
     const ok=(op,r,c)=>{ const d=B.deploy(r,c); return d===1||(d===2&&isRanged(op)); };
-    const members=sn.members.filter(m=>byId(m.id)&&ok(byId(m.id),m.r,m.c)).map(m=>({op:byId(m.id),elite:!!m.e,sel:{skill:m.s==null?-1:m.s,eq:m.q||blankEq(),bond:m.b||null},r:m.r,c:m.c}));
+    const members=sn.members.filter(m=>byId(m.id)&&ok(byId(m.id),m.r,m.c)).map(m=>({op:byId(m.id),elite:!!m.e,sel:{skill:m.s==null?-1:m.s,eq:m.q||blankEq(),bond:m.b||null},r:m.r,c:m.c,dir:m.d||0}));
     const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,xHp:+TS.xHp||0,hurt:TS.hurt!==false,eab:TS.eab!==false,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
     const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=(sn.L||{})[c]??150;
     const subL={}; for(const s in SUBS) subL[s]=(sn.subL||{})[s]??50;
@@ -99,7 +100,7 @@
   function renderBoard(){
     const B=board(), sel=TS.sel&&memberAt(TS.sel[0],TS.sel[1]), pick=(TS.pick||TS.drag)&&byId(TS.pick||TS.drag);
     let rng=new Set();
-    if(sel){ const op=byId(sel.id); for(const [dr,dc] of teamRange(op,!!st.elite[op.id],false,teamSkillIndex(op,st.skill[op.id]))) rng.add((sel.r+dr)+','+(sel.c+dc)); }
+    if(sel){ const op=byId(sel.id); for(const [dr,dc] of teamRange(op,!!st.elite[op.id],false,teamSkillIndex(op,st.skill[op.id]),sel.d)) rng.add((sel.r+dr)+','+(sel.c+dc)); }
     const fr=res&&res.frames&&res.frames[TS.fi];
     const agIdx=new Map(); if(res) res.res.forEach((x,i)=>{ if(!x.healer) agIdx.set(x.m.r+','+x.m.c,i); });
     const SG=TS.real?stageOf():null;
@@ -108,6 +109,7 @@
     const unit=(m,r,c)=>{ const op=byId(m.id), ai=agIdx.get(r+','+c), on=fr&&ai!=null&&fr.ag[ai]&&fr.ag[ai][0];
       const eat=res&&res.res.find(x=>x.m.r===r&&x.m.c===c&&x.eaten&&x.eaten.dead), hp=res&&res.hurtOn&&TS.fi>0?hpAt.get(r+','+c):null;
       return {op,hp,cls:'pc'+(on?' on':'')+(eat||(hp&&hp.dn)?' gone':'')+(sel&&sel.r===r&&sel.c===c?' sel':'')+(canPlace(op,r,c)?'':' bad')}; };
+    const fdir=m=>`<i class="fdir d${m.d||0}" aria-hidden="true"></i>`;
     const hpBar=u=>u.hp&&!u.hp.dn?`<i class="uhp${u.hp.hp<0.35?' low':''}" style="width:${(u.hp.hp*100).toFixed(0)}%"></i>`:'';
     let h='';
     for(let r=TEAM.H-1;r>=0;r--) for(let c=0;c<TEAM.W;c++){
@@ -121,7 +123,7 @@
       if(hv){ cls.push('hm'); if(HC.best===r+','+c) cls.push('hbest'); hstyle=` style="--hm:${(0.12+0.6*hv.n).toFixed(2)}"`; }
       let inner='';
       if(!SG){
-        if(m){ const u=unit(m,r,c); inner=`<span class="${u.cls}">${ava(u.op)}${hpBar(u)}</span>`; }
+        if(m){ const u=unit(m,r,c); inner=`<span class="${u.cls}">${ava(u.op)}${hpBar(u)}${fdir(m)}</span>`; }
         else if(cell.obs==='crate') inner='<span class="ob" title="阻隔工事：敌人绕行，不能部署">▦</span>';
         else if(cell.obs==='plat') inner='<span class="ob" title="射击台：敌人不能通行，只能部署远程干员">▲</span>';
         else if(cell.ch==='S'||cell.ch==='T') inner='<span class="mk">入</span>';
@@ -129,7 +131,7 @@
       } else if(cell.opt&&!m) inner=`<span class="optk">${cell.obs==='crate'?'工事':cell.obs==='plat'?'射击台':'空'}</span>`;
       const tip=(cell.obs==='crate'?'阻隔工事':cell.obs==='plat'?'射击台（仅远程）':(TEAM.TILE_NAME[cell.ch]||''))+(cell.opt?'（随机障碍位：点击切换）':'');
       if(hv&&!SG) inner+=`<span class="hv ${hv.cls||''}">${hv.lab}</span>`;
-      h+=`<button type="button" class="${cls.join(' ')}"${hstyle} data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
+      h+=`<button type="button" class="${cls.join(' ')}"${hstyle} data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name+' 朝'+DIRN[m.d||0]:''}">${inner}</button>`;
     }
     const routes=[], R0=curRound(), kinds=enemyKinds(), Q=curQueue();
     const showRoutes=TS.ef||(TS.routes&&(!fr||TS.fi===0));
@@ -148,7 +150,7 @@
       routes.forEach((rt,j)=>{ const off=TS.ef?(j-(routes.length-1)/2)*3:0, c=rcol(rt);
         ov+=`<polyline points="${rt.pts.map(p=>SG.at(p[1],p[0]).map(v=>(v+off).toFixed(1)).join(',')).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''} marker-end="url(#arw)"/>`; });
       ov+='</svg>';
-      const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}${hpBar(u)}</span>`}); }
+      const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}${hpBar(u)}${fdir(m)}</span>`}); }
       if(fr) for(const [uid,y,x,hp,bl,hd] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
         const dim=TS.ef&&e.key!==TS.ef;
         units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${hd?' hid':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
@@ -199,7 +201,7 @@
       return `<div class="pg"><span class="en">${U.ROMAN[t]}</span><div class="pl">${l.map(o=>`<button type="button" class="pk${TS.pick===o.id?' armed':''}${used.has(o.id)?' used':''}" data-pick="${o.id}" title="${o.name} · ${o.cls}${o.r?'':' · 近战'}" aria-pressed="${TS.pick===o.id}">${ava(o)}<span>${o.name}</span></button>`).join('')}</div></div>`; }).join('')||'<p class="hint">没有符合的干员。</p>';
     $('tCount').textContent=`${TS.members.length} / ${MAXN}`;
     const bad=TS.members.filter(m=>!canPlace(byId(m.id),m.r,m.c)).map(m=>byId(m.id).name);
-    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}；再点一次头像或按 Esc 取消。`:'把下面的干员头像拖到格子上（或先点头像再点格子）；拖动场上的干员可以移动或互换，拖出战场或右键撤下；点场上的干员调整技能和装备。');
+    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}；再点一次头像或按 Esc 取消。`:'把下面的干员头像拖到格子上（或先点头像再点格子）；拖动场上的干员可以移动或互换，拖出战场或右键撤下；点场上的干员调整朝向、技能和装备。');
   }
   const fmtT=s=>s==null?'—':(s<60?s.toFixed(1)+' 秒':Math.floor(s/60)+' 分 '+(s%60).toFixed(0).padStart(2,'0')+' 秒');
   function renderResults(){
@@ -251,6 +253,7 @@
     const x=res&&res.res.find(z=>z.m.r===m.r&&z.m.c===m.c&&!z.healer), cs=x&&x.r?x.r.casts:0;
     box.innerHTML=`<div class="ed-h">${ava(o)}<div><b>${o.name}</b><span>${o.cls} · 第 ${TEAM.H-m.r} 行第 ${m.c+1} 列${canPlace(o,m.r,m.c)?'':' · 这格不能放'}</span></div>
         <button type="button" class="elite" data-tel="1" aria-pressed="${e}" title="切换初始 / 精锐">${e?'精锐':'初始'}</button><button type="button" class="btn" data-tdel="1">撤下</button><button type="button" class="edx" data-tclose="1" aria-label="收起">✕</button></div>
+      <div class="ed-s"><span class="en">Facing · 朝向（按 R 旋转）</span><div class="seg dirs">${[0,3,2,1].map(d=>`<button type="button" data-tdir="${d}" aria-pressed="${(m.d||0)===d}" aria-label="朝${DIRN[d]}"><em>${DIRA[d]}</em><span>${DIRN[d]}</span></button>`).join('')}</div></div>
       <div class="ed-s"><span class="en">Skill${x?` · 本局开了 ${cs} 次`:''}</span>${skills}</div>
       <div class="ed-g"><div class="ed-s"><span class="en">Equipment</span><div class="eqs">${eq.map((it,i)=>{const q=EQUIP.find(z=>z.id===it.id);return `<div class="eqr"><select data-teq="${i}" aria-label="装备栏 ${i+1}">${opts(it.id)}</select><label class="sw"><input type="checkbox" data-tadv="${i}" ${it.adv?'checked':''} ${!q||q.one?'disabled':''}><i></i><span>进阶</span></label></div>`;}).join('')}</div></div>
       <div class="ed-s"><span class="en">Isomorph</span><select id="tIso" data-tiso="1" aria-label="变形同构体"><option value="">无变形同构体</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select>
@@ -391,14 +394,14 @@
   const b64d=str=>{ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4)str+='='; const bin=atob(str); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); };
   function shareCode(){ const sn=snap();
     return b64e({v:1,map:curMap().id,round:TS.round,mode:TS.mode,sp:TS.spTypes,pk:TS.spPick,tok:TS.tok,x:[+TS.xAtk||0,+TS.xAspd||0,+TS.cold||0,+TS.stunt||0,+TS.xHp||0,TS.hurt===false?0:1,TS.eab===false?0:1],L:sn.L,S:sn.subL,
-      m:sn.members.map(m=>[m.id,m.r,m.c,m.e?1:0,m.s,m.q.map(q=>[q.id,q.adv?1:0]),m.b])}); }
+      m:sn.members.map(m=>[m.id,m.r,m.c,m.e?1:0,m.s,m.q.map(q=>[q.id,q.adv?1:0]),m.b,m.d||0])}); }
   function importCode(code){ const o=b64d(code); if(!o||o.v!==1) throw new Error('版本不对');
     const mi=FIELD.maps.findIndex(x=>x.id===o.map); if(mi>=0) TS.map=mi;
     if(o.round&&(bossOf(o.round)||/^r\d+$/.test(o.round))) TS.round=o.round;
     if(FIELD.modes.some(x=>x.id===o.mode)) TS.mode=o.mode;
     TS.spTypes=o.sp||[]; TS.spPick=o.pk||{}; TS.tok=o.tok||{};
     const xx=o.x||[]; [TS.xAtk,TS.xAspd,TS.cold,TS.stunt,TS.xHp]=[xx[0]||0,xx[1]||0,xx[2]??50,xx[3]||0,xx[4]||0]; TS.hurt=xx[5]!==0; $('tHurt').checked=TS.hurt; TS.eab=xx[6]!==0; $('tEab').checked=TS.eab;
-    applySnap({members:(o.m||[]).map(a=>({id:a[0],r:a[1],c:a[2],e:!!a[3],s:a[4],q:(a[5]||[]).map(q=>({id:q[0],adv:!!q[1]})),b:a[6]||''})),L:o.L,subL:o.S});
+    applySnap({members:(o.m||[]).map(a=>({id:a[0],r:a[1],c:a[2],e:!!a[3],s:a[4],q:(a[5]||[]).map(q=>({id:q[0],adv:!!q[1]})),b:a[6]||'',d:a[7]||0})),L:o.L,subL:o.S});
     for(const id of ['cold','xAtk','xAspd','xHp','stunt']) $('t-'+id).value=TS[id];
     U.update(); }
   const shareLink=()=>location.href.split('#')[0]+'#team='+shareCode();
@@ -426,7 +429,7 @@
       if(m){ if(!canPlace(byId(m.id),s.r,s.c)) return flash(`${byId(m.id).name}不能换到原来的格子`); m.r=s.r; m.c=s.c; }
       s.r=r; s.c=c; }
     else { if(m) m.id=op.id;
-      else { const old=TS.members.find(x=>x.id===op.id); if(old){ old.r=r; old.c=c; } else { if(TS.members.length>=MAXN) return flash(`场上最多 ${MAXN} 名干员`); TS.members.push({id:op.id,r,c}); } }
+      else { const old=TS.members.find(x=>x.id===op.id); if(old){ old.r=r; old.c=c; } else { if(TS.members.length>=MAXN) return flash(`场上最多 ${MAXN} 名干员`); TS.members.push({id:op.id,r,c,d:0}); } }
       // 同一名干员只放一次：放到新位置时移走旧的
       TS.members=TS.members.filter(x=>x.id!==op.id||(x.r===r&&x.c===c)); }
     TS.sel=[r,c]; TS.pick=null; run(); return true; }
@@ -462,7 +465,9 @@
   document.addEventListener('pointercancel',()=>{ if(drag&&drag.on){ dragOff(); renderBoard(); } else drag=null; });
   $('teamView').addEventListener('dragstart',e=>e.preventDefault());
   $('tBoard').addEventListener('contextmenu',e=>{ const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(!m)return; e.preventDefault(); unplace(m); });
-  document.addEventListener('keydown',e=>{ if(e.key!=='Escape'||$('teamView').hidden)return; if(drag&&drag.on){ dragOff(); renderBoard(); return; } if(TS.pick||TS.sel){ TS.pick=null; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); } });
+  document.addEventListener('keydown',e=>{ if($('teamView').hidden)return;
+    if((e.key==='r'||e.key==='R')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test((e.target.tagName||''))){ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(m){ e.preventDefault(); m.d=((m.d||0)+(e.shiftKey?1:3))%4; run(); } return; }
+    if(e.key!=='Escape')return; if(drag&&drag.on){ dragOff(); renderBoard(); return; } if(TS.pick||TS.sel){ TS.pick=null; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); } });
   $('tPal').addEventListener('click',e=>{ if(Date.now()-dragEnd<80)return; const b=e.target.closest('[data-pick]'); if(!b)return; TS.pick=TS.pick===b.dataset.pick?null:b.dataset.pick; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); });
   $('tQ').addEventListener('input',e=>{ TS.q=e.target.value; renderPalette(); });
   $('tFilter').innerHTML='<button type="button" data-tf="" aria-pressed="true">全部</button>'+Object.keys(CORE).filter(c=>!CORE[c].none).map(c=>`<button type="button" data-tf="${CORE[c].name}" aria-pressed="false">${CORE[c].name}</button>`).join('');
@@ -490,6 +495,7 @@
     if(e.target.closest('[data-tel]')){ st.elite[o.id]=!st.elite[o.id]; U.update(); run(); return; }
     const s=e.target.closest('[data-tskill]'); if(s){ st.skill[o.id]=+s.dataset.tskill; U.update(); run(); return; }
     if(e.target.closest('[data-theat]')){ heatRun(); return; }
+    const dd=e.target.closest('[data-tdir]'); if(dd){ m.d=+dd.dataset.tdir; run(); return; }
     if(e.target.closest('[data-tclose]')){ TS.sel=null; renderBoard(); renderEditor(); renderResults(); return; }
     if(e.target.closest('[data-tdel]')) unplace(m); });
   $('tEdit').addEventListener('change',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id), el=e.target, it=st.eq[o.id];

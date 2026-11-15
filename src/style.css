@@ -570,3 +570,11 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .dragghost.out::after{content:"撤下";position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;background:#e5484d;color:#fff;font-size:11px;padding:1px 6px;white-space:nowrap}
 .board .tc.drop{outline:3px solid var(--gold)!important;outline-offset:-3px;opacity:1!important}
 .stagebox .sgrid .tc.drop{background:rgba(240,180,41,.4)!important;outline:3px solid #f0b429!important;outline-offset:-6px}
+/* 朝向标记：干员头像边上的小箭头 */
+.fdir{position:absolute;width:0;height:0;border:6px solid transparent;pointer-events:none;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
+.fdir.d0{left:100%;top:50%;margin:-6px 0 0 -3px;border-left:8px solid #f0b429;border-right-width:0}
+.fdir.d2{right:100%;top:50%;margin:-6px -3px 0 0;border-right:8px solid #f0b429;border-left-width:0}
+.fdir.d1{bottom:100%;left:50%;margin:0 0 -3px -6px;border-bottom:8px solid #f0b429;border-top-width:0}
+.fdir.d3{top:100%;left:50%;margin:-3px 0 0 -6px;border-top:8px solid #f0b429;border-bottom-width:0}
+.tc .pc .fdir.d3{margin-top:-6px}
+.seg.dirs button em{font-style:normal;font-size:15px}

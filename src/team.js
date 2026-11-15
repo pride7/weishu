@@ -126,12 +126,17 @@ function teamExpand(R,sp){
 // 某难度某回合普通敌人的 [攻击, 生命, 移速] 倍率
 function teamScale(mode,round){ const s=mode&&mode.scale; if(!s) return [1,1,1]; return s[round]||s[Object.keys(s).pop()]||[1,1,1]; }
 
-// 攻击范围（格子偏移，朝右）
-function teamRange(op,elite,skillOn,si){
+// 朝向：0 右、1 上、2 左、3 下（第 0 行在最下面）。范围数据按朝右给出，按朝向旋转：
+// 右 (dr,dc)、上 (dc,−dr)、左 (−dr,−dc)、下 (−dc,dr)（规则见 sganggs/Stronghold-Protocol docs/SIM.md「Facing」，解自游戏客户端）
+const TEAM_FWD=[[0,1],[1,0],[0,-1],[-1,0]];
+function teamRot(offs,dir){ dir=dir||0; if(!dir) return offs;
+  return offs.map(([dr,dc])=>dir===1?[dc,-dr]:dir===2?[-dr,-dc]:[-dc,dr]); }
+// 攻击范围（格子偏移，已按朝向旋转）
+function teamRange(op,elite,skillOn,si,dir){
   const F=FIELD.ops[op.name]; if(!F) return [[0,0]];
   const k=elite?1:0; let id=F.rng[k];
   if(skillOn&&F.sk[si]&&F.sk[si][k]) id=F.sk[si][k];
-  return FIELD.ranges[id]||[[0,0]];
+  return teamRot(FIELD.ranges[id]||[[0,0]],dir);
 }
 // 当前用的是第几个技能（游戏里的技能序号，从 0 开始）
 function teamSkillIndex(op,si){ const A=ALT[op.id], F=FIELD.ops[op.name];
@@ -149,7 +154,7 @@ function teamBonds(members){
 
 // 跑一局。setup:
 //   map, boss（领袖回合时为 FIELD.bosses 里的一项）/ round（普通回合），mode（FIELD.modes 里的一项），tok，
-//   members:[{op,elite,sel,r,c}]，L:{核心盟约 id: 层数}，subL:{附加盟约: 层数}，base（其余参数，同单人计算），trace
+//   members:[{op,elite,sel,r,c,dir}]（dir 朝向，缺省朝右），L:{核心盟约 id: 层数}，subL:{附加盟约: 层数}，base（其余参数，同单人计算），trace
 function teamRun(setup){
   const B=teamBoard(setup.map,!!setup.boss,setup.tok);
   const R=setup.boss||setup.round, mode=setup.mode, rn=setup.boss?setup.boss.round:R.n, sc=teamScale(mode,rn);
@@ -158,10 +163,10 @@ function teamRun(setup){
   const routes=R.routes.map(r=>teamRoute(B,r));
   const bonds=teamBonds(setup.members);
   const occ={}; for(const m of setup.members) occ[m.r+','+m.c]=m;
-  // 阿戈尔吞噬：每名【阿戈尔】干员吞掉身前（右边）一格的干员
+  // 阿戈尔吞噬：每名【阿戈尔】干员吞掉身前（朝向的前方）一格的干员
   const dvGain=new Map(), eaten=new Map();
   if(bonds.cores.egir&&bonds.cores.egir.on){ const L=(setup.L||{}).egir||0;
-    for(const m of setup.members){ if(!m.op.bonds.includes('阿戈尔'))continue; const f=occ[m.r+','+(m.c+1)]; if(!f||eaten.has(f))continue;
+    for(const m of setup.members){ if(!m.op.bonds.includes('阿戈尔'))continue; const fw=TEAM_FWD[m.dir||0], f=occ[(m.r+fw[0])+','+(m.c+fw[1])]; if(!f||eaten.has(f))continue;
       const kf=f.elite?1:0, s=STATS[f.op.name]||[0,0,0,0,0,0], own=f.op.bonds.includes('阿戈尔');
       const hp=Math.round(s[kf*3]*(own?1+(35+L)/100:1)), def=s[kf*3+1], dmg=Math.max(5000-def,250), alive=hp>dmg;
       dvGain.set(m,{atk:f.op.atk[kf],tier:TIERV[f.op.tier]||1});
@@ -181,7 +186,7 @@ function teamRun(setup){
     if(bs.includes('独行')&&bonds.subs['独行']&&bonds.subs['独行'].n===1) hp+=60;
     if(subOn('助力')) df+=15+1.2*subL('助力');
     u.maxHp=(F.hp||[1,1])[k]*(1+hp/100); u.df=(F.df||[0,0])[k]*(1+df/100); u.res=(F.res||[0,0])[k]; u.rsp=(F.rsp||[70,70])[k]*(subOn('助力')?0.7:1);
-    u.jh=bs.includes('聚合')?{atk:m.op.atk[k]*(1+((setup.base&&setup.base.xAtk)||0)/100),set:new Set((FIELD.ranges[(F.rng||[])[k]]||[[0,0]]).map(([dr,dc])=>(m.r+dr)+','+(m.c+dc)))}:null;
+    u.jh=bs.includes('聚合')?{atk:m.op.atk[k]*(1+((setup.base&&setup.base.xAtk)||0)/100),set:new Set(teamRot(FIELD.ranges[(F.rng||[])[k]]||[[0,0]],m.dir).map(([dr,dc])=>(m.r+dr)+','+(m.c+dc)))}:null;
     const ea=eaten.get(m); u.hp=ea&&ea.alive?Math.max(1,ea.hp-ea.dmg):u.maxHp;
     u.down=false; u.upAt=0; u.taken=0; u.falls=0; u.healIn=0; u.healOut=0; u.dep=(TEAM.H-1-m.r)*TEAM.W+m.c;
     u.tough=m.elite?TOUGH[m.op.name]||null:null; u.revived=false; u.lastUntil=0; }
@@ -191,7 +196,7 @@ function teamRun(setup){
     u.hIv=Math.max(1,Math.round(((F.bat||[2.85,2.85])[k])/(Math.max(10,100+((setup.base&&setup.base.xAspd)||0))/100)*30))/30;
     u.hBat=(F.bat||[2.85,2.85])[k]; u.hAspd=Math.max(10,100+((setup.base&&setup.base.xAspd)||0));
     u.hN=cls.includes('群愈师')?3:cls.includes('链愈师')?3:1; u.hDecay=cls.includes('链愈师')?0.85:1; u.hT=0;
-    u.hSet=new Set((FIELD.ranges[(F.rng||[])[k]]||[[0,0]]).map(([dr,dc])=>(m.r+dr)+','+(m.c+dc))); }
+    u.hSet=new Set(teamRot(FIELD.ranges[(F.rng||[])[k]]||[[0,0]],m.dir).map(([dr,dc])=>(m.r+dr)+','+(m.c+dc))); }
   const agents=[];
   for(const m of setup.members){ if(m.op.healer)continue;
     // 干员所属、且已激活的核心盟约全部生效
@@ -272,7 +277,7 @@ function teamRun(setup){
     if(best){ e.blockedBy=best; best.blocked.push(e); return true; } return false; };
   const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
   // 范围缓存：每名干员当前用的范围（技能开启时可能变大）
-  const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
+  const rangeSet=a=>{ const on=a.skillOn(), key=on?1:0; a._rk=a._rk||{}; if(!a._rk[key]){ const s=new Set(); for(const [dr,dc] of teamRange(a.m.op,a.m.elite,on,a.si,a.m.dir)) s.add((a.m.r+dr)+','+(a.m.c+dc)); a._rk[key]=s; } return a._rk[key]; };
   // 离终点的距离（索敌用）：地面路线按 PRTS 仇恨——所在格子到终点的寻路距离 + 修正值（所在位置→格子中心的向量在前进方向上的投影）
   const remOf=e=>{ const ln=e.rt.line, i=Math.min(e.seg,ln.length-1); if(i>=ln.length-1) return 0; const nx=ln[i+1].p;
     const L=e.rt.legs&&ln[i+1].leg!=null?e.rt.legs[ln[i+1].leg]:null;
@@ -410,7 +415,7 @@ function teamRun(setup){
   W.canCast=a=>{ if(a.down) return false; const t=a.trig; if(t==='always') return true;
     const live=e=>!(e.dead||e.gone||e.down>W.f);
     if(t==='field') return enemies.some(live);
-    if(!a._trigSet){ a._trigSet=t==='default'?new Set([...rangeSet(a),...keysOf(a,teamRange(a.m.op,a.m.elite,true,a.si))]):keysOf(a,FIELD.ranges[t]||[[0,0]]); }
+    if(!a._trigSet){ a._trigSet=t==='default'?new Set([...rangeSet(a),...keysOf(a,teamRange(a.m.op,a.m.elite,true,a.si,a.m.dir))]):keysOf(a,teamRot(FIELD.ranges[t]||[[0,0]],a.m.dir)); }
     for(const e of enemies) if(live(e)&&(e.blockedBy===a||inSet(a._trigSet,e))) return true;
     return false; };
   W.blocking=a=>a.blocked.length>0;

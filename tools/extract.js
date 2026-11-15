@@ -1,14 +1,17 @@
 // 从游戏数据整理出队伍模拟用的地图、回合、敌人、攻击范围，写到 src/field.js。
 // 用法：node tools/extract.js <游戏数据目录>
 // 目录里需要：activity_table.json character_table.json skill_table.json range_table.json
-//             enemy_database.json char_patch_table.json，以及 lv/ 下的关卡文件：
+//             enemy_database.json enemy_handbook_table.json char_patch_table.json，以及 lv/ 下的关卡文件：
 //             m01.json…（各战场，对应 level_act3autochess_mXX）和 level_act3autochess_*.json（各回合）。
 // 数据取自 https://torappu.prts.wiki/gamedata/latest/ （PRTS 整理的游戏数据）。
 const fs = require('fs'), path = require('path');
 const dir = process.argv[2];
 if (!dir) { console.error('usage: node tools/extract.js <gamedata dir>'); process.exit(1); }
 const J = f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-const act = J('activity_table.json').activity.AUTOCHESS.act3autochess.V3_1;
+const actAll = J('activity_table.json'), act = actAll.activity.AUTOCHESS.act3autochess.V3_1, acd = actAll.autoChessData;
+const hb = (J('enemy_handbook_table.json').enemyData) || {};
+// 每回合普通敌人的成长倍率：官方数据里没有，取自 sganggs/Stronghold-Protocol 的研究整理（tools/enemy-scale.json）
+const SCALE = JSON.parse(fs.readFileSync(path.join(__dirname, 'enemy-scale.json'), 'utf8'));
 const ct = J('character_table.json'), pt = J('char_patch_table.json').patchChars || {};
 const sk = J('skill_table.json'), rg = J('range_table.json');
 const edb = J('enemy_database.json').enemies;
@@ -49,9 +52,29 @@ function enemy(key) {
   if (enemies[key]) return; const e = edb.find(x => x.Key === key); if (!e) throw new Error('no enemy ' + key);
   const g = k => { for (const v of e.Value) { const a = v.enemyData.attributes[k]; if (a && a.m_defined) return a.m_value; } };
   const gd = k => { for (const v of e.Value) { const a = v.enemyData[k]; if (a && a.m_defined) return a.m_value; } };
-  enemies[key] = { name: gd('name'), hp: g('maxHp'), atk: g('atk'), def: g('def') || 0, res: g('magicResistance') || 0,
+  const d0 = e.Value[0].enemyData, bb = {}; for (const b of d0.talentBlackboard || []) bb[b.key] = b.valueStr ?? b.value;
+  const skills = (d0.skills || []).map(s => s.prefabKey);
+  const o = enemies[key] = { name: gd('name'), hp: g('maxHp'), atk: g('atk'), def: g('def') || 0, res: g('magicResistance') || 0,
     spd: g('moveSpeed') || 1, bat: g('baseAttackTime'), mass: g('massLevel') || 0, fly: gd('motion') === 'FLY',
     type: gd('levelType') || 'NORMAL', lp: gd('lifePointReduce') ?? 1, range: gd('rangeRadius') };
+  // 替换数量公式要用的“属性强度”和“战斗效能系数”（官方 randomEnemyAttributeDict）
+  o.P = (g('atk') || 0) * 5 + (g('maxHp') || 0) + (g('def') || 0) * 3 + (g('magicResistance') || 0) * 3;
+  const ra = acd.randomEnemyAttributeDict[key]; o.bef = ra ? ra.enemyBattleEffectivenessFactor : 1;
+  // 图鉴里的能力说明
+  const h = hb[key]; if (h && h.abilityList && h.abilityList.length) o.abt = h.abilityList.map(a => String(a.text || '').replace(/<[^>]+>/g, '')).filter(Boolean);
+  // 能建模的能力
+  const ab = {};
+  if (skills.includes('InvisibleCombat')) ab.camo = 1;
+  if (bb['refracting.magic_resistance']) ab.refract = +bb['refracting.magic_resistance'];
+  if (bb['DeadSpawn.enemy_key']) ab.split = { key: bb['DeadSpawn.enemy_key'], n: +bb['DeadSpawn.cnt'] || 1, delay: 0 };
+  if (bb['deathrattle.enemy_key']) ab.split = { key: bb['deathrattle.enemy_key'], n: 1, delay: +bb['deathrattle.delay'] || 0 };
+  if (bb['reborn.duration'] != null) ab.reborn = +bb['reborn.duration'];
+  // 图鉴写明的：需要 N 次伤害击倒（每次受到伤害只算 1 点）、无法被阻挡
+  const txt = (o.abt || []).join('；'), mh = txt.match(/需要(d+)次伤害击倒/);
+  if (mh) ab.hits = +mh[1];
+  if (/无法被阻挡/.test(txt)) ab.unblock = 1;
+  if (Object.keys(ab).length) o.ab = ab;
+  if (ab.split) enemy(ab.split.key);
 }
 
 // ── 回合 ──────────────────────────────────────────────
@@ -76,6 +99,23 @@ function round(name, boss) {
   const sp = spawns.filter(s => !s.g || s.p === packs[s.g]).map(({ g, p, ...s }) => s).sort((a, b) => a.t - b.t);
   return { T: L.options.maxPlayTime, routes, spawns: sp, mul: L.options.moveMultiplier ?? 0.5 };
 }
+// ── 特训敌人 ──────────────────────────────────────────
+// 官方：每局随机若干种特训类型（联机 3 种、单人 2 种），每种占若干回合（联机 3 个、单人 4 个），其余回合是“特异”。
+// 每回合出怪表里的占位敌人按该回合抽到的特训敌人替换（规则见 sganggs/Stronghold-Protocol 的 docs/DATA.md §10，
+// 据其说明解自游戏客户端 RandomEnemyGenerater）。
+const types = Object.values(acd.enemyTypeDatas).sort((a, b) => a.typeIdentifier - b.typeIdentifier).map(t => {
+  const r = act.specialEnemyRandomTypeDict[t.type] || {};
+  return { id: t.type, name: t.name.replace('特训敌人·', ''), desc: t.description, random: !!t.involveRandom, count: r.count, countSingle: r.countSingle, show: r.showEnemyId };
+});
+const entries = Object.values(act.specialEnemyInfoDict).map(s => {
+  enemy(s.specialEnemyKey); s.attachedNormalEnemyKeys.forEach(enemy); s.attachedEliteEnemyKeys.forEach(enemy);
+  return { key: s.specialEnemyKey, type: s.type, w: s.randomWeight, first: s.isInFirstHalf, N: s.attachedNormalEnemyKeys, E: s.attachedEliteEnemyKeys };
+});
+types.forEach(t => { if (t.show) enemy(t.show); });
+const special = { types, entries, firstHalfMaxRound: 7, minN: 1, maxN: 5, minIv: 0.05,
+  // 出怪表里的占位敌人：N/E/S 地面普通/精英/特殊，NF/EF/SF 空中
+  slots: { enemy_1422_lrsldr: 'N', enemy_1427_lrnazg: 'E', enemy_1425_lrcmra: 'S', enemy_1005_yokai: 'NF', enemy_1042_frostd: 'EF', enemy_1040_bombd: 'SF' } };
+
 const bd = act.battleDataDict.mode_multi_abyss;
 const rounds = [];
 for (let r = 1; r <= 13; r++) { const l = bd[r][0].levelId.split('/').pop(); rounds.push(Object.assign({ n: r, lv: l.replace('level_act3autochess_', '') }, round(l, false))); }
@@ -88,7 +128,12 @@ for (const r of [14, 15]) for (const x of bd[r]) {
 }
 
 // ── 难度 ──────────────────────────────────────────────
-const modes = ['mode_multi_funny', 'mode_multi_normal', 'mode_multi_hard', 'mode_multi_abyss'].map(id => ({ id, name: act.modeDataDict[id].name, factor: act.modeDataDict[id].factor }));
+// 联机四档 + 单人规程等级。scale：每回合普通敌人的 [攻击, 生命, 移速] 倍率（研究整理）
+const modeIds = ['mode_multi_funny', 'mode_multi_normal', 'mode_multi_hard', 'mode_multi_abyss', 'mode_single_funny'].concat([...Array(20)].map((_, i) => 'mode_single_' + (i + 1)));
+const modes = modeIds.filter(id => act.modeDataDict[id] && SCALE.modes[id]).map(id => {
+  const M = act.modeDataDict[id];
+  return { id, name: M.name, single: M.modeType !== 'MULTI', factor: M.factor, scale: SCALE.modes[id].scale, inactive: M.inactiveEnemyKey || [] };
+});
 
 // ── 干员：攻击范围、阻挡数 ────────────────────────────
 const ops = {};
@@ -111,7 +156,7 @@ for (const s of Object.values(act.charShopChessDatas)) {
 // 盟约激活需要的在场人数
 const bonds = {}; for (const b of Object.values(act.bondInfoDict)) bonds[b.name] = b.activeCount;
 
-const out = { maps, rounds, bosses, modes, enemies, ops, ranges, bonds };
+const out = { maps, rounds, bosses, modes, enemies, ops, ranges, bonds, special };
 const js = '// 由 tools/extract.js 生成，不要手改。数据来源：PRTS 整理的游戏数据（卫戍协议·规程 序列 I）。\nconst FIELD = ' + JSON.stringify(out) + ';\n';
 fs.writeFileSync(path.join(__dirname, '..', 'src', 'field.js'), js);
 console.log('maps', maps.length, 'rounds', rounds.length, 'bosses', bosses.length, 'enemies', Object.keys(enemies).length, 'ops', Object.keys(ops).length, 'ranges', Object.keys(ranges).length, 'bytes', js.length);

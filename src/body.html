@@ -157,8 +157,17 @@
             <h3>地图与回合 <span class="en">Stage</span></h3>
             <div class="fcol"><span class="lbl">战场</span><div class="mthumbs" id="tMap" role="group" aria-label="战场"></div></div>
             <div class="fcol"><label for="tRound">回合</label><select id="tRound"></select></div>
-            <div class="segs" id="tMode" role="group" aria-label="难度"><button type="button" data-m="0">标准</button><button type="button" data-m="1">险境</button><button type="button" data-m="2">绝境</button><button type="button" data-m="3">终极</button></div>
+            <div class="fcol"><label for="tMode">难度</label><select id="tMode"></select></div>
             <p class="hint" id="tTok"></p>
+          </div>
+          <div class="g">
+            <h3>特训敌人 <span class="en" id="tSpCount"></span></h3>
+            <div class="fcol"><span class="lbl">本局组合（开局简报里公布的类型）</span><div class="tchips" id="tSpTypes"></div></div>
+            <div class="fcol"><label for="tSpType">本回合</label><select id="tSpType"></select></div>
+            <div class="fcol" id="tSpEntryWrap"><label for="tSpEntry">抽到的特训敌人</label><select id="tSpEntry"></select></div>
+            <div class="pair" id="tSpAtt"></div>
+            <p class="hint" id="tSpHint"></p>
+            <details><summary>替换规则</summary><p class="hint" style="margin-top:6px">开局时 15 个回合随机分给本局的特训类型（联机每种 3 个回合，单人每种 4 个），其余回合是“特异”。每回合出怪表里的六种占位敌人（萨卡兹枯朽前锋、“灵幛”、孽罪奇美拉、妖怪、寒霜、暴鸰）按本回合抽到的敌人替换：普通换普通、精英换精英、特殊换特训敌人；地面、空中与抽到的敌人不同的那一组不出；数量按“攻击×5 + 生命 + 防御×3 + 法抗×3”和官方战斗效能系数折算，限定 1–5 个。规则来自 <a href="https://github.com/sganggs/Stronghold-Protocol">sganggs/Stronghold-Protocol</a> 的研究整理（据其说明解自游戏客户端），特训名单与敌人数据来自官方游戏数据。</p></details>
           </div>
           <div class="g">
             <h3>盟约 <span class="en">Alliances</span></h3>
@@ -211,10 +220,12 @@
       <div class="ph"><h2 id="h-tmethod"><span class="en">Method</span>队伍模拟的口径</h2></div>
       <div class="pb"><ul class="plain">
         <li><b>战场：</b>10 张地图的单人场地取自游戏数据，包括能部署的格子、围栏、高台、阻隔工事、射击台和特殊地块；“实景”底图是 PRTS 收录的游戏截图，格子按透视对齐到截图上（领袖回合用领袖战的机位）。有些图的障碍是随机出现的，可以点格子切换。远程干员可以放在地面格子上，高台和射击台只能放远程干员。</li>
-        <li><b>出怪：</b>每个回合的敌人种类、数量、出场时间和路线取自游戏数据。难度按游戏数据里的系数放大普通敌人的生命（标准 ×1、险境 ×1.2、绝境 ×1.35、终极 ×1.5）；领袖生命按各难度的数值。每局随机加入的“特训敌人”没有计入；随机出怪组固定取第一组。</li>
+        <li><b>出怪：</b>每个回合的敌人种类、数量、出场时间和路线取自游戏数据。出怪表里的占位敌人按本回合的特训敌人替换（规则见左栏“特训敌人”）；普通敌人的强度按难度和回合成长（见下文），领袖生命按各难度的数值；随机出怪组固定取第一组。</li>
         <li><b>行走与阻挡：</b>地面敌人走最短路线（绕开围栏和障碍，斜走时两侧都要能通过），走进干员所在的格子时，如果干员还有阻挡数就被拦下。移动速度按“敌人移速 × 0.5 格/秒”计算。空中敌人沿固定路线飞行，只有远程干员能攻击。领袖战里部分敌人（假想敌：铳、矩兽、“碎铳之簧”等）走到巡逻点后会在几个点之间来回巡逻，不会走向出口。战场下方的“本回合敌人”列表按种类列出数量、生命、防御、法抗、移速和入口，点一种敌人只显示它的路线，回放里其他敌人变淡。</li>
         <li><b>索敌：</b>攻击范围取自游戏数据（朝右），技能改变范围时随技能切换。优先打自己阻挡的敌人，其次是离出口最近的。</li>
         <li><b>共享：</b>元素损伤、元素爆发、麻痹、侵蚀减防、初雪的减防减抗由全队共享；每名干员的伊比利亚叠层、中毒各自计算。盟约按在场人数自动激活，一名干员属于多个已激活的核心盟约时全部生效。萨尔贡的攻速按队友实际开技能的次数叠加；卡西米尔按在场人数计入部署次数；阿戈尔吞噬身前（右边）一格的干员。</li>
+        <li><b>时限与成长：</b>作战阶段强制 2 倍速，关卡里的时限是现实秒数，这里换算成游戏内时间（×2）。普通敌人的攻击、生命、移速按难度和回合成长（例如终极模拟第 13 回合生命约为基础的 8.5 倍），倍率来自 sganggs/Stronghold-Protocol 的研究整理；领袖生命按各难度的固定值。</li>
+        <li><b>敌人能力：</b>已计入隐匿（没被阻挡时不能被选为目标，草丛地块上同样）、折射（法抗 +70）、死后分裂或召唤、复苏（首次倒下后过一段时间满血站起）、按次数击倒（每次受到伤害只算 1 点，生命就是需要的次数）、无法被阻挡。其他能力在敌人列表里列出游戏图鉴的说明，标注“能力未计入”。</li>
         <li><b>第一版的简化：</b>干员不会被敌人打倒；敌人没有特殊能力，只会行走、被阻挡和普通攻击（普通攻击只用来触发麻痹等效果）；召唤物、治疗、给队友的增益光环没有计入。领袖回合超时后战斗继续，最多算到 240 秒。</li>
       </ul></div>
     </section>

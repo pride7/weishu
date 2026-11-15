@@ -486,3 +486,16 @@ footer a{color:var(--accent)}
 .ek .eo .ok{color:var(--s3)}.ek .eo .bad{color:var(--s8)}.ek .eo .mid{color:var(--gold)}
 .ek .eo small{color:var(--fg-3);font-size:11px}
 @media (max-width:480px){.ek{grid-template-columns:34px minmax(0,1fr)}.ek .ef{width:34px;height:34px}.ek .eo{grid-column:2;align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:6px}}
+
+/* 特训敌人 */
+.tchips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.tchip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--fg-2);cursor:pointer;font-size:12px;min-width:0}
+.tchip .tf{width:30px;height:30px;border-radius:50%;overflow:hidden;background:#20262b;display:grid;place-items:center}
+.tchip .tf img{width:100%;height:100%;display:block}
+.tchip .tf b{color:#fff;font-size:12px}
+.tchip:hover{border-color:var(--fg-3);color:var(--fg)}
+.tchip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg);font-weight:600}
+.ek .ei .abt{white-space:normal;color:var(--fg-2);line-height:1.45}
+.ek .ei .abt em{font-style:normal;color:var(--s3);font-weight:600}
+.ek .ei .abt em.no{color:var(--fg-3);font-weight:400}
+.foe.hid{opacity:.45;border-style:dashed}

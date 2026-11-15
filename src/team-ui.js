@@ -5,13 +5,13 @@
   const $=id=>document.getElementById(id);
   const byId=id=>OPS.find(o=>o.id===id);
   const STORE='weishu.team.v1';
-  const TS={map:0,round:'r5',mode:3,tok:{},members:[],L:{},subL:{},cold:50,xAtk:0,xAspd:0,stunt:0,pick:null,sel:null,fi:0,filter:'',q:'',routes:true,real:true};
+  const TS={map:0,round:'r5',mode:'mode_multi_abyss',spTypes:[],spPick:{},tok:{},members:[],L:{},subL:{},cold:50,xAtk:0,xAspd:0,stunt:0,pick:null,sel:null,fi:0,filter:'',q:'',routes:true,real:true};
   // 第一次打开时放一套示例阵容（战场 #01、第 5 回合），之后记住自己的摆放
   let saved=null; try{ saved=JSON.parse(localStorage.getItem(STORE)||'null'); }catch(e){}
-  if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real']){ if(k in saved) TS[k]=saved[k]; }
+  if(saved) for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']){ if(k in saved) TS[k]=saved[k]; }
   else TS.members=[{id:'indigo',r:3,c:4},{id:'bluep',r:2,c:6},{id:'thorn2',r:1,c:6},{id:'thorns',r:0,c:1},{id:'irene',r:3,c:2}];
   TS.members=(TS.members||[]).filter(m=>byId(m.id));
-  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real']) o[k]=TS[k]; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
+  const save=()=>{ try{ const o={}; for(const k of ['map','round','mode','tok','members','L','subL','cold','xAtk','xAspd','stunt','routes','real','spTypes','spPick']) o[k]=TS[k]; localStorage.setItem(STORE,JSON.stringify(o)); }catch(e){} };
   const MAXN=8;
   const curMap=()=>FIELD.maps[TS.map]||FIELD.maps[0];
   const curBoss=()=>TS.round.startsWith('b:')?FIELD.bosses.find(b=>b.id===TS.round.slice(2)):null;
@@ -21,6 +21,24 @@
   const coreName=c=>CORE[c].name;
   const isRanged=o=>!!o.r;
   let res=null, timer=0, playT=0;
+  // 旧版本存的是难度序号，换成编号
+  if(typeof TS.mode==='number') TS.mode=(FIELD.modes[TS.mode]||FIELD.modes[3]).id;
+  const curMode=()=>FIELD.modes.find(m=>m.id===TS.mode)||FIELD.modes[3];
+  const roundNo=()=>curBoss()?curBoss().round:curRound().n;
+  const SPN=()=>curMode().single?2:3;   // 本局特训类型数：联机 3 种，单人 2 种
+  const spType=id=>FIELD.special.types.find(t=>t.id===id);
+  // 某类型在本回合可抽到的特训敌人：前 7 回合用前半程名单，之后用后半程名单；去掉本难度禁用的
+  const spPool=type=>{ const half=roundNo()<=FIELD.special.firstHalfMaxRound, ban=new Set(curMode().inactive||[]);
+    const all=FIELD.special.entries.filter(x=>x.type===type&&!ban.has(x.key)); const h=all.filter(x=>x.first===half); return h.length?h:all; };
+  // 本回合的抽取结果（可手动改）；没设过时用本局组合的第一种，没选组合则是“特异”
+  function curPick(){ const st0=TS.spPick[TS.round]||{}; let type=st0.type||(TS.spTypes[0]||'SPECIAL');
+    if(type==='NONE') return {type};
+    if(!spType(type)) type='SPECIAL';
+    const pool=spPool(type); let x=pool.find(p=>p.key===st0.entry)||pool[0]; if(!x) return {type:'NONE'};
+    const n=x.N.includes(st0.n)?st0.n:x.N[0], e=x.E.includes(st0.e)?st0.e:x.E[0];
+    return {type,entry:x.key,n,e,x,pool}; }
+  const curSp=()=>{ const p=curPick(); return p.type==='NONE'?null:{entry:p.entry,n:p.n,e:p.e}; };
+  const curQueue=()=>teamExpand(curRound(),curSp());
   const EI=(typeof ENEMY_IMG!=='undefined')?ENEMY_IMG:{};
   // 敌人头像；没有图的用名字首字代替
   const foeFace=(key,name)=>EI[key]?`<img src="${EI[key]}" alt="" width="64" height="64">`:`<b>${String(name||'?').replace(/[“”"]/g,'')[0]}</b>`;
@@ -34,7 +52,7 @@
     const base=Object.assign({},st.cp,{own:0,xAtk:+TS.xAtk||0,xAspd:+TS.xAspd||0,stunt:+TS.stunt||0,cold:+TS.cold||0,devour:0,eBat:0});
     const L={}; for(const c in CORE) if(!CORE[c].none) L[c]=TS.L[c]??150;
     const subL={}; for(const s in SUBS) subL[s]=TS.subL[s]??50;
-    return {map:curMap(),round:curBoss()?null:curRound(),boss:curBoss(),mode:FIELD.modes[TS.mode],tok:TS.tok,members,L,subL,base,trace};
+    return {map:curMap(),round:curBoss()?null:curRound(),boss:curBoss(),mode:curMode(),sp:curSp(),tok:TS.tok,members,L,subL,base,trace};
   }
   function run(){ clearTimeout(timer); timer=setTimeout(()=>{ stop(); TS.ef=TS.ef&&enemyKinds().some(k=>k.key===TS.ef)?TS.ef:null; res=TS.members.some(m=>canPlace(byId(m.id),m.r,m.c))?teamRun(setup(true)):null; TS.fi=0; render(); save(); },30); }
 
@@ -93,10 +111,10 @@
       const tip=(cell.obs==='crate'?'阻隔工事':cell.obs==='plat'?'射击台（仅远程）':(TEAM.TILE_NAME[cell.ch]||''))+(cell.opt?'（随机障碍位：点击切换）':'');
       h+=`<button type="button" class="${cls.join(' ')}" data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
     }
-    const routes=[], R0=curRound(), kinds=enemyKinds();
+    const routes=[], R0=curRound(), kinds=enemyKinds(), Q=curQueue();
     const showRoutes=TS.ef||(TS.routes&&(!fr||TS.fi===0));
     if(showRoutes){ const seen=new Map();
-      R0.routes.forEach((rt,i)=>{ const keys=[...new Set(R0.spawns.filter(s=>s.route===i).map(s=>s.key))]; if(!keys.length)return;
+      R0.routes.forEach((rt,i)=>{ const keys=[...new Set(Q.filter(s=>s.route===i).map(s=>s.key))]; if(!keys.length)return;
         if(TS.ef&&!keys.includes(TS.ef))return;
         const t=teamRoute(B,rt), k=JSON.stringify(t.line.map(p=>p.p));
         if(seen.has(k)){ seen.get(k).keys.push(...keys); return; }
@@ -111,9 +129,9 @@
         ov+=`<polyline points="${rt.pts.map(p=>SG.at(p[1],p[0]).map(v=>(v+off).toFixed(1)).join(',')).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''} marker-end="url(#arw)"/>`; });
       ov+='</svg>';
       const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}</span>`}); }
-      if(fr) for(const [uid,y,x,hp,bl] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
+      if(fr) for(const [uid,y,x,hp,bl,hd] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
         const dim=TS.ef&&e.key!==TS.ef;
-        units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
+        units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${hd?' hid':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
       units.sort((a,b)=>a.y-b.y);   // 远的先画，近的盖在上面
       box.className='stagebox'+(pick?' arming':'');
       box.innerHTML=`<div class="stage" data-w="${SG.W}" data-h="${SG.H}" style="width:${SG.W}px;height:${SG.H}px"><img src="${SG.img}" alt="${curMap().name} 游戏内截图" width="${SG.W}" height="${SG.H}"><div class="sgrid" style="width:${GW}px;height:${GH}px;transform:${SG.m3}">${h}</div><div class="sov">${ov}${units.map(u=>u.html).join('')}</div></div>`;
@@ -123,21 +141,23 @@
       let ov='';
       if(routes.length){ ov+='<svg class="routes" viewBox="0 0 900 400" preserveAspectRatio="none" aria-hidden="true">';
         for(const rt of routes){ const c=rcol(rt); ov+=`<polyline points="${rt.pts.map(p=>(X(p[1])*9).toFixed(0)+','+(Y(p[0])*4).toFixed(0)).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''}/>`; } ov+='</svg>'; }
-      if(fr) for(const [uid,y,x,hp,bl] of fr.en){ const e=meta.get(uid)||{};
-        ov+=`<span class="foe${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${TS.ef&&e.key!==TS.ef?' dim':''}" style="left:${X(x).toFixed(2)}%;top:${Y(y).toFixed(2)}%" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`; }
+      if(fr) for(const [uid,y,x,hp,bl,hd] of fr.en){ const e=meta.get(uid)||{};
+        ov+=`<span class="foe${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${hd?' hid':''}${TS.ef&&e.key!==TS.ef?' dim':''}" style="left:${X(x).toFixed(2)}%;top:${Y(y).toFixed(2)}%" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`; }
       box.className='board'+(pick?' arming':''); box.style.height='';
       box.innerHTML=h+`<div class="ov">${ov}</div>`;
     }
     $('tViewMode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',(b.dataset.real==='1')===!!SG));
-    $('tStageCap').textContent=`战场 ${curMap().name} · ${curBoss()?'第 '+curBoss().round+' 回合 · '+curBoss().name:'第 '+curRound().n+' 回合'} · ${FIELD.modes[TS.mode].name}`;
+    $('tStageCap').textContent=`战场 ${curMap().name} · ${curBoss()?'第 '+curBoss().round+' 回合 · '+curBoss().name:'第 '+curRound().n+' 回合'} · ${curMode().name}${curPick().x?' · 特训：'+spType(curPick().type).name:''}`;
   }
   function renderSide(){
     const MI=(typeof MAP_IMG!=='undefined')?MAP_IMG:{};
     $('tMap').innerHTML=FIELD.maps.map((m,i)=>`<button type="button" class="mthumb" data-map="${i}" aria-pressed="${i===TS.map}" title="战场 ${m.name}">${MI[m.id+'_1']?`<img src="${MI[m.id+'_1']}" alt="" width="780" height="360">`:''}<span>${m.name}</span></button>`).join('');
-    const ro=FIELD.rounds.map(r=>`<option value="r${r.n}"${TS.round==='r'+r.n?' selected':''}>第 ${r.n} 回合 · ${r.spawns.reduce((a,s)=>a+s.n,0)} 个敌人 · 限时 ${r.T} 秒</option>`).join('');
+    const ro=FIELD.rounds.map(r=>`<option value="r${r.n}"${TS.round==='r'+r.n?' selected':''}>第 ${r.n} 回合 · 限时 ${r.T*2} 秒</option>`).join('');
     const bo=[14,15].map(n=>`<optgroup label="第 ${n} 回合 · 领袖">${FIELD.bosses.filter(b=>b.round===n).map(b=>`<option value="b:${b.id}"${TS.round==='b:'+b.id?' selected':''}>${b.name}</option>`).join('')}</optgroup>`).join('');
     $('tRound').innerHTML=`<optgroup label="普通回合">${ro}</optgroup>${bo}`;
-    document.querySelectorAll('#tMode button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.m===TS.mode));
+    const grp=(label,list)=>`<optgroup label="${label}">${list.map(m=>`<option value="${m.id}"${m.id===TS.mode?' selected':''}>${m.name}</option>`).join('')}</optgroup>`;
+    $('tMode').innerHTML=grp('联合模拟',FIELD.modes.filter(m=>!m.single))+grp('独立模拟',FIELD.modes.filter(m=>m.single));
+    renderSpecial();
     const B=board(), opts=B.cell.flat().filter(c=>c.opt).length;
     $('tTok').textContent=opts?`这张图有 ${opts} 个随机障碍位（虚线框），游戏里每局可能是阻隔工事、射击台或空地，点击格子切换。`:'';
     // 盟约：按在场阵容自动判定
@@ -212,11 +232,34 @@
       <div class="btnrow"><button type="button" class="btn" data-tdel="1">撤下</button><span class="hint">要移动：选中后点另一个空格子；点另一名干员则互换位置。</span></div>`;
   }
   // 本回合的敌人种类（按出场先后），以及模拟结果里每种敌人的情况
-  function enemyKinds(){ const R=curRound(), boss=curBoss(), fac=FIELD.modes[TS.mode].factor, out=[], idx={};
-    for(const s of R.spawns){ if(!(s.key in idx)){ const d=FIELD.enemies[s.key]; idx[s.key]=out.length;
-        out.push({key:s.key,d,n:0,first:s.t,routes:new Set(),hp:d.type==='BOSS'&&boss?(boss.blood[FIELD.modes[TS.mode].id]||d.hp):d.hp*fac}); }
-      const o=out[idx[s.key]]; o.n+=s.n; o.routes.add(s.route); }
+  function enemyKinds(){ const boss=curBoss(), M=curMode(), sc=teamScale(M,roundNo()), out=[], idx={};
+    const add=(key,t,route,child)=>{ if(!(key in idx)){ const d=FIELD.enemies[key]; idx[key]=out.length;
+        out.push({key,d,n:0,first:t,routes:new Set(),child,hp:d.type==='BOSS'&&boss?(boss.blood[M.id]||d.hp):d.hp*sc[1],spd:d.spd*(d.type==='BOSS'?1:sc[2])}); }
+      const o=out[idx[key]]; o.n++; if(route!=null)o.routes.add(route); };
+    for(const s of curQueue()) add(s.key,s.t,s.route,false);
+    if(res) for(const e of res.enemies) if(e.child&&!(e.key in idx)) add(e.key,e.born,null,true), out[idx[e.key]].n=res.enemies.filter(z=>z.key===e.key).length;
     return out; }
+  // 特训敌人：本局组合、本回合类型和抽到的敌人
+  function renderSpecial(){
+    const types=FIELD.special.types, pick=curPick(), max=SPN(), E=k=>FIELD.enemies[k]||{name:k};
+    TS.spTypes=TS.spTypes.filter(id=>types.some(t=>t.id===id&&t.random)).slice(0,max);
+    $('tSpTypes').innerHTML=types.filter(t=>t.random).map(t=>`<button type="button" class="tchip" data-spt="${t.id}" aria-pressed="${TS.spTypes.includes(t.id)}" title="${t.desc}"><span class="tf">${foeFace(t.show,t.name)}</span><span>${t.name}</span></button>`).join('');
+    $('tSpCount').textContent=`${TS.spTypes.length}/${max}`;
+    const opts=[...TS.spTypes,'SPECIAL'].map(id=>`<option value="${id}"${pick.type===id?' selected':''}>${spType(id).name}${id==='SPECIAL'?'（其余回合）':''}</option>`).join('')
+      +(TS.spTypes.includes(pick.type)||pick.type==='SPECIAL'||pick.type==='NONE'?'':`<option value="${pick.type}" selected>${spType(pick.type).name}</option>`)
+      +`<option value="NONE"${pick.type==='NONE'?' selected':''}>不替换（显示出怪表里的占位敌人）</option>`;
+    $('tSpType').innerHTML=opts;
+    const hasE=!!pick.x;
+    $('tSpEntryWrap').hidden=!hasE; $('tSpAtt').hidden=!hasE;
+    if(hasE){
+      $('tSpEntry').innerHTML=pick.pool.map(x=>`<option value="${x.key}"${x.key===pick.entry?' selected':''}>${E(x.key).name}${x.N.length+x.E.length?' + '+[...new Set(x.N.concat(x.E).map(k=>E(k).name))].join('、'):''}</option>`).join('');
+      const sel=(lab,kind,list,cur)=>`<div class="f"><label>${lab}</label>${list.length>1?`<select data-spa="${kind}">${list.map(k=>`<option value="${k}"${k===cur?' selected':''}>${E(k).name}</option>`).join('')}</select>`:`<span class="muted">${list[0]?E(list[0]).name:'—'}</span>`}</div>`;
+      $('tSpAtt').innerHTML=sel('普通随从','n',pick.x.N,pick.n)+sel('精英随从','e',pick.x.E,pick.e);
+    }
+    $('tSpHint').textContent=pick.type==='NONE'?'出怪表里的萨卡兹枯朽前锋、“灵幛”、孽罪奇美拉、妖怪、寒霜、暴鸰都是占位，实战中会被替换，这里只供对照。'
+      :`第 ${roundNo()} 回合属于${roundNo()<=FIELD.special.firstHalfMaxRound?'前':'后'}半程，从这一档名单里等概率抽一个。${spType(pick.type).desc}。`;
+  }
+  function spSet(patch){ const cur=curPick(); TS.spPick[TS.round]=Object.assign({type:cur.type,entry:cur.entry,n:cur.n,e:cur.e},patch); run(); }
   function renderEnemies(){
     const kinds=enemyKinds(), box=$('tEnemies'); if(!box)return;
     const by={}; if(res) for(const e of res.enemies){ (by[e.key]=by[e.key]||[]).push(e); }
@@ -224,15 +267,17 @@
     const R=curRound(), ent=k=>{ const ss=new Set(); for(const i of k.routes){ const rt=R.routes[i]; if(rt) ss.add(rt.s[0]===TEAM.H-1?'上':rt.s[0]===0?'下':'中'); } return [...ss].join('、'); };
     $('tEnemyHead').textContent=`本回合敌人 · ${kinds.length} 种 ${kinds.reduce((a,k)=>a+k.n,0)} 个`;
     box.innerHTML=kinds.map((k,i)=>{ const d=k.d, list=by[k.key]||[], dead=list.filter(e=>e.deadAt!=null), leak=list.filter(e=>e.leakAt!=null), left=list.length-dead.length-leak.length+(k.n-list.length);
-      const tags=[d.fly?'空中':'地面', d.type==='BOSS'?'领袖':d.type==='ELITE'?'精英':'', R.routes&&[...k.routes].some(r=>R.routes[r]&&R.routes[r].cp.some(c=>c.pm))?'巡逻':''].filter(Boolean);
+      const AB={camo:'隐匿',refract:'折射',split:'死后生成',reborn:'复苏',hits:'按次数击倒',unblock:'无法被阻挡'}, mod=Object.keys(d.ab||{}).map(a=>AB[a]).filter(Boolean);
+      const tags=[d.fly?'空中':'地面', d.type==='BOSS'?'领袖':d.type==='ELITE'?'精英':'', k.child?'由其他敌人生成':'', R.routes&&[...k.routes].some(r=>R.routes[r]&&R.routes[r].cp.some(c=>c.pm))?'巡逻':''].filter(Boolean);
       const life=dead.length?dead.reduce((a,e)=>a+(e.deadAt-e.born),0)/dead.length:null;
       const dmg={}; for(const e of list) for(const a in e.dmgBy) dmg[a]=(dmg[a]||0)+e.dmgBy[a];
       const top=Object.entries(dmg).sort((a,b)=>b[1]-a[1])[0];
       const out=res?[dead.length?`<span class="ok">击倒 ${dead.length}</span>`:'',leak.length?`<span class="bad">漏 ${leak.length}</span>`:'',left>0?`<span class="mid">剩 ${left}</span>`:''].filter(Boolean).join(' '):'';
       return `<button type="button" class="ek" data-ek="${k.key}" aria-pressed="${TS.ef===k.key}" style="--ec:${EC[i%EC.length]}">
         <span class="ef">${foeFace(k.key,d.name)}</span>
-        <span class="ei"><b>${d.name} <small>×${k.n}</small></b><span>${tags.join(' · ')} · ${k.first.toFixed(0)} 秒起 · ${ent(k)}路入口</span>
-          <span class="num">生命 ${fmt(k.hp)} · 防 ${fmt(d.def)} · 抗 ${d.res} · ${(d.spd*R.mul).toFixed(2)} 格/秒</span></span>
+        <span class="ei"><b>${d.name} <small>×${k.n}</small></b><span>${tags.join(' · ')} · ${k.first.toFixed(0)} 秒起${k.routes.size?' · '+ent(k)+'路入口':''}</span>
+          <span class="num">生命 ${fmt(k.hp)} · 防 ${fmt(d.def)} · 抗 ${Math.min(100,d.res+((d.ab&&d.ab.refract)||0))} · ${(k.spd*R.mul).toFixed(2)} 格/秒</span>
+          ${d.abt?`<span class="abt">${d.abt.join('；')}${mod.length?` <em>已计入：${mod.join('、')}</em>`:' <em class="no">能力未计入</em>'}</span>`:''}</span>
         <span class="eo">${out}${life!=null?`<small>平均 ${life.toFixed(1)} 秒倒下</small>`:''}${top&&names[top[0]]?`<small>主要由 ${names[top[0]]} 击杀</small>`:''}</span></button>`; }).join('');
   }
   function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); renderEnemies(); }
@@ -261,8 +306,14 @@
   $('tFilter').addEventListener('click',e=>{ const b=e.target.closest('[data-tf]'); if(!b)return; TS.filter=b.dataset.tf; document.querySelectorAll('#tFilter button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderPalette(); });
   // 换地图、换回合时保留阵容；落在不能部署的格子上的干员标红、暂不参与计算
   $('tMap').addEventListener('click',e=>{ const b=e.target.closest('[data-map]'); if(!b)return; TS.map=+b.dataset.map; TS.tok={}; run(); });
-  $('tRound').addEventListener('change',e=>{ TS.round=e.target.value; run(); });
-  $('tMode').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b)return; TS.mode=+b.dataset.m; run(); });
+  $('tRound').addEventListener('change',e=>{ TS.round=e.target.value; renderSpecial(); run(); });
+  $('tMode').addEventListener('change',e=>{ TS.mode=e.target.value; renderSpecial(); run(); });
+  $('tSpTypes').addEventListener('click',e=>{ const b=e.target.closest('[data-spt]'); if(!b)return; const id=b.dataset.spt;
+    if(TS.spTypes.includes(id)) TS.spTypes=TS.spTypes.filter(x=>x!==id); else { if(TS.spTypes.length>=SPN()) TS.spTypes.shift(); TS.spTypes.push(id); }
+    TS.spPick={}; renderSpecial(); run(); });
+  $('tSpType').addEventListener('change',e=>{ TS.spPick[TS.round]={type:e.target.value}; renderSpecial(); run(); });
+  $('tSpEntry').addEventListener('change',e=>{ spSet({entry:e.target.value,n:null,e:null}); renderSpecial(); });
+  $('tSpAtt').addEventListener('change',e=>{ const s=e.target.closest('[data-spa]'); if(!s)return; spSet({[s.dataset.spa]:s.value}); renderSpecial(); });
   $('tBonds').addEventListener('input',e=>{ const t=e.target; const v=Math.max(0,parseFloat(t.value)||0); if(t.dataset.tl)TS.L[t.dataset.tl]=v; if(t.dataset.ts)TS.subL[t.dataset.ts]=v; clearTimeout(timer); timer=setTimeout(()=>{ res=teamRun(setup(true)); TS.fi=0; renderBoard(); renderResults(); save(); },150); });
   for(const id of ['cold','xAtk','xAspd','stunt']) $('t-'+id).addEventListener('input',e=>{ TS[id]=parseFloat(e.target.value)||0; run(); });
   $('tRoutes').addEventListener('input',e=>{ TS.routes=e.target.checked; renderBoard(); save(); });

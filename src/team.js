@@ -23,6 +23,15 @@ const TRIG_SPECIAL={'塔露拉':{3:'always'},'艾丽妮':{2:'always',3:'always'}
 function teamTrigger(op,si){ const sp=TRIG_SPECIAL[op.name]; if(sp&&sp[si+1]) return sp[si+1];
   if(TRIG_ALWAYS_BRANCH.some(b=>op.cls.includes(b))) return 'always'; return 'default'; }
 
+// 干员受击时的减伤（精锐模组特性与天赋，取自模式内游戏数据）：
+//   physHi 生命高于一半时物理伤害降低；blkDr 受到自身阻挡单位的伤害降低；dr 受到的伤害降低；loDr 生命低于一半时庇护；
+//   defBlk 阻挡时防御力提高；dodgeP 物理闪避（取期望）；healIn 受到的治疗提高；noHeal 不能被友方治疗；
+//   revive 被击倒时不撤退并回复到该比例的生命（每次部署 1 次）；last 受到致命伤时保持 1 点生命若干秒后才倒下
+const TOUGH={'艾丝黛尔':{physHi:0.2},'摆渡人':{physHi:0.2},'斥罪':{blkDr:0.15},'折桠':{blkDr:0.15},'“暴躁铁皮”':{blkDr:0.15},
+  '瑕光':{dr:0.15},'赫拉格':{loDr:0.25},'宴':{loDr:0.25},'拜松':{defBlk:0.2},'泡泡':{defBlk:0.2},'蛇屠箱':{defBlk:0.2},
+  '忍冬':{defBlk:0.08},'青枳':{defBlk:0.08},'杰克':{dodgeP:0.15},'乌尔比安':{healIn:1.2},'赫德雷':{healIn:1.2},
+  '海沫':{noHeal:1},'隐德来希':{noHeal:1},'斯卡蒂':{revive:0.4},'史尔特尔':{last:9}};
+
 // 某张地图、某个回合的场地。tok：会随机出现的障碍的选择 {"r,c": "crate"|"plat"|""}
 function teamBoard(map, boss, tok){
   const rows=boss?map.bossRows:map.rows, toks=boss?map.bossTokens:map.tokens;
@@ -152,7 +161,8 @@ function teamRun(setup){
     u.maxHp=(F.hp||[1,1])[k]*(1+hp/100); u.df=(F.df||[0,0])[k]*(1+df/100); u.res=(F.res||[0,0])[k]; u.rsp=(F.rsp||[70,70])[k]*(subOn('助力')?0.7:1);
     u.jh=bs.includes('聚合')?{atk:m.op.atk[k]*(1+((setup.base&&setup.base.xAtk)||0)/100),set:new Set((FIELD.ranges[(F.rng||[])[k]]||[[0,0]]).map(([dr,dc])=>(m.r+dr)+','+(m.c+dc)))}:null;
     const ea=eaten.get(m); u.hp=ea&&ea.alive?Math.max(1,ea.hp-ea.dmg):u.maxHp;
-    u.down=false; u.upAt=0; u.taken=0; u.falls=0; u.healIn=0; u.healOut=0; u.dep=(TEAM.H-1-m.r)*TEAM.W+m.c; }
+    u.down=false; u.upAt=0; u.taken=0; u.falls=0; u.healIn=0; u.healOut=0; u.dep=(TEAM.H-1-m.r)*TEAM.W+m.c;
+    u.tough=m.elite?TOUGH[m.op.name]||null:null; u.revived=false; u.lastUntil=0; }
   // 医疗干员：每个攻击间隔治疗范围内生命比例最低的友方（群愈师 3 名；链愈师在 3 名之间跳跃，每跳 −15%），治疗量 = 攻击力
   function healInit(u,m){ const F=FIELD.ops[m.op.name]||{}, k=m.elite?1:0, cls=m.op.cls||'';
     u.hAtk=m.op.atk[k]*(1+((setup.base&&setup.base.xAtk)||0)/100);
@@ -240,9 +250,15 @@ function teamRun(setup){
   W.attacksMe=(a,e)=>e.tgt===a;
   // 受到一次敌人攻击；生命归零时倒下，放开阻挡的敌人，按再部署时间返场
   const hurt=(u,e)=>{ const A=e.atk||0; if(!(A>0)||e.dt==='n') return;
-    let d=e.dt==='m'?Math.max(A*(1-u.res/100),A*0.05):Math.max(A-u.df,A*0.05);
+    const T=u.tough||{}, df=u.df*(T.defBlk&&u.blocked&&u.blocked.length?1+T.defBlk:1);
+    if(u.lastUntil>W.f) return;   // 史尔特尔：保持 1 点生命期间不再受伤
+    let d=e.dt==='m'?Math.max(A*(1-u.res/100),A*0.05):Math.max(A-df,A*0.05);
+    if(e.dt!=='m'){ if(T.physHi&&u.hp>u.maxHp/2) d*=1-T.physHi; if(T.dodgeP) d*=1-T.dodgeP; }
+    if(T.dr) d*=1-T.dr; if(T.blkDr&&e.blockedBy===u) d*=1-T.blkDr; if(T.loDr&&u.hp<u.maxHp/2) d*=1-T.loDr;
     if(jhGuard&&onField.some(g=>g.jh&&!g.down&&g.jh.set.has(u.m.r+','+u.m.c))) d*=1-jhGuard;
     u.hp-=d; u.taken+=d;
+    if(u.hp<=0&&T.revive&&!u.revived){ u.revived=true; u.hp=u.maxHp*T.revive; return; }
+    if(u.hp<=0&&T.last&&!u.lastUntil){ u.hp=1; u.lastUntil=W.f+Math.round(T.last*30); return; }
     if(u.hp<=0){ u.hp=0; u.down=true; u.falls++; u.upAt=W.f+Math.round(u.rsp*30);
       for(const z of u.blocked) z.blockedBy=null; u.blocked=[]; if(u.fall) u.fall(); } };
   W.blockedList=(a,n)=>a.blocked.slice(0,n);
@@ -263,7 +279,8 @@ function teamRun(setup){
     for(const a of agents) a.stepA();
     worldSecond(W);
     // 再部署：倒下的干员到时间后满血返场
-    for(const u of onField) if(u.down&&W.f>=u.upAt){ u.down=false; u.hp=u.maxHp; if(u.redeploy) u.redeploy(); }
+    for(const u of onField) if(u.lastUntil&&!u.down&&W.f===u.lastUntil){ u.hp=0; u.down=true; u.falls++; u.upAt=W.f+Math.round(u.rsp*30); for(const z of u.blocked) z.blockedBy=null; u.blocked=[]; if(u.fall) u.fall(); }
+    for(const u of onField) if(u.down&&W.f>=u.upAt){ u.down=false; u.hp=u.maxHp; u.revived=false; u.lastUntil=0; if(u.redeploy) u.redeploy(); }
     // 敌人普通攻击：被阻挡时打阻挡它的干员；远程敌人打射程内最后部署的干员（干员碰撞箱半径 0.25 格）
     for(const e of enemies){ if(e.dead||e.gone||e.down>W.f)continue;
       let tgt=e.blockedBy&&!e.blockedBy.down?e.blockedBy:null;
@@ -271,12 +288,12 @@ function teamRun(setup){
       if(tgt){ e.atkT-=1/30; if(e.atkT<=0){ e.atkT+=e.bat; e.tgt=tgt; const stopped=worldEnemyAttack(W,e); if(HURT&&!stopped) hurt(tgt,e); } } else e.atkT=Math.min(e.atkT,e.bat); }
     // 聚合的每秒回复
     if(HURT&&jhHeal&&W.f%30===29) for(const g of onField){ if(!g.jh||g.down)continue; const amt=g.jh.atk*jhHeal;
-      for(const v of onField){ if(v.down||v.hp>=v.maxHp||!g.jh.set.has(v.m.r+','+v.m.c))continue; const got=Math.min(amt,v.maxHp-v.hp); v.hp+=got; v.healIn+=got; g.healOut+=got; } }
+      for(const v of onField){ if(v.down||v.hp>=v.maxHp||(v.tough&&v.tough.noHeal)||!g.jh.set.has(v.m.r+','+v.m.c))continue; const got=Math.min(amt*((v.tough&&v.tough.healIn)||1),v.maxHp-v.hp); v.hp+=got; v.healIn+=got; g.healOut+=got; } }
     // 治疗
     if(HURT) for(const u of onField){ if(!u.healer||u.down)continue; u.hT-=1/30; if(u.hT>0)continue;
-      const cand=onField.filter(v=>!v.down&&v.hp<v.maxHp&&u.hSet.has(v.m.r+','+v.m.c)).sort((p,q)=>p.hp/p.maxHp-q.hp/q.maxHp);
+      const cand=onField.filter(v=>!v.down&&v.hp<v.maxHp&&!(v.tough&&v.tough.noHeal)&&u.hSet.has(v.m.r+','+v.m.c)).sort((p,q)=>p.hp/p.maxHp-q.hp/q.maxHp);
       if(!cand.length){ u.hT=0; continue; }
-      let amt=u.hAtk; for(const v of cand.slice(0,u.hN)){ const got=Math.min(amt,v.maxHp-v.hp); v.hp+=got; v.healIn+=got; u.healOut+=got; amt*=u.hDecay; }
+      let amt=u.hAtk; for(const v of cand.slice(0,u.hN)){ const got=Math.min(amt*((v.tough&&v.tough.healIn)||1),v.maxHp-v.hp); v.hp+=got; v.healIn+=got; u.healOut+=got; amt*=u.hDecay; }
       u.hT=u.hIv; }
     for(const a of agents) a.stepB();
     // 敌人移动

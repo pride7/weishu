@@ -97,7 +97,7 @@
   function fitStage(){ const box=$('tBoard'), sg=box.querySelector('.stage'); if(!sg)return; const k=box.clientWidth/(+sg.dataset.w);
     sg.style.transform=`scale(${k})`; box.style.height=(+sg.dataset.h*k)+'px'; }
   function renderBoard(){
-    const B=board(), sel=TS.sel&&memberAt(TS.sel[0],TS.sel[1]), pick=TS.pick&&byId(TS.pick);
+    const B=board(), sel=TS.sel&&memberAt(TS.sel[0],TS.sel[1]), pick=(TS.pick||TS.drag)&&byId(TS.pick||TS.drag);
     let rng=new Set();
     if(sel){ const op=byId(sel.id); for(const [dr,dc] of teamRange(op,!!st.elite[op.id],false,teamSkillIndex(op,st.skill[op.id]))) rng.add((sel.r+dr)+','+(sel.c+dc)); }
     const fr=res&&res.frames&&res.frames[TS.fi];
@@ -114,7 +114,7 @@
       const cell=B.cell[r][c], m=memberAt(r,c), dep=B.deploy(r,c);
       const can=pick?(dep===1||(dep===2&&isRanged(pick))):false;
       const cls=['tc','t-'+(TILECLS[cell.ch]||'void')];
-      if(dep) cls.push('dep'); if(cell.obs) cls.push('o-'+cell.obs); if(cell.opt) cls.push('opt');
+      if(dep) cls.push('dep'); if(m) cls.push('has'); if(cell.obs) cls.push('o-'+cell.obs); if(cell.opt) cls.push('opt');
       if(rng.has(r+','+c)) cls.push('inr'); if(can&&!m) cls.push('can');
       if(sel&&sel.r===r&&sel.c===c) cls.push('sel');
       const hv=HC&&HC.cells[r+','+c]; let hstyle='';
@@ -199,7 +199,7 @@
       return `<div class="pg"><span class="en">${U.ROMAN[t]}</span><div class="pl">${l.map(o=>`<button type="button" class="pk${TS.pick===o.id?' armed':''}${used.has(o.id)?' used':''}" data-pick="${o.id}" title="${o.name} · ${o.cls}${o.r?'':' · 近战'}" aria-pressed="${TS.pick===o.id}">${ava(o)}<span>${o.name}</span></button>`).join('')}</div></div>`; }).join('')||'<p class="hint">没有符合的干员。</p>';
     $('tCount').textContent=`${TS.members.length} / ${MAXN}`;
     const bad=TS.members.filter(m=>!canPlace(byId(m.id),m.r,m.c)).map(m=>byId(m.id).name);
-    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子可以放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}。再点一次头像取消。`:'点选干员，再点战场上的格子放置；点场上的干员可以调整技能装备、移动或撤下。');
+    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}；再点一次头像或按 Esc 取消。`:'把下面的干员头像拖到格子上（或先点头像再点格子）；拖动场上的干员可以移动或互换，拖出战场或右键撤下；点场上的干员调整技能和装备。');
   }
   const fmtT=s=>s==null?'—':(s<60?s.toFixed(1)+' 秒':Math.floor(s/60)+' 分 '+(s%60).toFixed(0).padStart(2,'0')+' 秒');
   function renderResults(){
@@ -224,7 +224,7 @@
       if(x.healer) tags.push('<span class="tag">治疗位，不造成伤害</span>');
       if(x.dv) tags.push(`<span class="tag eq">吞噬身前干员 · 基础攻击 +${x.dv.atk}</span>`);
       if(x.eaten) tags.push(`<span class="tag eq">被吞噬 · ${x.eaten.dead?'阵亡':x.eaten.alive?'存活':'复活'}</span>`);
-      const sk=U.skillLabel(o,st.elite[o.id]?1:0); if(sk&&!x.healer) tags.push(`<span class="tag">${sk}</span>`);
+      const sk=U.skillLabel(o,st.elite[o.id]?1:0); if(sk&&!x.healer) tags.push(`<span class="tag">${sk}${x.r&&x.r.casts?' · 开 '+x.r.casts+' 次':''}</span>`);
       if(x.hurt&&x.hurt.cc>=0.5) tags.push(`<span class="tag bad">被晕眩/缴械 ${x.hurt.cc.toFixed(1)} 秒</span>`);
       if(res.hurtOn&&x.hurt){ const H=x.hurt; if(H.falls) tags.push(`<span class="tag bad">倒下 ${H.falls} 次</span>`); if(H.taken) tags.push(`<span class="tag">受到 ${fmt(H.taken)}</span>`); if(H.healOut) tags.push(`<span class="tag ok">治疗 ${fmt(H.healOut)}</span>`); }
       return `<div class="rc${x.healer?' heal':''}${TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c?'':''}" role="button" tabindex="0" data-cell="${x.m.r},${x.m.c}" aria-pressed="${!!(TS.sel&&TS.sel[0]===x.m.r&&TS.sel[1]===x.m.c)}">
@@ -240,7 +240,7 @@
   // 选中的场上干员：技能、装备、移除
   function renderEditor(){
     const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); const box=$('tEdit');
-    if(!m){ box.innerHTML='<p class="hint">点场上的干员，在这里调整精锐、技能和装备。</p>'; return; }
+    box.hidden=!m; if(!m){ box.innerHTML=''; return; }
     const o=byId(m.id), e=!!st.elite[o.id], k=e?1:0, A=ALT[o.id], si=st.skill[o.id];
     let skills='';
     if(A){ const all=[{idx:-1,no:A.def,name:defName(o,k),d:true}].concat(A.list.map((a,i)=>({idx:i,no:a.no,name:a.name}))).sort((x,y)=>x.no-y.no);
@@ -248,12 +248,13 @@
     else skills=`<p class="hint">${o.skill?String(Array.isArray(o.skill)?o.skill[k]:o.skill).split(/[（：]/)[0]:'无'} · 预设干员，技能固定</p>`;
     const opts=cur=>'<option value="">空</option>'+[1,2,3,4,5,6,0].map(t=>{const l=EQUIP.filter(q=>q.t===t); return l.length?`<optgroup label="${t?U.ROMAN[t]+' 阶':'其他'}">${l.map(q=>`<option value="${q.id}"${q.id===cur?' selected':''}>${q.n}</option>`).join('')}</optgroup>`:'';}).join('');
     const eq=st.eq[o.id];
-    box.innerHTML=`<div class="ed-h">${ava(o)}<div><b>${o.name}</b><span>${o.cls}</span></div><button type="button" class="elite" data-tel="1" aria-pressed="${e}">${e?'精锐':'初始'}</button></div>
-      <div class="ed-s"><span class="en">Skill</span>${skills}</div>
-      <div class="ed-s"><span class="en">Equipment</span><div class="eqs">${eq.map((it,i)=>{const q=EQUIP.find(z=>z.id===it.id);return `<div class="eqr"><select data-teq="${i}" aria-label="装备栏 ${i+1}">${opts(it.id)}</select><label class="sw"><input type="checkbox" data-tadv="${i}" ${it.adv?'checked':''} ${!q||q.one?'disabled':''}><i></i><span>进阶</span></label></div>`;}).join('')}</div></div>
-      <div class="ed-s"><div class="f"><label for="tIso">变形同构体</label><select id="tIso" data-tiso="1"><option value="">无</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select></div></div>
-      <div class="ed-s"><span class="en">Placement</span><div class="btnrow"><button type="button" class="btn" data-theat="1">试遍能放的格子</button><span class="hint">把这名干员挪到每个能放的空格子各跑一局，结果标在战场上。</span></div></div>
-      <div class="btnrow"><button type="button" class="btn" data-tdel="1">撤下</button><span class="hint">要移动：选中后点另一个空格子；点另一名干员则互换位置。</span></div>`;
+    const x=res&&res.res.find(z=>z.m.r===m.r&&z.m.c===m.c&&!z.healer), cs=x&&x.r?x.r.casts:0;
+    box.innerHTML=`<div class="ed-h">${ava(o)}<div><b>${o.name}</b><span>${o.cls} · 第 ${TEAM.H-m.r} 行第 ${m.c+1} 列${canPlace(o,m.r,m.c)?'':' · 这格不能放'}</span></div>
+        <button type="button" class="elite" data-tel="1" aria-pressed="${e}" title="切换初始 / 精锐">${e?'精锐':'初始'}</button><button type="button" class="btn" data-tdel="1">撤下</button><button type="button" class="edx" data-tclose="1" aria-label="收起">✕</button></div>
+      <div class="ed-s"><span class="en">Skill${x?` · 本局开了 ${cs} 次`:''}</span>${skills}</div>
+      <div class="ed-g"><div class="ed-s"><span class="en">Equipment</span><div class="eqs">${eq.map((it,i)=>{const q=EQUIP.find(z=>z.id===it.id);return `<div class="eqr"><select data-teq="${i}" aria-label="装备栏 ${i+1}">${opts(it.id)}</select><label class="sw"><input type="checkbox" data-tadv="${i}" ${it.adv?'checked':''} ${!q||q.one?'disabled':''}><i></i><span>进阶</span></label></div>`;}).join('')}</div></div>
+      <div class="ed-s"><span class="en">Isomorph</span><select id="tIso" data-tiso="1" aria-label="变形同构体"><option value="">无变形同构体</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select>
+        <button type="button" class="btn" data-theat="1" title="把这名干员挪到每个能放的空格子各跑一局，结果标在战场上">试遍能放的格子</button></div></div>`;
   }
   // 本回合的敌人种类（按出场先后），以及模拟结果里每种敌人的情况
   function enemyKinds(){ const boss=curBoss(), M=curMode(), sc=teamScale(M,roundNo()), out=[], idx={};
@@ -418,23 +419,51 @@
 
   // ── 交互 ──
   function stop(){ if(playT){ clearInterval(playT); playT=0; } }
-  $('tBoard').addEventListener('click',e=>{ const b=e.target.closest('.tc'); if(!b)return; const r=+b.dataset.r,c=+b.dataset.c, m=memberAt(r,c), B=board(), cell=B.cell[r][c];
-    if(TS.pick){ const op=byId(TS.pick);
-      if(!canPlace(op,r,c))return;
-      if(m){ m.id=op.id; } else { if(TS.members.length>=MAXN)return; TS.members.push({id:op.id,r,c}); }
-      TS.members=TS.members.filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i||(x.r===r&&x.c===c));
+  // 放置：从列表放一名干员（from 为空），或把场上 from 格的干员移到 r,c（有人则互换）。成功返回 true
+  function placeAt(id,from,r,c){ const op=byId(id), m=memberAt(r,c);
+    if(!canPlace(op,r,c)) return flash(`${op.name}${op.r?'':'是近战干员，'}不能放在这一格`);
+    if(from){ const s=memberAt(from[0],from[1]); if(!s||(s.r===r&&s.c===c)) return false;
+      if(m){ if(!canPlace(byId(m.id),s.r,s.c)) return flash(`${byId(m.id).name}不能换到原来的格子`); m.r=s.r; m.c=s.c; }
+      s.r=r; s.c=c; }
+    else { if(m) m.id=op.id;
+      else { const old=TS.members.find(x=>x.id===op.id); if(old){ old.r=r; old.c=c; } else { if(TS.members.length>=MAXN) return flash(`场上最多 ${MAXN} 名干员`); TS.members.push({id:op.id,r,c}); } }
       // 同一名干员只放一次：放到新位置时移走旧的
-      const dup=TS.members.filter(x=>x.id===op.id); if(dup.length>1) TS.members=TS.members.filter(x=>x.id!==op.id||(x.r===r&&x.c===c));
-      TS.sel=[r,c]; TS.pick=null; run(); return; }
-    if(TS.sel&&!(TS.sel[0]===r&&TS.sel[1]===c)){ const s=memberAt(TS.sel[0],TS.sel[1]);
-      if(s){ if(m){ if(canPlace(byId(s.id),r,c)&&canPlace(byId(m.id),s.r,s.c)){ const t=[s.r,s.c]; s.r=r;s.c=c; m.r=t[0]; m.c=t[1]; TS.sel=[r,c]; run(); return; } }
-        else if(canPlace(byId(s.id),r,c)){ s.r=r; s.c=c; TS.sel=[r,c]; run(); return; } } }
+      TS.members=TS.members.filter(x=>x.id!==op.id||(x.r===r&&x.c===c)); }
+    TS.sel=[r,c]; TS.pick=null; run(); return true; }
+  function flash(msg){ const h=$('tHint'); h.textContent=msg; h.classList.add('warn'); clearTimeout(flash.t); flash.t=setTimeout(()=>{ h.classList.remove('warn'); renderPalette(); },2200); return false; }
+  function unplace(m){ TS.members=TS.members.filter(x=>x!==m); if(TS.sel&&TS.sel[0]===m.r&&TS.sel[1]===m.c) TS.sel=null; run(); }
+  $('tBoard').addEventListener('click',e=>{ if(Date.now()-dragEnd<80)return; const b=e.target.closest('.tc'); if(!b)return; const r=+b.dataset.r,c=+b.dataset.c, m=memberAt(r,c), B=board(), cell=B.cell[r][c];
+    if(TS.pick){ placeAt(TS.pick,null,r,c); return; }
+    if(TS.sel&&!(TS.sel[0]===r&&TS.sel[1]===c)&&memberAt(TS.sel[0],TS.sel[1])&&!m&&B.deploy(r,c)){ placeAt(memberAt(TS.sel[0],TS.sel[1]).id,TS.sel,r,c); return; }
     if(m){ TS.sel=(TS.sel&&TS.sel[0]===r&&TS.sel[1]===c)?null:[r,c]; render(); return; }
     if(cell.opt){ const seq=[''].concat(cell.opt), key=r+','+c, cur=TS.tok[key]||''; TS.tok[key]=seq[(seq.indexOf(cur)+1)%seq.length];
       if(TS.tok[key]&&memberAt(r,c)&&!canPlace(byId(memberAt(r,c).id),r,c)) TS.members=TS.members.filter(x=>!(x.r===r&&x.c===c));
       run(); return; }
     TS.sel=null; render(); });
-  $('tPal').addEventListener('click',e=>{ const b=e.target.closest('[data-pick]'); if(!b)return; TS.pick=TS.pick===b.dataset.pick?null:b.dataset.pick; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); });
+  // ── 拖放：列表头像拖到格子上放置；场上干员拖到别的格子移动/互换，拖出战场撤下 ──
+  let drag=null, dragEnd=0;
+  const cellEl=(x,y)=>{ const el=document.elementFromPoint(x,y); return el&&el.closest('#tBoard .tc'); };
+  const inBoard=(x,y)=>{ const q=$('tBoard').getBoundingClientRect(); return x>=q.left&&x<=q.right&&y>=q.top&&y<=q.bottom; };
+  function dragOff(){ if(!drag)return; if(drag.g) drag.g.remove(); if(drag.hov) drag.hov.classList.remove('drop'); document.body.classList.remove('dragging'); drag=null; TS.drag=null; }
+  $('tPal').addEventListener('pointerdown',e=>{ if(e.button!==0||e.pointerType==='touch')return; const b=e.target.closest('[data-pick]'); if(b) drag={id:b.dataset.pick,from:null,x0:e.clientX,y0:e.clientY,pid:e.pointerId}; });
+  $('tBoard').addEventListener('pointerdown',e=>{ if(e.button!==0)return; const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(m) drag={id:m.id,from:[m.r,m.c],x0:e.clientX,y0:e.clientY,pid:e.pointerId}; });
+  document.addEventListener('pointermove',e=>{ if(!drag||e.pointerId!==drag.pid)return;
+    if(!drag.on){ if(Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)<6)return;
+      drag.on=true; stop(); TS.pick=null; TS.drag=drag.id; document.body.classList.add('dragging');
+      drag.g=document.createElement('div'); drag.g.className='dragghost'; drag.g.innerHTML=ava(byId(drag.id)); document.body.appendChild(drag.g); renderBoard(); }
+    e.preventDefault(); drag.g.style.transform=`translate(${e.clientX}px,${e.clientY}px)`;
+    const c=cellEl(e.clientX,e.clientY); if(c!==drag.hov){ if(drag.hov) drag.hov.classList.remove('drop'); drag.hov=c; if(c) c.classList.add('drop'); }
+    drag.g.classList.toggle('out',!!drag.from&&!inBoard(e.clientX,e.clientY)); });
+  document.addEventListener('pointerup',e=>{ if(!drag||e.pointerId!==drag.pid)return; const d=drag; if(!d.on){ drag=null; return; }
+    const c=cellEl(e.clientX,e.clientY), out=!inBoard(e.clientX,e.clientY); dragOff(); dragEnd=Date.now();
+    if(c){ if(!placeAt(d.id,d.from,+c.dataset.r,+c.dataset.c)) renderBoard(); }
+    else if(d.from&&out){ const m=memberAt(d.from[0],d.from[1]); if(m) unplace(m); }
+    else renderBoard(); });
+  document.addEventListener('pointercancel',()=>{ if(drag&&drag.on){ dragOff(); renderBoard(); } else drag=null; });
+  $('teamView').addEventListener('dragstart',e=>e.preventDefault());
+  $('tBoard').addEventListener('contextmenu',e=>{ const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(!m)return; e.preventDefault(); unplace(m); });
+  document.addEventListener('keydown',e=>{ if(e.key!=='Escape'||$('teamView').hidden)return; if(drag&&drag.on){ dragOff(); renderBoard(); return; } if(TS.pick||TS.sel){ TS.pick=null; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); } });
+  $('tPal').addEventListener('click',e=>{ if(Date.now()-dragEnd<80)return; const b=e.target.closest('[data-pick]'); if(!b)return; TS.pick=TS.pick===b.dataset.pick?null:b.dataset.pick; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); });
   $('tQ').addEventListener('input',e=>{ TS.q=e.target.value; renderPalette(); });
   $('tFilter').innerHTML='<button type="button" data-tf="" aria-pressed="true">全部</button>'+Object.keys(CORE).filter(c=>!CORE[c].none).map(c=>`<button type="button" data-tf="${CORE[c].name}" aria-pressed="false">${CORE[c].name}</button>`).join('');
   $('tFilter').addEventListener('click',e=>{ const b=e.target.closest('[data-tf]'); if(!b)return; TS.filter=b.dataset.tf; document.querySelectorAll('#tFilter button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderPalette(); });
@@ -456,12 +485,13 @@
   $('tViewMode').addEventListener('click',e=>{ const b=e.target.closest('[data-real]'); if(!b)return; TS.real=b.dataset.real==='1'; renderBoard(); save(); });
   if(window.ResizeObserver) new ResizeObserver(()=>fitStage()).observe($('tBoard')); else window.addEventListener('resize',fitStage);
   $('tClear').addEventListener('click',()=>{ TS.members=[]; TS.sel=null; TS.pick=null; run(); });
-  $('tList').addEventListener('click',e=>{ const c=e.target.closest('[data-cell]'); if(!c)return; const [r,cc]=c.dataset.cell.split(',').map(Number); TS.sel=[r,cc]; render(); });
+  $('tList').addEventListener('click',e=>{ const c=e.target.closest('[data-cell]'); if(!c)return; const [r,cc]=c.dataset.cell.split(',').map(Number); TS.sel=[r,cc]; render(); const ed=$('tEdit'); if(ed.getBoundingClientRect().bottom<0||ed.getBoundingClientRect().top>innerHeight) ed.scrollIntoView({block:'center',behavior:'smooth'}); });
   $('tEdit').addEventListener('click',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id);
     if(e.target.closest('[data-tel]')){ st.elite[o.id]=!st.elite[o.id]; U.update(); run(); return; }
     const s=e.target.closest('[data-tskill]'); if(s){ st.skill[o.id]=+s.dataset.tskill; U.update(); run(); return; }
     if(e.target.closest('[data-theat]')){ heatRun(); return; }
-    if(e.target.closest('[data-tdel]')){ TS.members=TS.members.filter(x=>x!==m); TS.sel=null; run(); } });
+    if(e.target.closest('[data-tclose]')){ TS.sel=null; renderBoard(); renderEditor(); renderResults(); return; }
+    if(e.target.closest('[data-tdel]')) unplace(m); });
   $('tEdit').addEventListener('change',e=>{ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(!m)return; const o=byId(m.id), el=e.target, it=st.eq[o.id];
     if(el.dataset.teq!=null){ it[+el.dataset.teq]={id:el.value,adv:it[+el.dataset.teq].adv}; }
     else if(el.dataset.tadv!=null){ it[+el.dataset.tadv].adv=el.checked; }

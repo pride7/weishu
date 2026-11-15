@@ -203,20 +203,21 @@
             <input type="range" id="tSlider" min="0" max="0" step="1" value="0" aria-label="回放时间">
             <span class="num muted" id="tTime"></span>
           </div>
-          <div class="enemies"><div class="eh"><b id="tEnemyHead">本回合敌人</b><span class="hint">点一种敌人，只看它的路线和回放</span></div><div class="elist" id="tEnemies"></div></div>
-          <div class="blegend"><span class="muted">实景取自 PRTS 的游戏截图</span><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
-          <p class="hint" id="tHint" style="margin-top:10px"></p>
+          <p class="hint dhint" id="tHint"></p>
         </div>
+        <div class="tedit" id="tEdit" hidden></div>
         <div class="palhead"><input type="search" id="tQ" placeholder="搜索干员" aria-label="搜索干员"><div class="filter" id="tFilter"></div></div>
         <div class="pal" id="tPal"></div>
+        <div class="pb" style="border-top:1px solid var(--line)">
+          <div class="enemies" style="margin-top:0"><div class="eh"><b id="tEnemyHead">本回合敌人</b><span class="hint">点一种敌人，只看它的路线和回放</span></div><div class="elist" id="tEnemies"></div></div>
+          <div class="blegend"><span class="muted">实景取自 PRTS 的游戏截图</span><span><i class="lg-gnd"></i>地面敌人</span><span><i class="lg-fly"></i>空中敌人</span><span><i class="lg-boss"></i>领袖</span><span><i class="lg-in"></i>入口</span><span><i class="lg-out"></i>出口</span><span><i class="lg-hi"></i>高台 / 射击台（仅远程）</span></div>
+        </div>
       </section>
 
       <section class="panel" aria-labelledby="h-tres">
         <div class="ph"><h2 id="h-tres"><span class="en">Result</span>战斗结果</h2><p>按回放结束时统计</p></div>
         <div class="kpis" id="tKpis"></div>
         <div class="list" id="tList"></div>
-        <div class="ph" style="border-top:1px solid var(--line)"><h2><span class="en">Operator</span>选中的干员</h2></div>
-        <div class="pb" id="tEdit"></div>
       </section>
     </div>
 

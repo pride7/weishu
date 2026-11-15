@@ -378,7 +378,7 @@ footer a{color:var(--accent)}
 .palhead{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .palhead input[type=search]{margin:10px 16px 0;background:var(--surface-2);border:1px solid var(--line-2);padding:6px 9px;font:inherit;color:inherit;border-radius:0}
 .palhead .filter{border-bottom:1px solid var(--line)}
-.pal{max-height:430px;overflow:auto;padding:6px 16px 14px}
+.pal{max-height:300px;overflow:auto;padding:6px 16px 14px}
 .pg{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
 .pg:last-child{border-bottom:0}
 .pg>.en{padding-top:12px}
@@ -546,3 +546,27 @@ table.sweep{border-collapse:collapse;width:100%;font-size:13px}
 .tag.bad{color:var(--s8);border-color:currentColor}.tag.ok{color:var(--s3);border-color:currentColor}
 ul.plain ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
 ul.plain ul li::before{width:4px;height:1px;top:.75em}
+/* 摆放：选中干员的编辑条、拖放 */
+.dhint{margin-top:10px}
+.dhint.warn{color:#e5484d;font-weight:600}
+.tedit{padding:12px 16px 14px;border-top:1px solid var(--line);background:var(--surface-2)}
+.tedit .ed-h{flex-wrap:wrap}
+.tedit .ed-h .ava{width:44px;height:44px}
+.tedit .ed-h .btn{padding:4px 10px}
+.edx{background:none;border:0;color:var(--fg-3);font-size:15px;line-height:1;cursor:pointer;padding:6px}
+.edx:hover{color:var(--fg)}
+.ed-g{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0 16px}
+.ed-g .ed-s>select{width:100%}
+.ed-g .ed-s>.btn{align-self:flex-start}
+@media (max-width:560px){.ed-g{grid-template-columns:minmax(0,1fr)}}
+.pk{cursor:grab}
+.tc.has{touch-action:none;cursor:grab}
+.pk img,.tc img,.su img{-webkit-user-drag:none;user-select:none}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
+.dragghost{position:fixed;left:0;top:0;z-index:60;pointer-events:none;width:52px;height:52px;margin:-26px 0 0 -26px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.dragghost .ava{width:52px;height:52px;padding-top:0}
+.dragghost .ava svg{display:none}
+.dragghost.out{opacity:.55}
+.dragghost.out::after{content:"撤下";position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;background:#e5484d;color:#fff;font-size:11px;padding:1px 6px;white-space:nowrap}
+.board .tc.drop{outline:3px solid var(--gold)!important;outline-offset:-3px;opacity:1!important}
+.stagebox .sgrid .tc.drop{background:rgba(240,180,41,.4)!important;outline:3px solid #f0b429!important;outline-offset:-6px}

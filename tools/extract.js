@@ -60,7 +60,8 @@ function round(name, boss) {
   const L = LV(name), dr = boss ? -1 : 0;
   const P = p => [Math.max(0, p.row + dr), p.col];
   const routes = L.routes.map(r => ({ fly: r.motionMode === 'FLY', s: P(r.startPosition), e: P(r.endPosition),
-    cp: r.checkpoints.map(c => c.type === 'MOVE' ? { m: P(c.position) } : c.type === 'WAIT_FOR_SECONDS' ? { w: c.time } : { o: c.type }) }));
+    // MOVE：走到该点；PATROL_MOVE：之后在这些点之间来回巡逻，不再走向终点；WAIT_FOR_SECONDS：原地等待
+    cp: r.checkpoints.map(c => c.type === 'MOVE' ? { m: P(c.position) } : c.type === 'PATROL_MOVE' ? { pm: P(c.position) } : c.type === 'WAIT_FOR_SECONDS' ? { w: c.time } : { o: c.type }) }));
   const spawns = []; const packs = {};
   for (const w of L.waves) { let t0 = w.preDelay || 0;
     for (const fr of w.fragments) { const tf = t0 + (fr.preDelay || 0);

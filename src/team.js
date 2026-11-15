@@ -40,19 +40,22 @@ function teamPath(B,a,b,ignoreObs){
 // 把一条出怪路线变成折线（[行,列] 点列，WAIT 用 {w:秒} 表示）
 function teamRoute(B,route){
   const fixEnd=p=>(B.cell[p[0]]&&B.cell[p[0]][p[1]]&&B.cell[p[0]][p[1]].ch==='E')||route.fly?p:(B.end||p);
-  const wps=[]; for(const c of route.cp){ if(c.m)wps.push({p:c.m}); else if(c.w!=null)wps.push({w:c.w}); }
-  wps.push({p:fixEnd(route.e)});
-  let cur=route.s; const line=[{p:cur}]; let blockedPath=false;
+  // 巡逻点（PATROL_MOVE）：走到第一个巡逻点后在这些点之间循环，不再走向终点
+  const pms=route.cp.filter(c=>c.pm).map(c=>c.pm);
+  const wps=[]; for(const c of route.cp){ if(c.m)wps.push({p:c.m}); else if(c.w!=null)wps.push({w:c.w}); else if(c.pm)break; }
+  if(pms.length){ for(const p of pms) wps.push({p}); wps.push({p:pms[0],close:1}); }
+  else wps.push({p:fixEnd(route.e)});
+  let cur=route.s; const line=[{p:cur}]; let blockedPath=false, loop=null;
   for(const w of wps){
     if(w.w!=null){ line.push({w:w.w,p:cur}); continue; }
-    if(route.fly){ line.push({p:w.p}); cur=w.p; continue; }
-    let seg=teamPath(B,cur,w.p,false); if(!seg){ seg=teamPath(B,cur,w.p,true); blockedPath=true; }   // 被障碍堵死时，敌人会拆掉阻隔工事
-    if(!seg){ line.push({p:w.p}); cur=w.p; continue; }
-    for(let i=1;i<seg.length;i++)line.push({p:seg[i]}); cur=w.p;
+    if(route.fly){ line.push({p:w.p}); cur=w.p; }
+    else { let seg=teamPath(B,cur,w.p,false); if(!seg){ seg=teamPath(B,cur,w.p,true); blockedPath=true; }   // 被障碍堵死时，敌人会拆掉阻隔工事
+      if(!seg){ line.push({p:w.p}); cur=w.p; } else { for(let i=1;i<seg.length;i++)line.push({p:seg[i]}); cur=w.p; } }
+    if(pms.length&&loop==null&&w.p===pms[0]&&!w.close) loop=line.length-1;
   }
-  // 预先算好每个点到终点的剩余路程，用来决定“离出口最近”的索敌优先级
-  let rem=0; for(let i=line.length-1;i>=0;i--){ line[i].rem=rem; if(i>0){ const a=line[i-1].p,b=line[i].p; rem+=Math.hypot(a[0]-b[0],a[1]-b[1]); } }
-  return {line,fly:route.fly,len:rem,blockedPath};
+  // 预先算好每个点到终点的剩余路程，用来决定“离出口最近”的索敌优先级；巡逻的敌人不会走到出口，排在最后
+  let rem=0; for(let i=line.length-1;i>=0;i--){ line[i].rem=loop!=null?50+rem:rem; if(i>0){ const a=line[i-1].p,b=line[i].p; rem+=Math.hypot(a[0]-b[0],a[1]-b[1]); } }
+  return {line,fly:route.fly,len:rem,blockedPath,loop,patrol:pms.length>0};
 }
 
 // 攻击范围（格子偏移，朝右）
@@ -109,7 +112,7 @@ function teamRun(setup){
       boss:!!setup.boss,teamEp:null,blocking:true,
       tileAtk:cell.ch==='i'?20:0,tileAspd:cell.ch==='i'?20:0});
     const A=makeAgent(m.op,m.elite,cfg,Object.assign({trace:!!setup.trace},m.sel),W);
-    A.m=m; A.si=teamSkillIndex(m.op,m.sel.skill); A.blk=m.op.healer?0:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0]; A.blocked=[];
+    A.idx=agents.length; A.m=m; A.si=teamSkillIndex(m.op,m.sel.skill); A.blk=m.op.healer?0:((FIELD.ops[m.op.name]||{}).blk||[1,1])[m.elite?1:0]; A.blocked=[];
     A.ranged=!!m.op.r;
     agents.push(A);
   }
@@ -126,7 +129,7 @@ function teamRun(setup){
     const isBoss=d.type==='BOSS';
     const hp=isBoss&&setup.boss?(setup.boss.blood[mode.id]||d.hp):d.hp*fac;
     const p=rt.line[0].p;
-    const e=newEnemy({uid:uid++,key:q.key,name:d.name,hp,maxHp:hp,def:d.def,res:d.res,boss:isBoss,mass:d.mass,fly:d.fly,spd:d.spd,lp:d.lp,
+    const e=newEnemy({uid:uid++,key:q.key,name:d.name,hp,maxHp:hp,route:q.route,dmgBy:{},def:d.def,res:d.res,boss:isBoss,mass:d.mass,fly:d.fly,spd:d.spd,lp:d.lp,
       bat:d.bat||2,range:d.range,rt,seg:0,y:p[0],x:p[1],wait:0,blockedBy:null,atkT:d.bat||2,born:W.f});
     enemies.push(e); spawned++; };
   const tileOf=e=>[Math.round(e.y),Math.round(e.x)];
@@ -138,8 +141,8 @@ function teamRun(setup){
     for(const e of enemies){ if(e.dead||e.gone)continue; if(e.fly&&!a.ranged)continue; const t=tileOf(e); if(s.has(t[0]+','+t[1])||e.blockedBy===a) out.push(e); }
     out.sort((p,q)=>((q.blockedBy===a)-(p.blockedBy===a))||(remOf(p)-remOf(q))||(p.uid-q.uid));
     return out; };
-  W.deal=(a,e,d)=>{ if(e.dead||e.gone||!(d>0))return 0; const got=Math.min(d,e.hp); e.hp-=d;
-    if(e.hp<=0){ e.dead=true; e.hp=0; killed++; lastKill=W.f; a.killed(); if(e.blockedBy){ const b=e.blockedBy; b.blocked=b.blocked.filter(z=>z!==e); e.blockedBy=null; } }
+  W.deal=(a,e,d)=>{ if(e.dead||e.gone||!(d>0))return 0; const got=Math.min(d,e.hp); e.hp-=d; e.dmgBy[a.idx]=(e.dmgBy[a.idx]||0)+got;
+    if(e.hp<=0){ e.dead=true; e.hp=0; e.deadAt=W.f; e.killer=a.idx; killed++; lastKill=W.f; a.killed(); if(e.blockedBy){ const b=e.blockedBy; b.blocked=b.blocked.filter(z=>z!==e); e.blockedBy=null; } }
     return got; };
   W.blocking=a=>a.blocked.length>0;
   W.blockedBy=(a,e)=>e.blockedBy===a;
@@ -173,7 +176,8 @@ function teamRun(setup){
         if(nx.w!=null&&!nx.done){ e.seg++; e.wait=nx.w; break; }
         const dy=nx.p[0]-e.y, dx=nx.p[1]-e.x, d=Math.hypot(dy,dx);
         if(d<=step){ e.y=nx.p[0]; e.x=nx.p[1]; e.seg++; step-=d; } else { e.y+=dy/d*step; e.x+=dx/d*step; step=0; } }
-      if(e.seg>=ln.length-1&&!(e.wait>0)&&!e.boss){ e.gone=true; leaked+=e.lp; leakedN++; continue; }
+      if(e.seg>=ln.length-1&&e.rt.loop!=null){ e.seg=e.rt.loop; }   // 巡逻：回到巡逻圈起点继续
+      else if(e.seg>=ln.length-1&&!(e.wait>0)&&!e.boss){ e.gone=true; e.leakAt=W.f; leaked+=e.lp; leakedN++; continue; }
       // 阻挡：地面敌人走进干员所在的格子，且该干员还有阻挡数
       if(!e.fly){ const t=tileOf(e); for(const a of onField){ if(a.blk>0&&a.m.r===t[0]&&a.m.c===t[1]&&a.blocked.length<a.blk&&Math.abs(e.y-a.m.r)<0.5&&Math.abs(e.x-a.m.c)<0.5){ e.blockedBy=a; a.blocked.push(e); break; } } }
     }
@@ -189,5 +193,5 @@ function teamRun(setup){
   for(const m of setup.members) if(m.op.healer) res.push({m,healer:true,total:0,dps:0,kills:0});
   return {dur,T,total,spawned,killed,leaked,leakedN,alive:enemies.filter(e=>!e.dead&&!e.gone).length,cleared:killed+leakedN>=total&&enemies.every(e=>e.dead||e.gone),
     clearT:killed?lastKill/30:null,boss:boss?{name:boss.name,hp:boss.maxHp,left:boss.hp,dead:boss.dead,t:boss.dead?dur:null}:null,
-    res,bonds,frames,routes,board:B,enemies:enemies.map(e=>({uid:e.uid,key:e.key,name:e.name,fly:e.fly,boss:e.boss})),eaten:[...eaten.values()]};
+    res,bonds,frames,routes,board:B,enemies:enemies.map(e=>({uid:e.uid,key:e.key,name:e.name,fly:e.fly,boss:e.boss,route:e.route,born:e.born/30,deadAt:e.deadAt!=null?e.deadAt/30:null,leakAt:e.leakAt!=null?e.leakAt/30:null,maxHp:e.maxHp,left:e.hp,dmgBy:e.dmgBy,killer:e.killer})),eaten:[...eaten.values()]};
 }

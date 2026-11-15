@@ -44,6 +44,7 @@ node build.js
 | `src/notes.js` | 各阵营要点 |
 | `src/ui.js`、`src/team-ui.js`、`src/style.css`、`src/body.html` | 界面 |
 | `src/avatars/`、`src/bossimg/` | 干员头像与领袖图片 |
+| `src/enemyimg/` | 敌人头像（PRTS，64px WebP） |
 | `src/mapimg/` | 战场截图（PRTS 收录的游戏截图，裁剪压缩）和格子在截图上的四角坐标 `quad.json` |
 
 `src/field.js` 由游戏数据生成。新赛季需要重新生成时，把 PRTS 的游戏数据（`activity_table`、`character_table`、`skill_table`、`range_table`、`enemy_database`、`char_patch_table`，以及 `levels/activities/act3autochess/` 下的关卡文件）下载到一个目录，再运行：
@@ -56,4 +57,4 @@ node tools/extract.js <游戏数据目录>
 
 干员面板、技能、装备、盟约数值、战场、出怪表与战场截图来自 [PRTS](https://prts.wiki/w/卫戍协议·规程/PRTS盟约记录) 及其整理的游戏数据（赛季「规程·序列 I」，取于 2026-11-15）。
 
-干员头像、领袖图片与战场截图是《明日方舟》的游戏素材，版权归鹰角网络所有。本项目是玩家自制的非官方工具，与鹰角网络无关。
+干员头像、敌人与领袖图片、战场截图是《明日方舟》的游戏素材，版权归鹰角网络所有。本项目是玩家自制的非官方工具，与鹰角网络无关。

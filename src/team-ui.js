@@ -21,6 +21,11 @@
   const coreName=c=>CORE[c].name;
   const isRanged=o=>!!o.r;
   let res=null, timer=0, playT=0;
+  const EI=(typeof ENEMY_IMG!=='undefined')?ENEMY_IMG:{};
+  // 敌人头像；没有图的用名字首字代替
+  const foeFace=(key,name)=>EI[key]?`<img src="${EI[key]}" alt="" width="64" height="64">`:`<b>${String(name||'?').replace(/[“”"]/g,'')[0]}</b>`;
+  // 敌人种类的颜色：同一种敌人在路线和列表里用同一个颜色
+  const EC=['#ff5a5a','#ffa94d','#ffd43b','#69db7c','#38d9a9','#4dabf7','#9775fa','#f783ac','#e599f7','#a9e34b'];
   function canPlace(op,r,c){ const d=board().deploy(r,c); return d===1||(d===2&&isRanged(op)); }
 
   // ── 运行 ──
@@ -31,7 +36,7 @@
     const subL={}; for(const s in SUBS) subL[s]=TS.subL[s]??50;
     return {map:curMap(),round:curBoss()?null:curRound(),boss:curBoss(),mode:FIELD.modes[TS.mode],tok:TS.tok,members,L,subL,base,trace};
   }
-  function run(){ clearTimeout(timer); timer=setTimeout(()=>{ stop(); res=TS.members.some(m=>canPlace(byId(m.id),m.r,m.c))?teamRun(setup(true)):null; TS.fi=0; render(); save(); },30); }
+  function run(){ clearTimeout(timer); timer=setTimeout(()=>{ stop(); TS.ef=TS.ef&&enemyKinds().some(k=>k.key===TS.ef)?TS.ef:null; res=TS.members.some(m=>canPlace(byId(m.id),m.r,m.c))?teamRun(setup(true)):null; TS.fi=0; render(); save(); },30); }
 
   // ── 渲染 ──
   const TILECLS={'.':'road','|':'fence','#':'void','f':'floor','S':'start','T':'start','E':'end','H':'high','i':'infect','m':'mire','g':'grass','u':'speed'};
@@ -88,18 +93,27 @@
       const tip=(cell.obs==='crate'?'阻隔工事':cell.obs==='plat'?'射击台（仅远程）':(TEAM.TILE_NAME[cell.ch]||''))+(cell.opt?'（随机障碍位：点击切换）':'');
       h+=`<button type="button" class="${cls.join(' ')}" data-r="${r}" data-c="${c}" title="${tip}" aria-label="第 ${TEAM.H-r} 行第 ${c+1} 列 ${tip}${m?' '+byId(m.id).name:''}">${inner}</button>`;
     }
-    const routes=[]; if(TS.routes&&(!fr||TS.fi===0)){ const R=curRound(), seen=new Set();
-      for(const rt of R.routes){ const t=teamRoute(B,rt), key=JSON.stringify(t.line.map(p=>p.p)); if(seen.has(key))continue; seen.add(key); routes.push({fly:rt.fly,pts:t.line.map(p=>p.p)}); } }
+    const routes=[], R0=curRound(), kinds=enemyKinds();
+    const showRoutes=TS.ef||(TS.routes&&(!fr||TS.fi===0));
+    if(showRoutes){ const seen=new Map();
+      R0.routes.forEach((rt,i)=>{ const keys=[...new Set(R0.spawns.filter(s=>s.route===i).map(s=>s.key))]; if(!keys.length)return;
+        if(TS.ef&&!keys.includes(TS.ef))return;
+        const t=teamRoute(B,rt), k=JSON.stringify(t.line.map(p=>p.p));
+        if(seen.has(k)){ seen.get(k).keys.push(...keys); return; }
+        const o={fly:rt.fly,pts:t.line.map(p=>p.p),keys:[...keys],patrol:t.patrol}; seen.set(k,o); routes.push(o); }); }
+    const rcol=rt=>TS.ef?EC[kinds.findIndex(x=>x.key===TS.ef)%EC.length]:null;
     const meta=res?new Map(res.enemies.map(e=>[e.uid,e])):null;
     const box=$('tBoard');
     if(SG){
       // 实景：截图 + 透视格子 + 正立的头像与敌人
-      let ov=`<svg class="routes" viewBox="0 0 ${SG.W} ${SG.H}" aria-hidden="true">`;
-      for(const rt of routes) ov+=`<polyline points="${rt.pts.map(p=>SG.at(p[1],p[0]).map(v=>v.toFixed(1)).join(',')).join(' ')}" class="${rt.fly?'fly':'gnd'}"/>`;
+      let ov=`<svg class="routes${TS.ef?' focus':''}" viewBox="0 0 ${SG.W} ${SG.H}" aria-hidden="true"><defs><marker id="arw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>`;
+      routes.forEach((rt,j)=>{ const off=TS.ef?(j-(routes.length-1)/2)*3:0, c=rcol(rt);
+        ov+=`<polyline points="${rt.pts.map(p=>SG.at(p[1],p[0]).map(v=>(v+off).toFixed(1)).join(',')).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''} marker-end="url(#arw)"/>`; });
       ov+='</svg>';
       const units=[]; for(const m of TS.members){ const u=unit(m,m.r,m.c), p=SG.at(m.c,m.r), w=SG.cw(m.c,m.r)*0.74; units.push({y:p[1],html:`<span class="su ${u.cls}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px;height:${w.toFixed(1)}px">${ava(u.op)}</span>`}); }
       if(fr) for(const [uid,y,x,hp,bl] of fr.en){ const e=meta.get(uid)||{}, p=SG.at(x,y), w=SG.cw(Math.max(0,Math.min(8,x)),Math.max(0,Math.min(3,y)))*(e.boss?0.42:0.24);
-        units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${w.toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%"><i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
+        const dim=TS.ef&&e.key!==TS.ef;
+        units.push({y:p[1]+0.1,html:`<span class="foe sf${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${dim?' dim':''}" style="left:${p[0].toFixed(1)}px;top:${p[1].toFixed(1)}px;width:${(w*1.5).toFixed(1)}px" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`}); }
       units.sort((a,b)=>a.y-b.y);   // 远的先画，近的盖在上面
       box.className='stagebox'+(pick?' arming':'');
       box.innerHTML=`<div class="stage" data-w="${SG.W}" data-h="${SG.H}" style="width:${SG.W}px;height:${SG.H}px"><img src="${SG.img}" alt="${curMap().name} 游戏内截图" width="${SG.W}" height="${SG.H}"><div class="sgrid" style="width:${GW}px;height:${GH}px;transform:${SG.m3}">${h}</div><div class="sov">${ov}${units.map(u=>u.html).join('')}</div></div>`;
@@ -108,9 +122,9 @@
       const X=c=>((c+0.5)/TEAM.W*100), Y=r=>((TEAM.H-1-r+0.5)/TEAM.H*100);
       let ov='';
       if(routes.length){ ov+='<svg class="routes" viewBox="0 0 900 400" preserveAspectRatio="none" aria-hidden="true">';
-        for(const rt of routes) ov+=`<polyline points="${rt.pts.map(p=>(X(p[1])*9).toFixed(0)+','+(Y(p[0])*4).toFixed(0)).join(' ')}" class="${rt.fly?'fly':'gnd'}"/>`; ov+='</svg>'; }
+        for(const rt of routes){ const c=rcol(rt); ov+=`<polyline points="${rt.pts.map(p=>(X(p[1])*9).toFixed(0)+','+(Y(p[0])*4).toFixed(0)).join(' ')}" class="${rt.fly?'fly':'gnd'}"${c?` style="stroke:${c}"`:''}/>`; } ov+='</svg>'; }
       if(fr) for(const [uid,y,x,hp,bl] of fr.en){ const e=meta.get(uid)||{};
-        ov+=`<span class="foe${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}" style="left:${X(x).toFixed(2)}%;top:${Y(y).toFixed(2)}%" title="${e.name||''} ${Math.round(hp*100)}%"><i style="width:${(hp*100).toFixed(0)}%"></i></span>`; }
+        ov+=`<span class="foe${e.fly?' fly':''}${e.boss?' boss':''}${bl?' bl':''}${TS.ef&&e.key!==TS.ef?' dim':''}" style="left:${X(x).toFixed(2)}%;top:${Y(y).toFixed(2)}%" title="${e.name||''} ${Math.round(hp*100)}%">${foeFace(e.key,e.name)}<i style="width:${(hp*100).toFixed(0)}%"></i></span>`; }
       box.className='board'+(pick?' arming':''); box.style.height='';
       box.innerHTML=h+`<div class="ov">${ov}</div>`;
     }
@@ -197,7 +211,31 @@
       <div class="ed-s"><div class="f"><label for="tIso">变形同构体</label><select id="tIso" data-tiso="1"><option value="">无</option>${U.XBONDS.filter(b=>!o.bonds.includes(b)).map(b=>`<option value="${b}"${st.bond[o.id]===b?' selected':''}>${b}</option>`).join('')}</select></div></div>
       <div class="btnrow"><button type="button" class="btn" data-tdel="1">撤下</button><span class="hint">要移动：选中后点另一个空格子；点另一名干员则互换位置。</span></div>`;
   }
-  function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); }
+  // 本回合的敌人种类（按出场先后），以及模拟结果里每种敌人的情况
+  function enemyKinds(){ const R=curRound(), boss=curBoss(), fac=FIELD.modes[TS.mode].factor, out=[], idx={};
+    for(const s of R.spawns){ if(!(s.key in idx)){ const d=FIELD.enemies[s.key]; idx[s.key]=out.length;
+        out.push({key:s.key,d,n:0,first:s.t,routes:new Set(),hp:d.type==='BOSS'&&boss?(boss.blood[FIELD.modes[TS.mode].id]||d.hp):d.hp*fac}); }
+      const o=out[idx[s.key]]; o.n+=s.n; o.routes.add(s.route); }
+    return out; }
+  function renderEnemies(){
+    const kinds=enemyKinds(), box=$('tEnemies'); if(!box)return;
+    const by={}; if(res) for(const e of res.enemies){ (by[e.key]=by[e.key]||[]).push(e); }
+    const names=res?res.res.map(x=>x.m.op.name):[];
+    const R=curRound(), ent=k=>{ const ss=new Set(); for(const i of k.routes){ const rt=R.routes[i]; if(rt) ss.add(rt.s[0]===TEAM.H-1?'上':rt.s[0]===0?'下':'中'); } return [...ss].join('、'); };
+    $('tEnemyHead').textContent=`本回合敌人 · ${kinds.length} 种 ${kinds.reduce((a,k)=>a+k.n,0)} 个`;
+    box.innerHTML=kinds.map((k,i)=>{ const d=k.d, list=by[k.key]||[], dead=list.filter(e=>e.deadAt!=null), leak=list.filter(e=>e.leakAt!=null), left=list.length-dead.length-leak.length+(k.n-list.length);
+      const tags=[d.fly?'空中':'地面', d.type==='BOSS'?'领袖':d.type==='ELITE'?'精英':'', R.routes&&[...k.routes].some(r=>R.routes[r]&&R.routes[r].cp.some(c=>c.pm))?'巡逻':''].filter(Boolean);
+      const life=dead.length?dead.reduce((a,e)=>a+(e.deadAt-e.born),0)/dead.length:null;
+      const dmg={}; for(const e of list) for(const a in e.dmgBy) dmg[a]=(dmg[a]||0)+e.dmgBy[a];
+      const top=Object.entries(dmg).sort((a,b)=>b[1]-a[1])[0];
+      const out=res?[dead.length?`<span class="ok">击倒 ${dead.length}</span>`:'',leak.length?`<span class="bad">漏 ${leak.length}</span>`:'',left>0?`<span class="mid">剩 ${left}</span>`:''].filter(Boolean).join(' '):'';
+      return `<button type="button" class="ek" data-ek="${k.key}" aria-pressed="${TS.ef===k.key}" style="--ec:${EC[i%EC.length]}">
+        <span class="ef">${foeFace(k.key,d.name)}</span>
+        <span class="ei"><b>${d.name} <small>×${k.n}</small></b><span>${tags.join(' · ')} · ${k.first.toFixed(0)} 秒起 · ${ent(k)}路入口</span>
+          <span class="num">生命 ${fmt(k.hp)} · 防 ${fmt(d.def)} · 抗 ${d.res} · ${(d.spd*R.mul).toFixed(2)} 格/秒</span></span>
+        <span class="eo">${out}${life!=null?`<small>平均 ${life.toFixed(1)} 秒倒下</small>`:''}${top&&names[top[0]]?`<small>主要由 ${names[top[0]]} 击杀</small>`:''}</span></button>`; }).join('');
+  }
+  function render(){ renderSide(); renderBoard(); renderPalette(); renderResults(); renderEditor(); renderEnemies(); }
 
   // ── 交互 ──
   function stop(){ if(playT){ clearInterval(playT); playT=0; } }
@@ -241,6 +279,7 @@
     else if(el.dataset.tadv!=null){ it[+el.dataset.tadv].adv=el.checked; }
     else if(el.dataset.tiso){ st.bond[o.id]=el.value; }
     U.update(); run(); });
+  $('tEnemies').addEventListener('click',e=>{ const b=e.target.closest('[data-ek]'); if(!b)return; TS.ef=TS.ef===b.dataset.ek?null:b.dataset.ek; renderBoard(); renderEnemies(); });
   $('tSlider').addEventListener('input',e=>{ stop(); TS.fi=+e.target.value; renderBoard(); renderReplay(); });
   $('tPlay').addEventListener('click',()=>{ if(!res||!res.frames)return; if(playT){ stop(); renderReplay(); return; }
     if(TS.fi>=res.frames.length-1) TS.fi=0;

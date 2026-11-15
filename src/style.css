@@ -450,3 +450,39 @@ footer a{color:var(--accent)}
 @media (max-width:1320px) and (min-width:861px){.tlayout .side .pb{display:flex;flex-direction:column}.tlayout .mthumbs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:860px){.tlayout .mthumbs{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .su.bad .ava,.pc.bad .ava{opacity:.45;border-color:#ff5a5a;box-shadow:0 0 0 3px rgba(255,90,90,.6)}
+
+/* 敌人：回放头像与列表 */
+.foe{display:grid;place-items:center;overflow:visible}
+.foe img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.foe b{font-size:9px;line-height:1;color:#fff}
+.foe.sf{width:auto;border-radius:50%;background:#20262b;border:2px solid #fff;padding:0}
+.foe.sf.fly{border-color:#b197fc}
+.foe.sf.boss{border-color:#f0b429;border-width:3px}
+.foe.sf.bl{border-color:#ff5a5a}
+.foe.dim{opacity:.18}
+.foe i{left:5%;bottom:-6px;max-width:90%}
+.board .foe{width:7.5%;background:#20262b}
+.board .foe.boss{width:11%}
+.sov .routes.focus polyline{stroke-width:5;opacity:1;stroke-dasharray:none}
+.ov polyline,.sov polyline{transition:none}
+.enemies{margin-top:12px;border:1px solid var(--line)}
+.enemies .eh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.enemies .eh b{font-size:13px}
+.elist{display:flex;flex-direction:column;max-height:340px;overflow:auto}
+.ek{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 10px;border:0;border-bottom:1px solid var(--line);border-left:4px solid var(--ec);background:transparent;color:var(--fg);text-align:left;cursor:pointer}
+.ek:last-child{border-bottom:0}
+.ek:hover{background:var(--surface-2)}
+.ek[aria-pressed="true"]{background:var(--accent-soft)}
+.ek .ef{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#20262b;display:grid;place-items:center;box-shadow:0 0 0 2px var(--ec)}
+.ek .ef img{width:100%;height:100%;display:block}
+.ek .ef b{color:#fff;font-size:16px}
+.ek .ei{display:flex;flex-direction:column;min-width:0;gap:1px}
+.ek .ei b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ek .ei b small{font-family:var(--num);font-size:13px;color:var(--fg-3);font-weight:600}
+.ek .ei span{font-size:12px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ek .ei .num{font-family:var(--num);font-size:12px;letter-spacing:.02em}
+.ek .eo{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:12px;white-space:nowrap}
+.ek .eo span{font-weight:700}
+.ek .eo .ok{color:var(--s3)}.ek .eo .bad{color:var(--s8)}.ek .eo .mid{color:var(--gold)}
+.ek .eo small{color:var(--fg-3);font-size:11px}
+@media (max-width:480px){.ek{grid-template-columns:34px minmax(0,1fr)}.ek .ef{width:34px;height:34px}.ek .eo{grid-column:2;align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:6px}}

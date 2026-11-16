@@ -578,3 +578,14 @@ body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
 .fdir.d3{top:100%;left:50%;margin:-3px 0 0 -6px;border-top:8px solid #f0b429;border-bottom-width:0}
 .tc .pc .fdir.d3{margin-top:-6px}
 .seg.dirs button em{font-style:normal;font-size:15px}
+/* 选朝向的方向圈（放下干员后出现） */
+body.aiming{touch-action:none}
+body.aiming #tBoard{cursor:crosshair}
+.aimov{position:fixed;left:0;top:0;z-index:55;width:0;height:0;pointer-events:none}
+.aimov svg{position:absolute;left:0;top:0;transform:translate(-50%,-50%);overflow:visible;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.aimov path{fill:rgba(20,24,30,.45);stroke:rgba(255,255,255,.55);stroke-width:1.5}
+.aimov path.on{fill:rgba(240,180,41,.55);stroke:#f0b429}
+.aimov path.ar{fill:rgba(255,255,255,.75);stroke:none}
+.aimov path.ar.on{fill:#fff}
+.aimx{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;border:2px solid #fff;background:#e5484d;color:#fff;font-size:14px;line-height:1;cursor:pointer;pointer-events:auto;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.aimtip{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;background:rgba(20,24,30,.85);color:#fff;font-size:12px;padding:3px 8px;pointer-events:none}

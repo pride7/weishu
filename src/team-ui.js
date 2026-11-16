@@ -201,7 +201,7 @@
       return `<div class="pg"><span class="en">${U.ROMAN[t]}</span><div class="pl">${l.map(o=>`<button type="button" class="pk${TS.pick===o.id?' armed':''}${used.has(o.id)?' used':''}" data-pick="${o.id}" title="${o.name} · ${o.cls}${o.r?'':' · 近战'}" aria-pressed="${TS.pick===o.id}">${ava(o)}<span>${o.name}</span></button>`).join('')}</div></div>`; }).join('')||'<p class="hint">没有符合的干员。</p>';
     $('tCount').textContent=`${TS.members.length} / ${MAXN}`;
     const bad=TS.members.filter(m=>!canPlace(byId(m.id),m.r,m.c)).map(m=>byId(m.id).name);
-    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}；再点一次头像或按 Esc 取消。`:'把下面的干员头像拖到格子上（或先点头像再点格子）；拖动场上的干员可以移动或互换，拖出战场或右键撤下；点场上的干员调整朝向、技能和装备。');
+    $('tHint').textContent=(bad.length?`${bad.join('、')} 所在的格子在这张图上不能部署（标红），暂不参与计算，请移动到别的格子。`:'')+(TS.pick?`已选中 ${byId(TS.pick).name}，点亮着的格子放置${byId(TS.pick).r?'':'（近战干员不能上高台和射击台）'}；再点一次头像或按 Esc 取消。`:'把下面的干员头像拖到格子上（或先点头像再点格子）；拖动场上的干员可以移动或互换，拖出战场或右键撤下。放下后像游戏里一样拖向一个方向选朝向；双击场上的干员可以重新选朝向。');
   }
   const fmtT=s=>s==null?'—':(s<60?s.toFixed(1)+' 秒':Math.floor(s/60)+' 分 '+(s%60).toFixed(0).padStart(2,'0')+' 秒');
   function renderResults(){
@@ -423,7 +423,7 @@
   // ── 交互 ──
   function stop(){ if(playT){ clearInterval(playT); playT=0; } }
   // 放置：从列表放一名干员（from 为空），或把场上 from 格的干员移到 r,c（有人则互换）。成功返回 true
-  function placeAt(id,from,r,c){ const op=byId(id), m=memberAt(r,c);
+  function placeAt(id,from,r,c){ const op=byId(id), m=memberAt(r,c), prev=JSON.stringify(TS.members), swap=!!(from&&m);
     if(!canPlace(op,r,c)) return flash(`${op.name}${op.r?'':'是近战干员，'}不能放在这一格`);
     if(from){ const s=memberAt(from[0],from[1]); if(!s||(s.r===r&&s.c===c)) return false;
       if(m){ if(!canPlace(byId(m.id),s.r,s.c)) return flash(`${byId(m.id).name}不能换到原来的格子`); m.r=s.r; m.c=s.c; }
@@ -432,7 +432,30 @@
       else { const old=TS.members.find(x=>x.id===op.id); if(old){ old.r=r; old.c=c; } else { if(TS.members.length>=MAXN) return flash(`场上最多 ${MAXN} 名干员`); TS.members.push({id:op.id,r,c,d:0}); } }
       // 同一名干员只放一次：放到新位置时移走旧的
       TS.members=TS.members.filter(x=>x.id!==op.id||(x.r===r&&x.c===c)); }
-    TS.sel=[r,c]; TS.pick=null; run(); return true; }
+    TS.sel=[r,c]; TS.pick=null; if(swap) run(); else aimStart(r,c,prev); return true; }
+  // ── 选朝向（仿游戏）：放下后在干员周围出现方向圈，按住往一个方向拖（或鼠标指过去）松开确定；✕ / Esc / 右键取消放置 ──
+  let aim=null;
+  function aimStart(r,c,prev){ stop(); aim={r,c,prev,armed:false}; document.body.classList.add('aiming'); renderBoard(); renderPalette(); renderEditor(); aimDraw(); }
+  function aimCell(){ return aim&&document.querySelector(`#tBoard .tc[data-r="${aim.r}"][data-c="${aim.c}"]`); }
+  function aimDraw(){ if(!aim)return; const m=memberAt(aim.r,aim.c), el=aimCell(); if(!m||!el){ aimEnd(true); return; }
+    let ov=$('tAim'); if(!ov){ ov=document.createElement('div'); ov.id='tAim'; ov.className='aimov'; document.body.appendChild(ov);
+      ov.addEventListener('pointerdown',e=>{ if(e.target.closest('.aimx')){ e.stopPropagation(); e.preventDefault(); aimEnd(false); } }); }
+    const q=el.getBoundingClientRect(), cx=q.left+q.width/2, cy=q.top+q.height/2, R=Math.max(54,Math.min(96,q.width*1.15)), d=m.d||0;
+    // 四个方向的扇形（右、上、左、下 = 0、1、2、3），当前方向高亮
+    const seg=k=>{ const a=-k*90, p=(ang,rr)=>[Math.cos(ang*Math.PI/180)*rr,Math.sin(ang*Math.PI/180)*rr].map(v=>v.toFixed(1)).join(',');
+      return `<path class="${k===d?'on':''}" d="M${p(a-38,R*0.42)} L${p(a-38,R)} A${R},${R} 0 0 1 ${p(a+38,R)} L${p(a+38,R*0.42)} A${R*0.42},${R*0.42} 0 0 0 ${p(a-38,R*0.42)}Z"/><path class="ar${k===d?' on':''}" d="M${p(a,R*0.93)} L${p(a-14,R*0.68)} L${p(a+14,R*0.68)}Z"/>`; };
+    ov.style.left=cx+'px'; ov.style.top=cy+'px';
+    ov.innerHTML=`<svg width="${R*2}" height="${R*2}" viewBox="${-R} ${-R} ${R*2} ${R*2}" aria-hidden="true">${[0,1,2,3].map(seg).join('')}</svg><button type="button" class="aimx" aria-label="取消放置" style="transform:translate(${(R*0.78).toFixed(0)}px,${(-R*0.78).toFixed(0)}px)">✕</button><span class="aimtip" style="top:${R+8}px">朝${DIRN[d]} · 拖向一个方向松开确定</span>`; }
+  function aimPoint(x,y){ const m=aim&&memberAt(aim.r,aim.c), el=aimCell(); if(!m||!el)return; const q=el.getBoundingClientRect(), dx=x-(q.left+q.width/2), dy=y-(q.top+q.height/2);
+    if(Math.hypot(dx,dy)<q.width*0.3) return; const d=Math.abs(dx)>=Math.abs(dy)?(dx>0?0:2):(dy<0?1:3);
+    if(d!==(m.d||0)){ m.d=d; renderBoard(); renderEditor(); aimDraw(); } }
+  // ok=false：取消，恢复放置前的阵容
+  function aimEnd(ok){ if(!aim)return; const a=aim; aim=null; document.body.classList.remove('aiming'); const ov=$('tAim'); if(ov) ov.remove(); dragEnd=Date.now();
+    if(!ok){ TS.members=JSON.parse(a.prev); TS.sel=null; } run(); }
+  document.addEventListener('pointerdown',e=>{ if(!aim||e.target.closest('.aimx'))return; aim.armed=true; e.preventDefault(); aimPoint(e.clientX,e.clientY); },true);
+  document.addEventListener('pointermove',e=>{ if(aim) aimPoint(e.clientX,e.clientY); });
+  document.addEventListener('pointerup',e=>{ if(aim&&aim.armed){ aimPoint(e.clientX,e.clientY); aimEnd(true); } });
+  window.addEventListener('scroll',()=>aimDraw(),{passive:true}); window.addEventListener('resize',()=>aimDraw());
   function flash(msg){ const h=$('tHint'); h.textContent=msg; h.classList.add('warn'); clearTimeout(flash.t); flash.t=setTimeout(()=>{ h.classList.remove('warn'); renderPalette(); },2200); return false; }
   function unplace(m){ TS.members=TS.members.filter(x=>x!==m); if(TS.sel&&TS.sel[0]===m.r&&TS.sel[1]===m.c) TS.sel=null; run(); }
   $('tBoard').addEventListener('click',e=>{ if(Date.now()-dragEnd<80)return; const b=e.target.closest('.tc'); if(!b)return; const r=+b.dataset.r,c=+b.dataset.c, m=memberAt(r,c), B=board(), cell=B.cell[r][c];
@@ -464,10 +487,13 @@
     else renderBoard(); });
   document.addEventListener('pointercancel',()=>{ if(drag&&drag.on){ dragOff(); renderBoard(); } else drag=null; });
   $('teamView').addEventListener('dragstart',e=>e.preventDefault());
-  $('tBoard').addEventListener('contextmenu',e=>{ const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(!m)return; e.preventDefault(); unplace(m); });
+  $('tBoard').addEventListener('dblclick',e=>{ const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(!m||aim)return; TS.sel=[m.r,m.c]; aimStart(m.r,m.c,JSON.stringify(TS.members)); });
+  document.addEventListener('contextmenu',e=>{ if(aim){ e.preventDefault(); aimEnd(false); } },true);
+  $('tBoard').addEventListener('contextmenu',e=>{ if(e.defaultPrevented)return; const b=e.target.closest('.tc'); const m=b&&memberAt(+b.dataset.r,+b.dataset.c); if(!m)return; e.preventDefault(); unplace(m); });
   document.addEventListener('keydown',e=>{ if($('teamView').hidden)return;
-    if((e.key==='r'||e.key==='R')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test((e.target.tagName||''))){ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(m){ e.preventDefault(); m.d=((m.d||0)+(e.shiftKey?1:3))%4; run(); } return; }
-    if(e.key!=='Escape')return; if(drag&&drag.on){ dragOff(); renderBoard(); return; } if(TS.pick||TS.sel){ TS.pick=null; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); } });
+    if((e.key==='r'||e.key==='R')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test((e.target.tagName||''))){ const m=TS.sel&&memberAt(TS.sel[0],TS.sel[1]); if(m){ e.preventDefault(); m.d=((m.d||0)+(e.shiftKey?1:3))%4; if(aim){ renderBoard(); renderEditor(); aimDraw(); } else run(); } return; }
+    if(e.key==='Enter'&&aim){ aimEnd(true); return; }
+    if(e.key!=='Escape')return; if(aim){ aimEnd(false); return; } if(drag&&drag.on){ dragOff(); renderBoard(); return; } if(TS.pick||TS.sel){ TS.pick=null; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); } });
   $('tPal').addEventListener('click',e=>{ if(Date.now()-dragEnd<80)return; const b=e.target.closest('[data-pick]'); if(!b)return; TS.pick=TS.pick===b.dataset.pick?null:b.dataset.pick; TS.sel=null; renderBoard(); renderPalette(); renderEditor(); });
   $('tQ').addEventListener('input',e=>{ TS.q=e.target.value; renderPalette(); });
   $('tFilter').innerHTML='<button type="button" data-tf="" aria-pressed="true">全部</button>'+Object.keys(CORE).filter(c=>!CORE[c].none).map(c=>`<button type="button" data-tf="${CORE[c].name}" aria-pressed="false">${CORE[c].name}</button>`).join('');

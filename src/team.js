@@ -229,6 +229,7 @@ function teamRun(setup){
   const zones=[];   // 地面区域：污染秽蚀、毒雾 {y,x,r,until,fn}
   const live=e=>!(e.dead||e.gone), act=e=>live(e)&&!(e.down>W.f);
   const dEE=(a,b)=>Math.hypot(a.y-b.y,a.x-b.x), dEU=(e,u)=>Math.hypot(e.y-u.m.r,e.x-u.m.c);
+  W.dist=(a,e)=>dEU(e,a);   // 干员到敌人的距离（格），精准狙击镜按它判定
   // 确定性的“随机”：按敌人编号取值，同一布置每次结果相同，多只时比例接近概率
   const rnd=n=>{ let x=Math.imul((n+1)>>>0,2654435761)>>>0; x^=x>>>15; x=Math.imul(x,2246822519)>>>0; x^=x>>>13; return (x>>>0)/4294967296; };
   const pick=(opts,r)=>{ let s=0; for(const [k,p] of opts){ s+=p; if(r<s) return k; } return opts[opts.length-1][0]; };

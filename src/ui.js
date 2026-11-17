@@ -80,7 +80,7 @@
   function cfg(){ return Object.assign({core:st.core,L:Math.max(0,num('Ln',0)),bondOn:$('bondOn').checked,six:$('six').checked&&$('bondOn').checked,
     own:num('own',0),xAtk:num('xAtk',0),xAspd:num('xAspd',0),def:Math.max(0,num('def',0)),res:Math.max(0,Math.min(100,num('res',0))),
     T:Math.max(3,Math.min(240,num('T',30))),N:Math.max(1,Math.min(8,num('N',1))),ranged:$('ranged').checked,heavy:$('heavy').checked,
-    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0,eBat:Math.max(0,num('eBat',3)),
+    blocking:$('blocking').checked,melee:$('melee').checked,stunt:num('stunt',0),sub:st.sub,noLev:!!(curBoss()&&!curBoss().lev),boss:!!curBoss(),bossMass:curBoss()?curBoss().mass:0,eBat:Math.max(0,num('eBat',3)),far:$('far').value.trim()===''?-1:Math.max(0,Math.min(100,num('far',0))),
     teamEp:{n:Math.max(0,num('teN',0)),f:Math.max(0,num('teF',0)),d:Math.max(0,num('teD',0)),w:Math.max(0,num('teW',0))}},st.cp); }
   // 领袖
   const curBoss=()=>BOSSES.find(b=>b.id===$('boss').value)||null;

@@ -379,11 +379,15 @@ function makeAgent(op0, elite, cfg, sel, W){
   if(sb('灵巧')) sAspd+=10+subOf('灵巧').L;
   if(raid&&raid.L>=50) sAspd+=50;
   if(sixC('lethania')) sAspd+=20;
-  let dmMul=(V(op.dm,k)||1)*(fx.dm||1)*E.dm*(op.r?E.rdm:1);
+  let dmMul=(V(op.dm,k)||1)*(fx.dm||1)*E.dm;
   const weak=op.weak||E.weak, brDm=(V(op.burstDm,k)||1)*(1+E.brDm);   // brDm：对元素爆发期间的敌人的伤害倍率
   if(isC('victoria')&&E.n>0) dmMul*=1.25+0.008*Lc('victoria');
   if(isC('kjerag')) dmMul*=1.25*(1+(cfg.cold/100)*(0.35+0.01*Lc('kjerag')));
   if(sb('协防干员')) dmMul*=k?1.4:1.2;
+  // 精准狙击镜：目标离自己 ≥3 格时伤害 ×1.3/×1.5（游戏数据 radius 3.0）。队伍模拟按每次伤害时的实际距离判定；
+  // 单人排行按“目标在 3 格外的时间占比”取期望，没填时用攻击范围里离自己 ≥3 格的格子占比估算
+  const farP=E.rdm===1||W.dist?0:farShare(op0,k,sel.skill,cfg.far);
+  const farMul=e=>E.rdm===1?1:W.dist?(W.dist(A,e)>=3-1e-6?E.rdm:1):1+(E.rdm-1)*farP;
   const baseAtk=op.atk[k]+(isC('egir')?(cfg.devour||0)+(dv&&!eaten?dv.atk:0):0);
   const sirF=isC('siracusa')?(32+0.4*Lc('siracusa'))*30:0, sirAspd=25+0.8*Lc('siracusa');
   const sgDur=isC('sargon')?5+0.22*Lc('sargon'):0;
@@ -450,7 +454,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     else if(weak) d=Math.max(ph(),mg());
     else d=t==='p'?ph():mg();
     const fm=flagMul();
-    d*=dmMul*fxDm()*(b.dm||1)*fm;
+    const fr=farMul(e);
+    d*=dmMul*fxDm()*(b.dm||1)*fm*fr;
     if(brDm!==1&&inBurst(W,e))d*=brDm;
     // dmBoss：[倍率, 秒]，领袖在场若干秒后受到本干员的伤害提高（蕾缪安的“通缉”）
     if(op.dmBoss&&e.boss&&W.f>=op.dmBoss[1]*30)d*=V(op.dmBoss[0],k);
@@ -458,8 +463,8 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(g==='direct'&&!o.indirect)my(e).mark=W.f;
     // epAll：造成的每一份法术伤害都附带一定比例的元素损伤（塔露拉、黑键模组）
     if(op.epAll&&t==='m'&&o.fixed==null&&V(op.epAll.r,k))x.erode(e,d*w*V(op.epAll.r,k),op.epAll.t);
-    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fxDm()*fm*w,e,E.xt&&!E.xm?'t':'m'); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
-    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*fxDm()*w,e,'m'); if(cfg.indirect)proc(e,w,Atk);}
+    if(!o.noArc&&(E.xm||E.xt)){ add('extra',(Math.max(Atk*E.xm*rm,Atk*E.xm*0.05)+Atk*E.xt)*dmMul*fxDm()*fm*fr*w,e,E.xt&&!E.xm?'t':'m'); if(E.xm&&cfg.indirect)proc(e,w,Atk); }
+    if(arcC&&!o.noArc){add('extra',Math.max(Atk*arcC*rm,Atk*arcC*0.05)*dmMul*fxDm()*fr*w,e,'m'); if(cfg.indirect)proc(e,w,Atk);}
     if(!o.indirect||cfg.indirect)proc(e,w,Atk);
     return d*w; };
   x.poison=(i,dur)=>{ const e=R(i); if(!e)return; const s=my(e); if(s.poiEnd<W.f)s.poiF=0; s.poiEnd=W.f+(dur||93); };
@@ -525,11 +530,18 @@ function makeAgent(op0, elite, cfg, sel, W){
     if(sixC('sargon')&&S.sand!=null&&f>S.sand&&(f-S.sand)%150===0)for(const e of tl)add('bond',(5000+25*Lc('sargon'))*rm0(e),e);
     for(const e of W.enemies){ const s=mine.get(e); if(!s||e.dead)continue;
       if(s.poiEnd>=f){s.poiF++; if(s.poiF%30===0){ if(m.poisonTick)m.poisonTick(x,e); else x.hit(e,'magic',0,'extra',{fixed:m.poison(k,cfg),indirect:true,noArc:true}); }}
-      if(s.st>0){ if(s.end<f){s.st=0;} else {s.dotF++; if(s.dotF%30===0)add('bond',s.st*dotC*atkNow()*rmD(e)*(cfg.dotOwn?dmMul*fxDm()*(buffs().dm||1)*flagMul():1),e);} }
+      if(s.st>0){ if(s.end<f){s.st=0;} else {s.dotF++; if(s.dotF%30===0)add('bond',s.st*dotC*atkNow()*rmD(e)*(cfg.dotOwn?dmMul*fxDm()*(buffs().dm||1)*flagMul()*farMul(e):1),e);} }
     } };
   A.result=Tlen=>{ const total=parts.direct+parts.bond+parts.extra;
     return {dps:total/Tlen,main:main/Tlen,total,parts:{direct:parts.direct/Tlen,bond:parts.bond/Tlen,extra:parts.extra/Tlen},atk:Math.round(atkNow()),full,iv:x.interval(),sec,on:onArr,casts:S.castN,ep:!!(m.ep||op.elem||S.bursts),bursts:S.bursts||0,eaten,dead,kills}; };
   return A;
+}
+
+// 精准狙击镜在单人排行里的生效比例：填了就用填的（%），否则按攻击范围里离自己 ≥3 格的格子占比估算
+function farShare(op,k,skill,far){
+  if(far!=null&&far>=0) return Math.min(100,far)/100;
+  const cells=teamRange(op,!!k,false,teamSkillIndex(op,skill),0); if(!cells.length) return 0;
+  return cells.filter(([r,c])=>Math.hypot(r,c)>=3-1e-6).length/cells.length;
 }
 
 // 单人排行：一名干员对 N 个不会死、不会动、一直在范围里的目标
